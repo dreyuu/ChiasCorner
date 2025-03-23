@@ -1,0 +1,116 @@
+/* Table */
+.wrapper {
+    margin-top: 6%;
+}
+
+.table-container {
+    display: flex;
+    justify-content: center;
+}
+
+table {
+    width: 70%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+th,
+td {
+    padding: 15px;
+    text-align: center;
+    background: rgba(255, 212, 40, 0.3);
+}
+
+tbody tr:hover {
+    background: rgba(255, 212, 40, 0.5);
+    transition: background 0.3s ease-in-out;
+}
+
+th {
+    background: #FFD428;
+    font-size: 18px;
+}
+
+table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.action-button {
+    width: 5rem;
+    font-weight: bold;
+    padding: 8px;
+    border-radius: 20px;
+    border: solid 2px black;
+    background: white;
+    color: black;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.action-button:hover {
+    background: black;
+    color: #FFD428;
+    transform: scale(1.1);
+}
+
+#actions {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 10px;
+    padding-top: 30px;
+}
+
+/* Search & Filters */
+
+.search-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 15px;
+    border-radius: 12px;
+    gap: 10px;
+    margin-right: 16%;
+}
+
+.search-container input {
+    padding: 12px;
+    border-radius: 6px;
+    border: 2px solid black;
+    text-align: left;
+    width: 400px;
+    border-radius: 5rem !important;
+}
+
+.search-container button,
+.search-container select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 2px solid black;
+    text-align: center;
+}
+
+.search-container button {
+    background: black;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+select {
+    background-color: #f8f8f8;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 16px;
+    text-align: left !important;
+    color: black;
+    cursor: pointer;
+    width: 15%;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+    border-radius: 5rem !important;
+}

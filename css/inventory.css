@@ -1,0 +1,282 @@
+/* Inventory Form */
+
+.inventory-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+    border-radius: 12px;
+    flex: 1;
+}
+#inventory-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    
+}
+.form-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: rgba(58, 57, 57, 0.9);
+    border: solid 3px black;
+    border-radius: 12px;
+    color: white;
+    position: relative;
+}
+
+.form-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 70%;
+    position: relative;
+}
+
+.form-group input,
+.form-group select {
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    width: calc(45% - 5px);
+    text-align: center;
+}
+
+
+.form-group #ingredient-select {
+    width: 80%;
+    border-radius: 5px !important;
+}
+
+.ingredient-list {
+    width: 100%;
+    display: flex;
+    gap: 7px;
+
+}
+
+.ingredient-list .add-list {
+    background: #FFD428;
+    border: solid 1px black;
+    border-radius: 5px !important;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 8px 17px;
+    cursor: pointer;
+    transition: all 0.3s, transform 0.2s;
+}
+
+.ingredient-list .add-list:hover {
+    background: black;
+    color: #FFD428;
+    transform: scale(1.05);
+}
+
+.search-container button {
+    background: #FFD428;
+    border: solid 2px black;
+}
+
+select {
+    background-color: #f8f8f8;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 8px;
+    font-size: 16px;
+    color: black;
+    cursor: pointer;
+    width: 70%;
+    transition: all 0.3s ease-in-out;
+    border-radius: 5rem !important;
+    font-weight: bold;
+}
+
+Hover effect select:hover {
+    background-color: #e6e6e6;
+    border-color: #999;
+}
+
+/* Focus effect */
+
+select:focus {
+    outline: none;
+    transform: scale(1.05);
+}
+
+/* Dropdown options */
+
+select option {
+    background-color: black;
+    color: #FFD428;
+    font-size: 14px;
+    padding: 10px;
+    text-align: left;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+
+select:focus option {
+    opacity: 1;
+}
+
+
+/* Add to Inventory Button */
+
+.add-btn {
+    background: #FFD428;
+    padding: 15px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 12px;
+    width: 90%;
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 10px;
+    transition: 0.3s;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.add-btn:hover {
+    background: black;
+    color: #FFD428;
+}
+
+/* Total Items Box */
+
+.total-items {
+    padding: 20px;
+    border-radius: 12px;
+    width: 40%;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.total-items h2 {
+    margin: 0;
+    font-size: 2.3rem;
+    color: white;
+}
+
+.total-items span {
+    font-size: 2.3rem;
+    display: block;
+    color: white;
+    margin-top: 5px;
+}
+
+.waster {
+    background: #FFD428 !important;
+    color: black !important;
+    padding: 10px 15px;
+    border-radius: 5rem !important;
+    width: 10%;
+    font-size: 0.9rem;
+    border: 2px solid black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.waster:hover {
+    background: darkred;
+    transform: scale(1.05);
+}
+
+/* Search & Filters */
+
+.search-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    gap: 10px;
+}
+
+.search-container input {
+    padding: 12px;
+    border-radius: 6px;
+    border: 2px solid black;
+    text-align: left;
+    width: 400px;
+    border-radius: 5rem !important;
+}
+
+.search-container button,
+.search-container select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 2px solid black;
+    text-align: center;
+}
+
+.search-container button {
+    background: black;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Inventory Table */
+
+.inventory-table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.inventory-table th,
+.inventory-table td {
+    padding: 15px;
+    text-align: center;
+    background: rgba(255, 212, 40, 0.3);
+}
+
+.inventory-table tbody tr:hover {
+    background: rgba(255, 212, 40, 0.3);
+    transition: background 0.3s ease-in-out;
+}
+
+.inventory-table th {
+    background: #FFD428;
+    font-size: 18px;
+}
+
+.inventory-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.remove-btn {
+    background: white !important;
+    color: black !important;
+    border: solid 2px black;
+    width: 5rem;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 20px;
+}
+
+.edit-btn {
+    background: white !important;
+    color: black !important;
+    border: solid 2px black;
+    width: 5rem;
+    font-weight: bold;
+    padding: 5px;
+    border-radius: 20px;
+}

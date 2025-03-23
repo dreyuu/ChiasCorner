@@ -47,7 +47,7 @@
             position: sticky;
             top: 0;
             width: 100%;
-             z-index: 1000;
+            z-index: 1000;
         }
 
 
@@ -157,7 +157,7 @@
             <img src="Capstone Assets/pngegg (12).png" alt="Notifications" class="notification-icon">
             <img src="Capstone Assets/logouticon.png" alt="Logout">
         </div>
- </div>
+</div>
     
 </body>
 </html>

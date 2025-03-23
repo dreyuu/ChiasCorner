@@ -1,5 +1,3 @@
-<?php include 'connection.php'; ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chia's Corner Login</title>
+    <link rel="stylesheet" href="css/style.css">
 
     <!-- LOGO NI CHINA'S -->
 
@@ -15,7 +14,7 @@
     <!-- STYLE SHEETS & NI CHINA'S -->
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
 
     <style>
         * {
@@ -93,7 +92,9 @@
             border-color: #FF9800;
             box-shadow: 0px 0px 8px rgba(255, 152, 0, 0.6);
         }
-
+        .input-box input.incorrect {
+            border-color: #f06272 !important;
+        }
         .toggle-password {
             position: absolute;
             right: 12px;
@@ -141,42 +142,50 @@
             .container {
                 flex-direction: column;
             }
+
             .left {
                 height: 250px;
             }
+
             .right {
                 padding: 20px;
             }
         }
-
     </style>
 
 </head>
 
 
 <body>
-
+    <div class="alerts">
+        <div id="success-alert" class="alert alert-success"></div>
+        <div id="error-alert" class="alert alert-danger"></div>
+        <div id="warning-alert" class="alert alert-warning"></div>
+    </div>
     <div class="container">
         <div class="left">
             <img src="Capstone Assets/Log-in Form Poster.png" alt="Login Poster" class="left-img">
         </div>
         <div class="right">
-            <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="logo">
-            <div class="input-box">
-                <input type="text" placeholder="Enter Your Username..">
-            </div>
-            <div class="input-box">
-                <input type="password" id="password" placeholder="Enter Your Password..">
-                <span class="toggle-password" onclick="togglePassword()">
-                    <i id="eye-icon" class="fa-solid fa-eye"></i>
-                </span>
-            </div>
-            <button class="login-btn">LOGIN</button>
-            <a href="#" class="forgot-pass">Forgot Password?</a>
+            <form method="POST" id="loginForm" novalidate>
+                <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="logo">
+                <div class="input-box">
+                    <input type="text" id="username" placeholder="Enter Your Username.." required>
+                </div>
+                <div class="input-box" >
+                    <input type="password" id="password" placeholder="Enter Your Password.." required>
+                    <span class="toggle-password" onclick="togglePassword()">
+                        <i id="eye-icon" class="fa-solid fa-eye"></i>
+                    </span>
+                </div>
+                <button class="login-btn" type="submit" id="submitBtn">LOGIN</button>
+                <a href="#" class="forgot-pass">Forgot Password?</a>
+            </form>
         </div>
     </div>
 
-
+    
+    <script src="js/login.js"></script>
     <script>
         function togglePassword() {
             var passwordInput = document.getElementById("password");
@@ -193,6 +202,6 @@
             }
         }
     </script>
-
 </body>
+
 </html>

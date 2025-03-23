@@ -1,0 +1,140 @@
+.sales-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 30px auto;
+    width: 100%;
+}
+
+.sales-content {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1100px;
+    gap: 20px;
+}
+
+.sales-filter {
+    background: rgba(87, 63, 28, 0.9);
+    padding: 25px;
+    border-radius: 12px;
+    margin-right: 5%;
+    width: 40%;
+    color: white;
+}
+
+.sales-filter label {
+    font-weight: bold;
+    font-size: 18px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.sales-filter input,
+.sales-filter select {
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    width: 100%;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.generate-btn {
+    background: #FFD428;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    width: 50%;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: 0.3s;
+    margin-left: 50%;
+}
+
+.generate-btn:hover {
+    background: black;
+    color: #FFD428;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 60%;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.stats-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1100px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.sales-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 45%;
+}
+
+.stat-box {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 18px;
+    margin-right: 12%;
+    font-weight: bold;
+    width: 89%;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.stat-box span {
+    display: block;
+    font-size: 26px;
+    margin-top: 1.6rem;
+    background-color: #FFD428;
+    border-radius: 5px;
+}
+
+.chart-container.small {
+    width: 60%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.chart-container.small h3 {
+    margin-block: 2%;
+    font-size: 1.5rem;
+}
+
+/* Footer Section */
+
+.footer {
+    background: #141414;
+    color: #FFD428;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    margin-top: auto;
+}
