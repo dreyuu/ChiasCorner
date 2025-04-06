@@ -7,13 +7,15 @@
     border-radius: 12px;
     flex: 1;
 }
+
 #inventory-form {
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    
+
 }
+
 .form-container {
     display: flex;
     justify-content: space-between;
@@ -45,12 +47,16 @@
 
 
 .form-group #ingredient-select {
-    width: 80%;
+    width: 100%;
     border-radius: 5px !important;
 }
 
-.ingredient-list {
+.form-group #ingredient-select2 {
     width: 100%;
+    border-radius: 5px !important;
+}
+.ingredient-list {
+    width: 90%;
     display: flex;
     gap: 7px;
 
@@ -81,18 +87,17 @@
 select {
     background-color: #f8f8f8;
     border: 2px solid #ccc;
-    border-radius: 5px;
+    border-radius: 5px ;
     padding: 8px;
     font-size: 16px;
     color: black;
     cursor: pointer;
     width: 70%;
     transition: all 0.3s ease-in-out;
-    border-radius: 5rem !important;
     font-weight: bold;
 }
 
-Hover effect select:hover {
+select:hover {
     background-color: #e6e6e6;
     border-color: #999;
 }
@@ -223,14 +228,21 @@ select:focus option {
 }
 
 /* Inventory Table */
+.inventory-table-wrapper {
+    max-height: 300px;
+    overflow-y: auto;
+}
 
 .inventory-table {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
     border-collapse: collapse;
     background: white;
-    border-radius: 12px;
+    border-radius: 30px;
     overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    table-layout: fixed;
+    /* display: block; */
 }
 
 .inventory-table th,
@@ -238,6 +250,37 @@ select:focus option {
     padding: 15px;
     text-align: center;
     background: rgba(255, 212, 40, 0.3);
+    vertical-align: middle;
+    box-sizing: border-box; /* Ensure padding is included in width calculations */
+    word-wrap: break-word;
+    text-overflow: ellipsis;
+}
+
+.inventory-table thead {
+    background: #FFD428;
+}
+
+.inventory-table thead tr {
+    display: table-row; /* Rows inside thead behave normally */
+    width: 100%;
+}
+
+.inventory-table tbody {
+    display: block;
+    max-height: 700px; /* Set the height for the body */
+    min-height: 550px; /* Set the minimum height for the body */
+    overflow-y: auto; /* Enable scrolling */
+    background: rgba(255, 212, 40, 0.5);
+    scrollbar-width: none;
+    table-layout: auto;
+    /* width: 100%; */
+}
+
+.inventory-table tbody tr,
+.inventory-table thead {
+    display: table; /* Keep rows as table rows */
+    width: 100%;
+    table-layout: fixed;
 }
 
 .inventory-table tbody tr:hover {
@@ -245,14 +288,11 @@ select:focus option {
     transition: background 0.3s ease-in-out;
 }
 
-.inventory-table th {
-    background: #FFD428;
-    font-size: 18px;
-}
-
 .inventory-table tbody tr:nth-child(even) {
     background: #f9f9f9;
 }
+
+
 
 .action-btn {
     padding: 5px 10px;
@@ -269,6 +309,7 @@ select:focus option {
     font-weight: bold;
     padding: 5px;
     border-radius: 20px;
+    cursor: pointer;
 }
 
 .edit-btn {
@@ -279,4 +320,300 @@ select:focus option {
     font-weight: bold;
     padding: 5px;
     border-radius: 20px;
+    cursor: pointer;
+}
+
+.inv-action {
+    display: flex;
+    gap: 10px;
+}
+
+
+/* ===== Modal Background Overlay ===== */
+
+.custom-modal-overlay,
+.update-inventory-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 999;
+    backdrop-filter: blur(5px);
+}
+
+.custom-modal-overlay.show,
+.update-inventory-overlay.show {
+    display: block;
+}
+
+/* ===== Modal Container ===== */
+
+.custom-ingredients-modal,
+.update-inventory-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 1000px;
+    /* Increased width */
+    max-width: 95%;
+    max-height: 700px !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+    background: url('../Capstone Assets/Log-in Form BG (Version 3).png') center/cover no-repeat;
+    background-size: cover;
+    background-position: center;
+    overflow: scroll;
+    overflow-x: hidden;
+    /* -ms-overflow-style: none; */
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+/* Show Modal */
+
+.custom-ingredients-modal.show,
+.update-inventory-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ===== Ingredients Section Layout ===== */
+
+.custom-ingredients-content,
+.update-inventory-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 5%;
+    border-radius: 20px;
+    border: solid 2px black;
+    margin-bottom: 5%;
+}
+
+/* Left Side: Ingredients List & Buttons */
+
+.custom-ingredients-left,
+.update-inventory-left {
+    width: 60%;
+}
+
+/* Right Side: Total Ingredients */
+
+.custom-ingredients-right,
+.update-inventory-right {
+    width: 40%;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+/* ===== Textarea for Ingredients ===== */
+
+.custom-ingredients-textarea,
+.update-inventory-textarea {
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #FFD428;
+    border-radius: 5px;
+    resize: none;
+    background: rgba(255, 255, 255, 0.8);
+    outline: none;
+}
+
+/* ===== Dropdown for Menu Ingredients ===== */
+
+.custom-ingredients-dropdown,
+.update-inventory-dropdown {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    margin-top: 10px;
+    border: 2px solid #FFD428;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* ===== Buttons Style ===== */
+
+.custom-ingredients-buttons,
+.update-inventory-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.custom-ingredients-add,
+.custom-ingredients-remove,
+.custom-ingredients-edit,
+.update-inventory-action {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.custom-ingredients-add {
+    background: #FFD428;
+}
+
+.custom-ingredients-remove {
+    background: #FF4D4D;
+    color: white;
+}
+
+.custom-ingredients-edit {
+    background: #28A745;
+    color: white;
+}
+
+.custom-ingredients-add:hover {
+    background: black;
+    color: #FFD428;
+}
+
+.custom-ingredients-remove:hover {
+    background: darkred;
+}
+
+.custom-ingredients-edit:hover {
+    background: #1E7E34;
+}
+
+/* ===== Table Styling ===== */
+
+.custom-ingredients-table,
+.update-inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    table-layout: fixed;
+    background: white;
+}
+
+/* ===== Table Header Styling ===== */
+
+.custom-ingredients-table th,
+.update-inventory-table th {
+    background: #FFD428;
+    color: black;
+    padding: 12px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* ===== Table Cell Styling ===== */
+
+.custom-ingredients-table td,
+.update-inventory-table td {
+    padding: 10px;
+    font-size: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+
+
+.custom-ingredients-table tbody tr:nth-child(odd),
+.update-inventory-table tbody tr:nth-child(odd) {
+    background: #FCE5A2;
+}
+
+.custom-ingredients-table tbody tr:nth-child(even),
+.update-inventory-table tbody tr:nth-child(even) { 
+    background: #E6D19F;
+}
+
+.custom-ingredients-table tbody tr:hover,
+.update-inventory-table tbody tr:hover { 
+    background: rgba(255, 212, 40, 0.5);
+    transition: background 0.3s ease-in-out;
+}
+
+.custom-ingredients-table tbody ,
+.update-inventory-table tbody  { 
+    display: block;
+    max-height: 300px; /* Set the height for the body */
+    min-height: 200px; /* Set the minimum height for the body */
+    overflow-y: auto; /* Enable scrolling */
+    background: rgba(255, 212, 40, 0.5);
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+    table-layout: auto;
+}
+
+.custom-ingredients-table thead,
+.update-inventory-table thead,
+.update-inventory-table tbody tr, 
+.custom-ingredients-table tbody tr { 
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+.custom-ingredients-table-container,
+.update-inventory-table-container {
+    max-height: 250px;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+.custom-ingredients-table-container::-webkit-scrollbar,
+.update-inventory-table-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-ingredients-table-container::-webkit-scrollbar-thumb,
+.update-inventory-table-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+.custom-ingredients-table-container::-webkit-scrollbar-track,
+.update-inventory-table-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== Back Button Styling ===== */
+
+.custom-ingredients-back,
+.update-inventory-back {
+    position: relative;
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-bottom: 2%;
+    margin-right: 91%;
+}
+
+.custom-ingredients-back:hover,
+.update-inventory-back:hover {
+    background: black;
 }

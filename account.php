@@ -51,7 +51,7 @@ include 'inc/navbar.php';
     </div>
 </div>
 
-<div class="footer">
+<div class="footer" style="position: absolute; bottom: 0;">
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </div>
 

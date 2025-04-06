@@ -1,3 +1,21 @@
+<?php
+session_start();
+
+// Prevent caching for this page
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Expires: Thu, 19 Nov 1981 08:52:00 GMT"); // This is an old date in the past to prevent caching
+
+// Check if the user is logged out
+if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SESSION['logged_in'])) {
+    // Prevent caching if the user is logged out
+    header("Location: login.php"); // Redirect to login page if not logged in
+    exit();
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -13,6 +31,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 
@@ -46,7 +67,9 @@
         </div>
         <div class="icons">
             <img src="Capstone Assets/pngegg (12).png" alt="Notifications" class="notification-icon">
-            <img src="Capstone Assets/logouticon.png" alt="Logout">
+            <a href="inc/logout.php">
+                <img src="Capstone Assets/logouticon.png" alt="Logout">
+            </a>
         </div>
     </div>
 

@@ -19,8 +19,9 @@
     padding: 25px;
     border-radius: 12px;
     margin-right: 5%;
-    width: 40%;
+    width: 40% ;
     color: white;
+    flex-grow: 0;
 }
 
 .sales-filter label {

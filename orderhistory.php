@@ -1,45 +1,23 @@
 <?php
-include_once 'connection.php';
 $backgroundImage = 'Capstone Assets/Log-in Form BG (Version 2).png';
 include 'inc/navbar.php';
 
-try {
 
-    // Query to get order history with items
-    $sql = "SELECT oh.order_id, 
-                    GROUP_CONCAT(m.name SEPARATOR ', ') AS items_ordered,
-                    oh.paid_amount,
-                    oh.total_price,
-                    (oh.paid_amount - oh.total_price) AS change_given,
-                    oh.payment_status,
-                    pm.payment_method,
-                    oh.order_date
-            FROM order_history oh
-            JOIN order_items oi ON oh.order_id = oi.order_id
-            JOIN menu m ON oi.menu_id = m.menu_id
-            LEFT JOIN payments pm ON oh.order_id = pm.order_id
-            GROUP BY oh.order_id
-            ORDER BY oh.archived_date DESC";
-
-    $stmt = $connect->prepare($sql);
-    $stmt->execute();
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
-}
 ?>
 <link rel="stylesheet" href="css/orderlist.css">
 
 <div class="wrapper">
     <!-- Sort & Search Bar -->
-    <div class="search-container">
-        <select id="sortSelect">
-            <option value="0">Sort by Order ID</option>
-            <option value="3">Sort by Total Price</option>
-            <option value="5">Sort by Payment Method (Cash/Gcash)</option>
-            <option value="6">Sort by Date & Time</option>
-        </select>
-        <input type="text" id="search" placeholder="Search..." onkeyup="filterTable()">
+    <div class="container-search">
+        <div class="search-container">
+            <select id="sortSelect">
+                <option value="0">Sort by Order ID</option>
+                <option value="3">Sort by Total Price</option>
+                <option value="5">Sort by Payment Method (Cash/Gcash)</option>
+                <option value="6">Sort by Date & Time</option>
+            </select>
+            <input type="text" id="search" placeholder="Search..." onkeyup="filterTable()">
+        </div>
     </div>
 
     <!-- Orders Table -->
@@ -50,38 +28,34 @@ try {
                 <tr>
                     <th>Order ID</th>
                     <th>Items Ordered</th>
-                    <th>Payment Received</th>
-                    <th>Bill Total</th>
+                    <th>Total Price</th>
+                    <th>Discount Amount</th>
+                    <th>Paid Amount</th>
                     <th>Change Given</th>
-                    <th>Payment Method</th>
-                    <th>Date & Time</th>
+                    <th>Payment Status</th>
+                    <th>Cashier</th>
+                    <th>Archived Date</th>
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
-                <?php if (!empty($orders)): ?>
-                    <?php foreach ($orders as $order): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($order['order_id']); ?></td>
-                            <td><?php echo htmlspecialchars($order['items_ordered']); ?></td>
-                            <td>$<?php echo number_format($order['paid_amount'], 2); ?></td>
-                            <td>$<?php echo number_format($order['total_price'], 2); ?></td>
-                            <td>$<?php echo number_format($order['change_given'], 2); ?></td>
-                            <td><?php echo htmlspecialchars($order['payment_method'] ?? 'N/A'); ?></td>
-                            <td><?php echo date("Y-m-d H:i", strtotime($order['order_date'])); ?></td>
-                            <td id="actions">
-                                <button class="action-button view-btn" onclick="viewOrder(<?php echo $order['order_id']; ?>)">View</button>
-                                <button class="action-button remove-btn" onclick="deleteOrder(<?php echo $order['order_id']; ?>)">Delete</button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="8">No archived orders found</td>
-                    </tr>
-                <?php endif; ?>
+            <tbody id="orderTableBody">
+                <!-- Orders will be loaded dynamically by JS -->
+
             </tbody>
         </table>
+    </div>
+</div>
+
+
+<!-- Receipt Modal for Checkout -->
+
+<!-- <div id="exo-checkout-overlay" class="exo-modal-overlay"></div> -->
+
+<div class="exo-receipt-modal-bg" id="exo-receipt-modal-bg" onclick="exoCloseReceipt()">
+    <div class="exo-receipt-modal">
+        <div class="exo-receipt-paper">
+
+        </div>
     </div>
 </div>
 
@@ -91,15 +65,180 @@ try {
 </footer>
 </div>
 <script>
-    // Alert messages for buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchOrders();
 
-    document.querySelectorAll('.remove-btn').forEach(button => {
-        button.addEventListener('click', () => alert('Order Removed!'));
+        document.querySelector('#orderTable tbody').addEventListener('click', function(e) {
+            if (e.target.classList.contains('view-btn')) {
+                const orderId = e.target.getAttribute('data-order-id');
+                ShowReceipt(orderId);
+            }
+        });
     });
 
-    document.querySelectorAll('.view-btn').forEach(button => {
-        button.addEventListener('click', () => alert('Viewing Order Details...'));
-    });
+    // Fetch orders from the server
+    function fetchOrders() {
+        fetch('db_queries/select_queries/fetch_order_history.php')
+            .then(response => response.json())
+            .then(data => {
+                const orderTableBody = document.getElementById('orderTableBody');
+                orderTableBody.innerHTML = ''; // Clear existing rows
+
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="10">No archived orders found</td>';
+                    orderTableBody.appendChild(row);
+                } else {
+                    data.forEach(order => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${order.order_id}</td>
+                        <td>${order.items_ordered}</td>
+                        <td>₱${parseFloat(order.total_price).toFixed(2)}</td>
+                        <td>₱${parseFloat(order.discount_amount).toFixed(2)}</td>
+                        <td>₱${parseFloat(order.paid_amount).toFixed(2)}</td>
+                        <td>₱${parseFloat(order.change_given).toFixed(2)}</td>
+                        <td>${order.payment_status}</td>
+                        <td>${order.cashier || 'N/A'}</td>
+                        <td>${new Date(order.archived_date).toLocaleString()}</td>
+                        <td>
+                            ${order.payment_status.toLowerCase() === 'paid' 
+                                ? `<button class="action-button view-btn" data-order-id="${order.order_id}">View Receipt</button>` 
+                                : ''}
+                        </td>
+                    `;
+                        orderTableBody.appendChild(row);
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching orders:', error));
+    }
+
+    function ShowReceipt(orderId) {
+
+        setTimeout(() => {
+            let receiptModalBg = document.getElementById("exo-receipt-modal-bg");
+            let receiptModal = document.querySelector(".exo-receipt-modal");
+
+            fetchReceipt(orderId);
+            receiptModalBg.style.display = "block";
+            setTimeout(() => {
+                receiptModal.classList.add("show");
+            }, 10);
+        }, 300);
+    }
+
+    // Function to Close Receipt on Click
+    function exoCloseReceipt() {
+        let receiptModalBg = document.getElementById("exo-receipt-modal-bg");
+        let receiptModal = document.querySelector(".exo-receipt-modal");
+
+        receiptModal.classList.remove("show");
+
+        setTimeout(() => {
+            receiptModalBg.style.display = "none";
+        }, 300);
+    }
+
+
+    function fetchReceipt(orderId) {
+        fetch(`db_queries/select_queries/fetch_order_details.php?order_id=${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                let receiptList = document.querySelector('.exo-receipt-paper');
+                receiptList.innerHTML = "";
+
+                if (data.items.length === 0) {
+                    receiptList.innerHTML = "<p class='empty-order'>No items in the order.</p>";
+                    return;
+                }
+
+                let order = data.order;
+                let items = data.items;
+
+                let subtotal = parseFloat(order.total_price);
+                let discount = parseFloat(order.discount_amount) || 0;
+                let vat = subtotal * 0.12; // 12% VAT
+                let totalAfterDiscount = subtotal - discount;
+                let grandTotal = totalAfterDiscount + vat;
+                let paidAmount = parseFloat(order.paid_amount) || 0;
+                let change = paidAmount - grandTotal;
+
+                let receiptContainer = document.createElement("div");
+                receiptContainer.classList.add("receipt");
+
+                let receiptHeader = `
+                    <div class="exo-receipt-header">
+                        <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="exo-receipt-logo">
+                        <h2>CHIA'S CORNER</h2>
+                        <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
+                        <p>Phone#: 0926 200 4346</p>
+                    </div>
+                    <div class="exo-receipt-separator"></div>
+                `;
+
+                let receiptBody = `
+                        <div class="exo-receipt-body">
+                            <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                            <p><strong>Cashier:</strong> ${order.cashier_name || "N/A"}</p>
+                            <div class="exo-receipt-separator"></div>
+                            <p><strong>Order Type:</strong> ${order.dine || "N/A"}</p>
+                            <div class="exo-receipt-separator"></div>
+                            <p><strong>Items Ordered:</strong></p>
+                    `;
+
+                items.forEach(item => {
+                    receiptBody += `
+                        <div class="receipt-item">
+                            <div class="item-details">
+                                <div class="item-name">${item.name}</div>
+                                <span>${item.quantity} x ₱${parseFloat(item.price).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                let receiptFooter = `
+                        <div class="exo-receipt-separator"></div>
+                        <div class="item-details">
+                            <p>Subtotal:</p>
+                            <span class="exo-receipt-total">₱${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="item-details">
+                            <p>VAT (12%):</p>
+                            <span class="item-total">₱${vat.toFixed(2)}</span>
+                        </div>
+                        <div class="item-details">
+                            <p>Discount:</p>
+                            <span class="item-total">-₱${discount.toFixed(2)}</span>
+                        </div>
+                        <div class="exo-receipt-total">
+                            <p><strong>Grand Total:</strong></p>
+                            <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
+                        </div>
+                        <div class="item-details">
+                            <p>Paid Amount:</p>
+                            <span class="item-total">₱${paidAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="item-details">
+                            <p>Change:</p>
+                            <span class="item-total">₱${change.toFixed(2)}</span>
+                        </div>
+                        <div class="exo-receipt-footer">        
+                            <p>THANK YOU AND ENJOY!</p>
+                        </div>
+                    `;
+
+                receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
+                receiptList.appendChild(receiptContainer);
+            })
+            .catch(error => console.error("Error loading order details:", error));
+    }
 
 
     // Sorting function

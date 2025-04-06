@@ -7,38 +7,51 @@ include 'inc/navbar.php';
 <link rel="stylesheet" href="css/main.css">
 
 <!-- Chian's Charts Section -->
+<form id="sales-report-form" method="POST" style="visibility: hidden;">
+    <label for="date-from">DATE FROM:</label>
+    <input type="date" id="date-from">
+    <label for="date-to">DATE TO:</label>
+    <input type="date" id="date-to">
+    <label for="category">CATEGORY:</label>
+    <select id="category">
+        <option value="all">All</option>
+    </select>
+    <button class="generate-btn">GENERATE</button>
+</form>
 
 <div class="charts-section">
-    <h1>Welcome to Chia's Corner, MAEM!</h1>
+    <h1 class="header-text">Welcome to Chia's Corner, MAEM!</h1>
     <div class="charts">
         <div class="chart-container">
+            <h2 class="hero">Total Sales</h2>
             <canvas id="salesChart"></canvas>
         </div>
         <div class="chart-container">
+            <h2 class="hero">Top Menu Picks</h2>
             <canvas id="menuChart"></canvas>
         </div>
     </div>
-    <h2>Total Sales This Month & Top Menu Picks</h2>
+    <h2 class="header-text">Total Sales This Month & Top Menu Picks</h2>
 </div>
 
 <!-- Chian's Stats Section -->
-
 <div class="exp">
     <div class="stats-container">
         <div class="sales-stats">
-            <div class="stat-box" id="total-sales">TOTAL SALES <span>₱ 103,230</span></div>
-            <div class="stat-box" id="customer-served">CUSTOMER SERVED <span>321</span></div>
-            <div class="stat-box" id="best-seller">BEST SELLER <span>SIZZLING HAKDOG</span></div>
-            <div class="stat-box" id="total-expenses">TOTAL EXPENSES <span>₱ 25,325</span></div>
-            <div class="stat-box" id="net-profit">NET PROFIT <span>₱ 77,905</span></div>
+            <div class="stat-box" id="total-sales">TOTAL SALES <span>₱ </span></div>
+            <div class="stat-box" id="customer-served">CUSTOMER SERVED <span></span></div>
+            <div class="stat-box" id="best-seller">BEST SELLER <span></span></div>
+            <div class="stat-box" id="total-expenses">TOTAL EXPENSES <span>₱ </span></div>
+            <div class="stat-box" id="net-profit">NET PROFIT <span>₱ </span></div>
         </div>
 
-        <div class="chart-container small">
+        <div class="chart-container small" id="categoryContainer">
             <h3>SALES BREAKDOWN BY CATEGORY</h3>
             <canvas id="categoryChart"></canvas>
         </div>
     </div>
 </div>
+
 
 
 <!-- Chian's Footer Section -->
@@ -51,66 +64,117 @@ include 'inc/navbar.php';
 <!-- Chian's JavaScript to Fetch Data & Update Charts -->
 
 <script>
-    const salesChartCtx = document.getElementById('salesChart').getContext('2d');
-    const menuChartCtx = document.getElementById('menuChart').getContext('2d');
-
-    let salesChart = new Chart(salesChartCtx, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Sales',
-                data: [],
-                backgroundColor: 'blue'
-            }]
-        },
-        options: {
-            responsive: true
-        }
+    document.addEventListener("DOMContentLoaded", function() {
+        loadSalesData();
+        loadChartData();
+        document.querySelector(".generate-btn").addEventListener("click", generateReport);
     });
 
-    let menuChart = new Chart(menuChartCtx, {
-        type: 'pie',
-        data: {
-            labels: [],
-            datasets: [{
-                data: [],
-                backgroundColor: ['red', 'green', 'blue', 'yellow']
-            }]
-        },
-        options: {
-            responsive: true
-        }
-    });
+    let salesChart, categoryChart, menuChart;
 
-    function fetchChartData() {
-        fetch('fetch_chart_data.php')
-            .then(response => response.json())
-            .then(data => {
-                salesChart.data.labels = data.sales.labels;
-                salesChart.data.datasets[0].data = data.sales.values;
-                salesChart.update();
+    function generateReport(event) {
+        event.preventDefault();
 
-                menuChart.data.labels = data.menu.labels;
-                menuChart.data.datasets[0].data = data.menu.values;
-                menuChart.update();
-            })
-            .catch(error => console.error('Error fetching data:', error));
+        let dateFrom = document.getElementById("date-from").value;
+        let dateTo = document.getElementById("date-to").value;
+        let category = document.getElementById("category").value;
+
+        // console.log(`Fetching report from ${dateFrom || "ALL TIME"} to ${dateTo || "ALL TIME"} for category: ${category}`);
+
+        loadSalesData(dateFrom, dateTo, category);
+        loadChartData(dateFrom, dateTo);
     }
 
-    fetchChartData();
-    setInterval(fetchChartData, 5000);
+    function loadSalesData(dateFrom = "", dateTo = "", category = "all") {
+        fetch(`db_queries/select_queries/fetch_sales.php?dateFrom=${dateFrom}&dateTo=${dateTo}&category=${category}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || Object.keys(data).length === 0) {
+                    console.warn("No sales data available.");
+                    document.querySelector(".stats-container").innerHTML = "<p style='text-align:center; color:red;'>No sales data available.</p>";
+                    return;
+                }
+                // console.log(data)
+                document.getElementById("total-sales").innerHTML = `TOTAL SALES <span>₱ ${data.totalSales ?? 0}</span>`;
+                document.getElementById("customer-served").innerHTML = `CUSTOMER SERVED <span>${data.customersServed ?? 0}</span>`;
+                document.getElementById("best-seller").innerHTML = `BEST SELLER <span>${data.bestSeller || "N/A"}</span>`;
+                document.getElementById("total-expenses").innerHTML = `TOTAL EXPENSES <span>₱ ${data.totalExpenses ?? 0}</span>`;
+                document.getElementById("net-profit").innerHTML = `NET PROFIT <span>₱ ${data.netProfit ?? 0}</span>`;
 
-    new Chart(document.getElementById('categoryChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Samgyupsal', 'Chicken Wings', 'Sizzlings', 'Others'],
-            datasets: [{
-                data: [35200, 28500, 22830, 16700],
-                backgroundColor: ['#FFC107', '#DC3545', '#FF8C00', '#8B4513']
-            }]
+            })
+            .catch(error => console.error("Error loading sales data:", error));
+    }
+
+    function loadChartData(dateFrom = "", dateTo = "") {
+        fetch(`db_queries/select_queries/fetch_graph.php?dateFrom=${dateFrom}&dateTo=${dateTo}`)
+            .then(response => response.json())
+            .then(data => {
+                // console.log("Fetched Data:", data); 
+
+                if (!data || !data.topMenus) {
+                    console.warn("No bestsellers data available.");
+                    document.getElementById("salesChartContainer").innerHTML = "<p style='text-align:center; color:red;'>No bestsellers found.</p>";
+                    return;
+                }
+
+                let topMenus = data.topMenus || [];
+                let monthlySales = data.monthlySales || [];
+                let categorySales = data.categorySales || [];
+
+                // Update Best Sellers Chart
+                menuChart = updateChart("menuChart", menuChart, "doughnut",
+                    topMenus.map(item => item.name || "Unknown"),
+                    topMenus.map(item => item.total_quantity || 0),
+                    "Best Sellers",
+                    ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
+                );
+
+                // Update Monthly Sales Chart
+                salesChart = updateChart("salesChart", salesChart, "bar",
+                    monthlySales.map(item => `Month ${item.month}`),
+                    monthlySales.map(item => item.total),
+                    "Total Sales",
+                    "blue"
+                );
+
+                // Update Category Breakdown Chart
+                categoryChart = updateChart("categoryChart", categoryChart, "doughnut",
+                    categorySales.map(item => item.category),
+                    categorySales.map(item => item.total),
+                    "Sales Breakdown",
+                    ["red", "blue", "yellow", "green"]
+                );
+            })
+            .catch(error => console.error("Error fetching chart data:", error));
+    }
+
+    function updateChart(canvasId, chartInstance, chartType, labels, data, label, backgroundColors) {
+        let ctx = document.getElementById(canvasId).getContext("2d");
+
+        if (chartInstance) {
+            chartInstance.destroy();
         }
-    });
+
+        return new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: backgroundColors
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: chartType === "bar" ? {
+                    y: {
+                        beginAtZero: true
+                    }
+                } : {}
+            }
+        });
+    }
 </script>
 
 </body>

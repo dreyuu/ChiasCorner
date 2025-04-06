@@ -33,6 +33,63 @@
             padding: 20px;
         }
 
+        /* Page transition loading screen */
+        /* Page Loader */
+        #pageLoader {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            /* Adds a blur effect for better UX */
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            visibility: hidden;
+            /* Keep this to prevent interactions */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Alerts */
+        .alerts {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+            pointer-events: none;
+            transition: top 0.5s;
+            align-items: center;
+            z-index: 3000 !important;
+        }
+
+        /* Loading Animation */
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Loading Text */
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
+        }
+
         .container {
             display: flex;
             max-width: 900px;
@@ -92,9 +149,11 @@
             border-color: #FF9800;
             box-shadow: 0px 0px 8px rgba(255, 152, 0, 0.6);
         }
+
         .input-box input.incorrect {
             border-color: #f06272 !important;
         }
+
         .toggle-password {
             position: absolute;
             right: 12px;
@@ -157,6 +216,13 @@
 
 
 <body>
+    <!-- Page Transition Loader -->
+
+    <div id="pageLoader">
+        <div class="loader"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
+
     <div class="alerts">
         <div id="success-alert" class="alert alert-success"></div>
         <div id="error-alert" class="alert alert-danger"></div>
@@ -172,7 +238,7 @@
                 <div class="input-box">
                     <input type="text" id="username" placeholder="Enter Your Username.." required>
                 </div>
-                <div class="input-box" >
+                <div class="input-box">
                     <input type="password" id="password" placeholder="Enter Your Password.." required>
                     <span class="toggle-password" onclick="togglePassword()">
                         <i id="eye-icon" class="fa-solid fa-eye"></i>
@@ -184,7 +250,7 @@
         </div>
     </div>
 
-    
+
     <script src="js/login.js"></script>
     <script>
         function togglePassword() {
