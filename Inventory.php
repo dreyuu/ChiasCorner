@@ -174,7 +174,7 @@ include 'inc/navbar.php';
 
         <!-- Right: Total Ingredients Count -->
         <div class="update-inventory-right">
-            <p>Total Ingredients List:</p>
+            <p>Total Batch List:</p>
             <span class="update-inventory-count">0</span>
         </div>
     </div>
@@ -541,7 +541,7 @@ include 'inc/navbar.php';
                         <td>${batch.ingredient_name}</td>
                         <td>${batch.supplier_name}</td>
                         <td>${batch.quantity}</td>
-                        <td>${batch.cost}</td>
+                        <td>₱${batch.cost}</td>
                         <td>${batch.expiration_date}</td>
                         <td>
                             <button class="edit-btn add" data-id="${batch.batch_id}" data-action="add">Add</button>
@@ -947,7 +947,7 @@ include 'inc/navbar.php';
             <td>${item.total_stock}</td>
             <td>${item.nearest_expiration_date}</td>
             <td>${item.top_supplier}</td>
-            <td>$${totalCost.toFixed(2)}</td>
+            <td>₱${totalCost.toFixed(2)}</td>
             <td>
                 <div class="inv-action">
                     <button class="edit-btn" data-id="${item.ingredient_id}">Update</button>
@@ -1020,7 +1020,7 @@ include 'inc/navbar.php';
             const row = document.createElement("tr");
             row.innerHTML = `
             <td>${p.order_id}</td>
-            <td>$${parseFloat(p.amount_paid).toFixed(2)}</td>
+            <td>₱${parseFloat(p.amount_paid).toFixed(2)}</td>
             <td>${p.payment_method}</td>
             <td>${p.payment_status}</td>
             <td>${p.payment_date}</td>`;

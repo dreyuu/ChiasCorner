@@ -126,7 +126,7 @@ include 'inc/navbar.php';
                     topMenus.map(item => item.name || "Unknown"),
                     topMenus.map(item => item.total_quantity || 0),
                     "Best Sellers",
-                    ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"]
+                    ["#FFD428", "#FFCE56", "#FFC107", "#4BC0C0", "#9966FF"]
                 );
 
                 // Update Monthly Sales Chart
@@ -134,7 +134,7 @@ include 'inc/navbar.php';
                     monthlySales.map(item => `Month ${item.month}`),
                     monthlySales.map(item => item.total),
                     "Total Sales",
-                    "blue"
+                    "#FFD428"
                 );
 
                 // Update Category Breakdown Chart
@@ -142,7 +142,7 @@ include 'inc/navbar.php';
                     categorySales.map(item => item.category),
                     categorySales.map(item => item.total),
                     "Sales Breakdown",
-                    ["red", "blue", "yellow", "green"]
+                    [ "#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD" ]
                 );
             })
             .catch(error => console.error("Error fetching chart data:", error));

@@ -58,19 +58,23 @@ document.addEventListener("DOMContentLoaded", function () {
                             // show loading screen
                             pageLoader();
                             setTimeout(() => {
+                                loginForm.reset(); // Reset the form
                                 window.location.href = "main.php";
                             }, 3000);
                         } else {
                             showAlert("warning-alert", "Invalid username or password");
+                            loginForm.reset(); // Reset the form
                         }
                     } catch (error) {
                         console.error(error);
                         showAlert("warning-alert", "An error occurred. Please try again later");
+                        loginForm.reset(); // Reset the form
                     }
                 })
                 .catch((error) => {
                     console.error(error);
                     showAlert("error-alert", "An error occurred. Please try again later");
+                    loginForm.reset(); // Reset the form
                 })
 
         });

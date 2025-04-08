@@ -191,6 +191,10 @@
             font-size: 14px;
             text-decoration: none;
             transition: 0.3s;
+            border: none;
+            outline: none;
+            background: transparent;
+            cursor: pointer;
         }
 
         .forgot-pass:hover {
@@ -245,7 +249,7 @@
                     </span>
                 </div>
                 <button class="login-btn" type="submit" id="submitBtn">LOGIN</button>
-                <a href="#" class="forgot-pass">Forgot Password?</a>
+                <button type="button" class="forgot-pass">Forgot Password?</button>
             </form>
         </div>
     </div>

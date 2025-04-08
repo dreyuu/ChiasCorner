@@ -21,7 +21,7 @@ if (empty($username) || empty($password)) {
 
 try {
     // Prepare query to fetch user details
-    $stmt = $connect->prepare("SELECT user_id, username, password FROM users WHERE username = :username LIMIT 1");
+    $stmt = $connect->prepare("SELECT user_id, username, user_type, password FROM users WHERE username = :username LIMIT 1");
     $stmt->bindParam(':username', $username, PDO::PARAM_STR);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -34,6 +34,7 @@ try {
 
             $_SESSION["user_id"] = $user["user_id"];
             $_SESSION["username"] = $user["username"];
+            $_SESSION["user_type"] = $user["user_type"];
             $_SESSION["logged_in"] = true;
 
             echo json_encode(["success" => true, "message" => "Login successful"]);

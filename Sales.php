@@ -118,7 +118,7 @@ include 'inc/navbar.php';
                     monthlySales.map(item => `Month ${item.month}`),
                     monthlySales.map(item => item.total),
                     "Total Sales",
-                    "blue"
+                    "#FFD428"
                 );
 
                 // Update Category Breakdown Chart
@@ -126,7 +126,7 @@ include 'inc/navbar.php';
                     categorySales.map(item => item.category),
                     categorySales.map(item => item.total),
                     "Sales Breakdown",
-                    ["red", "blue", "yellow", "green"]
+                    [ "#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD" ]
                 );
             })
             .catch(error => console.error("Error fetching chart data:", error));

@@ -63,7 +63,7 @@ $expenseResult = $stmtExpense->fetch(PDO::FETCH_ASSOC);
 $totalExpenses = $expenseResult['total_expenses'] ?? 0;
 
 // Calculate net profit
-$netProfit = $totalSales - $totalExpenses;
+$netProfit = $totalSales - $totalExpenses ;
 
 // Fetch Best Seller
 $bestSellerQuery = "SELECT m.name 

@@ -1,0 +1,9 @@
+{
+    "name": "samgyup/chiascorner",
+    "description": "samgyupsal business",
+    "type": "library",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "license": "MIT"
+}

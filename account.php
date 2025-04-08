@@ -10,14 +10,14 @@ include 'inc/navbar.php';
 <div class="container">
     <div class="form-container">
         <form id="addUserForm" method="POST">
-            <input type="text" name="name" placeholder="Full Name" required>
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="email" name="email" placeholder="Email Address" required>
-            <select name="user_type" required>
+            <input type="hidden" name="user_id" id="user_id" placeholder="user_id">
+            <input type="text" name="name" id="name" placeholder="Full Name" required>
+            <input type="text" name="username" id="username" placeholder="Username" required>
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <input type="email" name="email" id="email" placeholder="Email Address" required>
+            <select name="user_type" id="user_type" required>
                 <option value="admin">Admin</option>
-                <option value="waiter">Waiter</option>
-                <option value="cashier">Cashier</option>
+                <option value="employee">Employee</option>
             </select>
             <button type="submit" id="add-user">SUBMIT</button>
         </form>
@@ -25,12 +25,12 @@ include 'inc/navbar.php';
 
     <div class="table-container">
         <div class="search-container">
-            <select>
+            <select id="sortAccount">
                 <option>Sort by...</option>
                 <option>Name</option>
                 <option>User Type</option>
             </select>
-            <input type="text" id="search" placeholder="Search..." onkeyup="searchTable()">
+            <input type="text" id="search" placeholder="Search...">
         </div>
 
         <table class="user-Table">
@@ -57,63 +57,55 @@ include 'inc/navbar.php';
 
 <script>
     document.getElementById('addUserForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+        e.preventDefault(); // Prevent default form submission
 
-        const formData = new FormData(this);
+        const addUserBtn = document.getElementById('add-user');
+        const userId = document.getElementById('user_id').value;
+        let url = ''; // URL for the request
 
-        fetch('db_queries/insert_queries/insert_user.php', {
+        // Verify userId value in the form
+        console.log('User ID:', userId);
+
+        if (userId) {
+            url = 'db_queries/update_queries/update_user.php'; // Use this URL for updates
+            console.log('update');
+        } else {
+            url = 'db_queries/insert_queries/insert_user.php'; // Use this URL for inserts
+            console.log('insert');
+        }
+
+        const formData = new FormData(this); // Collect form data
+
+        // Convert the FormData to a plain object for easier handling
+        const formObject = {};
+        formData.forEach((value, key) => {
+            formObject[key] = value;
+        });
+
+        // Log the formObject to verify data being sent
+        // console.log(formObject);
+
+        fetch(url, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json', // Send JSON content type
+                },
+                body: JSON.stringify(formObject) // Send form data as JSON
             })
-            .then(response => response.json())
+            .then(response => response.json()) // Parse the JSON response
             .then(data => {
                 alert(data.message);
                 if (data.success) {
                     this.reset(); // Clear the form after successful submission
-                    fetchUser();
+                    fetchUser(); // Update the user list or display
+                    addUserBtn.textContent = 'Submit'; // Reset button text
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => console.error('Error:', error)); // Log any errors
     });
 
 
 
-
-    function removeRow(button) {
-        let row = button.parentElement.parentElement;
-        row.remove();
-    }
-
-    function editRow(button) {
-        let row = button.parentElement.parentElement;
-        let isEditing = button.innerText === "Save";
-
-        let cells = row.querySelectorAll("td:not(:last-child)");
-        cells.forEach(cell => {
-            cell.contentEditable = !isEditing;
-        });
-
-        if (isEditing) {
-            button.innerText = "Edit";
-        } else {
-            button.innerText = "Save";
-        }
-    }
-
-    function searchTable() {
-        let input = document.getElementById("search").value.toLowerCase();
-        let table = document.getElementById("userTable");
-        let rows = table.getElementsByTagName("tr");
-
-        for (let i = 1; i < rows.length; i++) {
-            let rowText = rows[i].innerText.toLowerCase();
-            if (rowText.includes(input)) {
-                rows[i].style.display = "";
-            } else {
-                rows[i].style.display = "none";
-            }
-        }
-    }
 
     function fetchUser() {
         fetch('db_queries/select_queries/fetch_user.php')
@@ -136,8 +128,8 @@ include 'inc/navbar.php';
                         <td>${item.user_type}</td>
                         <td>${item.date_created}</td>
                         <td>
-                            <button class="action-btn edit-btn" onclick="editItem(${item.ingredient_id})">Edit</button>
-                            <button class="action-btn remove-btn" onclick="removeItem(${item.ingredient_id})">Remove</button>
+                            <button class="action-btn edit-btn edit-account" data-id="${item.user_id}">Update</button>
+                            <button class="action-btn remove-btn remove-account" data-id="${item.user_id}">Remove</button>
                         </td>
                     `;
 
@@ -151,6 +143,123 @@ include 'inc/navbar.php';
             .catch(error => console.error("Error:", error));
     }
     fetchUser();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const addUserBtn = document.getElementById('add-user');
+        document.getElementById('userTableBody').addEventListener('click', function(e) {
+            if (e.target.classList.contains('edit-account')) {
+                const userId = e.target.dataset.id;
+                addUserBtn.textContent = "UPDATE";
+                // call populate table
+                populateAccountForm(userId);
+            }
+
+            if (e.target.classList.contains('remove-account')) {
+                const userId = e.target.dataset.id;
+
+                if (confirm("Are you sure you want to remove this account?")) {
+                    // Send a request to the server to remove the account
+                    fetch(`db_queries/delete_queries/remove_user.php?id=${userId}`, {
+                            method: "DELETE", // Or use POST depending on your API
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Remove the row from the table after successful deletion
+                                fetchUser();
+                            } else {
+                                alert("Failed to remove the account: " + data.message);
+                            }
+                        })
+                        .catch(error => console.error("Error:", error));
+                }
+            }
+        })
+
+        function populateAccountForm(userId) {
+            fetch('db_queries/select_queries/fetch_user.php', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        userId: userId // Change user_id to userId to match PHP parameter
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json', // Set the correct content type
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Accessing user data and populating the form
+                        const user = data.data; // Since you're returning only one user, no need to use [0]
+                        document.getElementById('user_id').value = user.user_id;
+                        document.getElementById('name').value = user.name;
+                        document.getElementById('username').value = user.username;
+                        document.getElementById('email').value = user.email;
+                        document.getElementById('user_type').value = user.user_type;
+                    } else {
+                        alert("Failed to load user data: " + data.message);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+
+        const input = document.getElementById("search");
+        const table = document.querySelector(".user-Table");
+        const sortAccount = document.getElementById('sortAccount');
+        const tableBody = document.getElementById('userTableBody');
+        // Function to search the table
+        function searchTable() {
+            const filter = input.value.toLowerCase();
+            const rows = table.querySelectorAll("tr");
+
+            rows.forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                row.style.display = rowText.includes(filter) ? "" : "none";
+            })
+        }
+
+        function sortAccountTable() {
+            const sortValue = document.getElementById('sortAccount').value; // Get the selected sort value
+            const table = document.querySelector(".user-Table");
+            const tableBody = table.querySelector("tbody"); // Get the tbody element
+            const rows = Array.from(tableBody.querySelectorAll("tr")); // Get all rows in tbody
+
+            // Sort rows based on the selected sort value
+            rows.sort((rowA, rowB) => {
+                let valueA, valueB;
+
+                // Extract values based on the selected sort option
+                switch (sortValue) {
+                    case 'Name':
+                        valueA = rowA.cells[0].innerText.toLowerCase(); // Name is in the first column
+                        valueB = rowB.cells[0].innerText.toLowerCase();
+                        break;
+                    case 'User Type':
+                        valueA = rowA.cells[3].innerText.toLowerCase(); // User type is in the fourth column
+                        valueB = rowB.cells[3].innerText.toLowerCase();
+                        break;
+                    default:
+                        return 0; // No sorting if the option is "Sort by..."
+                }
+
+                // Compare values for sorting (ascending order)
+                if (valueA < valueB) return -1; // Ascending order
+                if (valueA > valueB) return 1; // Descending order
+                return 0; // If values are equal, no change
+            });
+
+            // Re-append the sorted rows without clearing the table first
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+
+
+        sortAccount.addEventListener('change', sortAccountTable);
+        input.addEventListener("input", searchTable);
+    });
 </script>
 
 </body>

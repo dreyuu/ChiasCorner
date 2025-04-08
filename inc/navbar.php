@@ -13,6 +13,8 @@ if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SE
     header("Location: login.php"); // Redirect to login page if not logged in
     exit();
 }
+$user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
+
 ?>
 
 
@@ -33,7 +35,7 @@ if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SE
 
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 
@@ -61,9 +63,12 @@ if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SE
                 </div>
             </div>
 
-            <a href="Sales.php">SALES</a>
-            <a href="Inventory.php">INVENTORY</a>
-            <a href="account.php">ACCOUNTS</a>
+            <?php if ($user_type != 'employee'): ?>
+                <a href="Sales.php">SALES</a>
+                <a href="Inventory.php">INVENTORY</a>
+                <a href="account.php">ACCOUNTS</a>
+            <?php endif; ?>
+
         </div>
         <div class="icons">
             <img src="Capstone Assets/pngegg (12).png" alt="Notifications" class="notification-icon">
@@ -90,18 +95,11 @@ if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SE
                 <tr>
                     <th>Messages</th>
                     <th>Date & Time</th>
-                    <th>Action</th>
+                    <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr class="striped">
-                    <td>Your Bulgogi is almost expired.</td>
-                    <td>February 20, 2025 / 10:23PM</td>
-                    <td>
-                        <button class="action-btn" onclick="removeNotification(this)">Remove</button>
-                        <button class="action-btn">View</button>
-                    </td>
-                </tr>
+            <tbody id="notification-body">
+
             </tbody>
         </table>
     </div>
@@ -143,6 +141,8 @@ if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SE
         document.querySelector('.back-button').addEventListener('click', function() {
             document.getElementById('modalOverlay').style.display = 'none';
             document.getElementById('notificationModal').style.display = 'none';
+            markNotificationsAsRead();
+            loadNotifications();
         });
 
         // Function to open the modal
@@ -197,4 +197,90 @@ if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SE
                 modal.classList.remove('hide');
             }, 300);
         });
+
+        function runCleanup() {
+            fetch('db_queries/insert_queries/fetch_wastage.php') // 🔁 Change this to your actual PHP file path
+                .then(response => response.json())
+                .then(data => {
+                    // if (data.success) {
+                    //     console.log("✅ Cleanup ran successfully:", data.message);
+                    // } else {
+                    //     console.error("⚠️ Cleanup failed:", data.message);
+                    // }
+                })
+                .catch(error => console.error("❌ Error running cleanup:", error));
+        }
+
+        // Calculate the delay until the next midnight
+        function scheduleMidnightCleanup() {
+            const now = new Date();
+            const midnight = new Date();
+
+            midnight.setHours(24, 0, 0, 0); // Set to 12:00 AM the next day
+            const delay = midnight.getTime() - now.getTime();
+
+            // Run cleanup at the next midnight
+            setTimeout(() => {
+                runCleanup(); // Run once at midnight
+                setInterval(runCleanup, 24 * 60 * 60 * 1000);
+                loadNotifications(); // Load notifications after cleanup
+                // setInterval(runCleanup, 5000); 
+            }, delay);
+        }
+
+        runCleanup();
+        scheduleMidnightCleanup();
+
+        function loadNotifications() {
+            fetch("db_queries/select_queries/fetch_notification.php")
+                .then((response) => response.json())
+                .then((data) => {
+                    const tbody = document.getElementById("notification-body");
+                    tbody.innerHTML = "";
+
+                    if (data.success && data.notifications.length > 0) {
+                        data.notifications.forEach((notif) => {
+                            const row = document.createElement("tr");
+                            row.classList.add("striped");
+
+                            const createdAt = new Date(notif.created_at);
+                            const formattedDate = createdAt.toLocaleString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                            });
+
+                            row.innerHTML = `
+                        <td>${notif.message}</td>
+                        <td>${formattedDate}</td>
+                        <td>${notif.status}</td>
+                    `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        tbody.innerHTML = "<tr><td colspan='3'>No new notifications</td></tr>";
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching notifications:", error);
+                });
+        }
+
+        loadNotifications();
+
+        function markNotificationsAsRead() {
+            fetch("db_queries/update_queries/update_notification.php", {
+                    method: "POST",
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data.success) {
+                        console.warn("Failed to mark as read:", data.message);
+                    }
+                })
+                .catch((err) => console.error("Error updating notifications:", err));
+        }
     </script>
