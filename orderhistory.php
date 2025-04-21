@@ -93,7 +93,7 @@ include 'inc/navbar.php';
                         const row = document.createElement('tr');
                         row.innerHTML = `
                         <td>${order.order_id}</td>
-                        <td>${order.items_ordered}</td>
+                        <td class="order-list">${order.items_ordered}</td>
                         <td>₱${parseFloat(order.total_price).toFixed(2)}</td>
                         <td>₱${parseFloat(order.discount_amount).toFixed(2)}</td>
                         <td>₱${parseFloat(order.paid_amount).toFixed(2)}</td>
@@ -163,76 +163,92 @@ include 'inc/navbar.php';
 
                 let subtotal = parseFloat(order.total_price);
                 let discount = parseFloat(order.discount_amount) || 0;
-                let vat = subtotal * 0.12; // 12% VAT
                 let totalAfterDiscount = subtotal - discount;
-                let grandTotal = totalAfterDiscount + vat;
                 let paidAmount = parseFloat(order.paid_amount) || 0;
+                let grandTotal = totalAfterDiscount;
                 let change = paidAmount - grandTotal;
+
+                // Correct VAT calculations
+                let vatableSales = subtotal / 1.12; // Back-calculate VATable sales
+                let vatAmount = subtotal - vatableSales; // 12% of VATable sales
+                let vatExempt = 0.00; // Static for now
+                let zeroRated = 0.00; // Static for now
 
                 let receiptContainer = document.createElement("div");
                 receiptContainer.classList.add("receipt");
 
                 let receiptHeader = `
-                    <div class="exo-receipt-header">
-                        <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="exo-receipt-logo">
-                        <h2>CHIA'S CORNER</h2>
-                        <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
-                        <p>Phone#: 0926 200 4346</p>
-                    </div>
-                    <div class="exo-receipt-separator"></div>
-                `;
+                <div class="exo-receipt-header">
+                    <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="exo-receipt-logo">
+                    <h2>CHIA'S CORNER</h2>
+                    <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
+                    <p>Phone#: 0926 200 4346</p>
+                </div>
+                <div class="exo-receipt-separator"></div>
+            `;
 
                 let receiptBody = `
-                        <div class="exo-receipt-body">
-                            <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                            <p><strong>Cashier:</strong> ${order.cashier_name || "N/A"}</p>
-                            <div class="exo-receipt-separator"></div>
-                            <p><strong>Order Type:</strong> ${order.dine || "N/A"}</p>
-                            <div class="exo-receipt-separator"></div>
-                            <p><strong>Items Ordered:</strong></p>
-                    `;
+                <div class="exo-receipt-body">
+                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Cashier:</strong> ${order.cashier_name || "N/A"}</p>
+                    <div class="exo-receipt-separator"></div>
+                    <p><strong>Order Type:</strong> ${order.dine || "N/A"}</p>
+                    <div class="exo-receipt-separator"></div>
+                    <p><strong>Items Ordered:</strong></p>
+            `;
 
                 items.forEach(item => {
                     receiptBody += `
-                        <div class="receipt-item">
-                            <div class="item-details">
-                                <div class="item-name">${item.name}</div>
-                                <span>${item.quantity} x ₱${parseFloat(item.price).toFixed(2)}</span>
-                            </div>
+                    <div class="receipt-item">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <span>${item.quantity} x ₱${parseFloat(item.price).toFixed(2)}</span>
                         </div>
-                    `;
+                    </div>
+                `;
                 });
 
                 let receiptFooter = `
-                        <div class="exo-receipt-separator"></div>
-                        <div class="item-details">
-                            <p>Subtotal:</p>
-                            <span class="exo-receipt-total">₱${subtotal.toFixed(2)}</span>
-                        </div>
-                        <div class="item-details">
-                            <p>VAT (12%):</p>
-                            <span class="item-total">₱${vat.toFixed(2)}</span>
-                        </div>
-                        <div class="item-details">
-                            <p>Discount:</p>
-                            <span class="item-total">-₱${discount.toFixed(2)}</span>
-                        </div>
-                        <div class="exo-receipt-total">
-                            <p><strong>Grand Total:</strong></p>
-                            <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
-                        </div>
-                        <div class="item-details">
-                            <p>Paid Amount:</p>
-                            <span class="item-total">₱${paidAmount.toFixed(2)}</span>
-                        </div>
-                        <div class="item-details">
-                            <p>Change:</p>
-                            <span class="item-total">₱${change.toFixed(2)}</span>
-                        </div>
-                        <div class="exo-receipt-footer">        
-                            <p>THANK YOU AND ENJOY!</p>
-                        </div>
-                    `;
+                <div class="exo-receipt-separator"></div>
+                <div class="item-details exo-receipt-total">
+                    <p><strong>Grand Total:</strong></p>
+                    <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
+                </div>
+                <div class="item-details">
+                    <p>Discount:</p>
+                    <span class="item-total">-₱${discount.toFixed(2)}</span>
+                </div>
+                <div class="item-details">
+                    <p>VAT (12%):</p>
+                    <span class="item-total">₱${vatAmount.toFixed(2)}</span>
+                </div>
+                <div class="item-details">
+                    <p>VATable Sales:</p>
+                    <span class="item-total">₱${vatableSales.toFixed(2)}</span>
+                </div>
+                
+                <div class="item-details">
+                    <p>VAT Exempt Sales:</p>
+                    <span class="item-total">₱${vatExempt.toFixed(2)}</span>
+                </div>
+                <div class="item-details">
+                    <p>Zero-rated Sales:</p>
+                    <span class="item-total">₱${zeroRated.toFixed(2)}</span>
+                </div>
+                <div class="exo-receipt-separator"></div>
+                <div class="item-details">
+                    <p>Paid Amount:</p>
+                    <span class="item-total">₱${paidAmount.toFixed(2)}</span>
+                </div>
+                <div class="item-details">
+                    <p>Change:</p>
+                    <span class="item-total">₱${change.toFixed(2)}</span>
+                </div>
+                <div class="exo-receipt-footer">
+                    <p>This serves as your OFFICIAL RECEIPT</p>
+                    <p>Thank you and enjoy!</p>
+                </div>
+            `;
 
                 receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
                 receiptList.appendChild(receiptContainer);

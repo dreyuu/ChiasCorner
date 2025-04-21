@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chia's Corner Login</title>
     <link rel="stylesheet" href="css/style.css">
-
+    <link rel="stylesheet" href="css/menu.css">
     <!-- LOGO NI CHINA'S -->
 
     <link rel="icon" href="Capstone Assets/LogoMain.ico" sizes="any" type="image/png">
@@ -249,11 +249,29 @@
                     </span>
                 </div>
                 <button class="login-btn" type="submit" id="submitBtn">LOGIN</button>
-                <button type="button" class="forgot-pass">Forgot Password?</button>
+                <button type="button" class="forgot-pass" id="forgot-pass">Forgot Password?</button>
             </form>
         </div>
     </div>
 
+
+    <div class="custom-promo-modal">
+        <div class="custom-promo-modal-content">
+            <button class="custom-back-btn">Back</button>
+            <h2 class="custom-promo-header">Forgot Password?</h2><br><br><br>
+
+            <div class="custom-promo-wrapper">
+                <div class="custom-promo-box">
+                    <div class="custom-promo-form forgotten">
+                        <form id="promoForm">
+                            <input type="text" id="adminUsername" placeholder="Enter admin username" name="adminUsername" required>
+                            <button class="custom-add-promo-btn" type="submit" id="forgotSubmitBtn">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="js/login.js"></script>
     <script>
@@ -271,6 +289,83 @@
                 eyeIcon.classList.add("fa-eye");
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const forgotPassBtn = document.getElementById('forgot-pass');
+            const promoModal = document.querySelector(".custom-promo-modal");
+            const closeModal = document.querySelector(".custom-modal-close");
+            const closeBtn = document.querySelector(".custom-close-modal-btn");
+            const backBtn = document.querySelector(".custom-back-btn");
+
+            forgotPassBtn.addEventListener('click', function() {
+                promoModal.style.display = 'flex';
+                setTimeout(() => {
+                    promoModal.classList.add("show");
+                }, 10);
+            })
+
+            if (closeModal) closeModal.addEventListener("click", closePromoModal);
+
+            if (closeBtn) closeBtn.addEventListener("click", closePromoModal);
+
+            if (backBtn) {
+                backBtn.addEventListener("click", function() {
+                    promoModal.classList.remove("show");
+                    setTimeout(() => {
+                        promoModal.style.display = "none";
+                    }, 300);
+                });
+            }
+            window.addEventListener("click", function(event) {
+                if (event.target === promoModal) {
+                    closePromoModal();
+                }
+            });
+
+            function closePromoModal() {
+                promoModal.classList.remove("show");
+                setTimeout(() => {
+                    promoModal.style.display = "none";
+                    checkModals();
+                }, 300);
+            }
+        })
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const forgotBtn = document.getElementById('forgotSubmitBtn');
+            const adminUsername = document.getElementById('adminUsername');
+
+            if (forgotBtn) {
+                forgotBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+
+                    const username = adminUsername.value.trim();
+
+                    if (username === "") {
+                        alert("Please enter your username.");
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('db_queries/insert_queries/forgot_admin_account.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                username
+                            })
+                        });
+
+                        const result = await response.json();
+                        alert(result.message);
+                    } catch (error) {
+                        alert("Error: " + error.message);
+                    }
+
+                });
+            }
+        });
     </script>
 </body>
 

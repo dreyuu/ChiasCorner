@@ -40,12 +40,10 @@ try {
             echo json_encode(["success" => true, "message" => "Login successful"]);
             exit();
         } else {
-            http_response_code(401);
             echo json_encode(["success" => false, "message" => "Invalid username or password"]);
             exit();
         }
     } else {
-        http_response_code(401);
         echo json_encode(["success" => false, "message" => "Invalid username or password"]);
         exit();
     }

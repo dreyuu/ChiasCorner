@@ -239,7 +239,7 @@ try {
                 row.innerHTML = `
                     <td>${str_pad(queueNumber++, 4, '0', 'STR_PAD_LEFT')}</td>
                     <td>${order.order_id}</td>
-                    <td>${order.order_list}</td>
+                    <td class="order-list">${order.order_list}</td>
                     <td>$${parseFloat(order.total_price).toFixed(2)}</td>
                     <td>${order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}</td>
                     <td>$${parseFloat(order.paid_amount).toFixed(2)}</td>
@@ -304,27 +304,27 @@ try {
                 items.forEach(item => {
                     orderHtml += `<li>${item.name} (x${item.quantity}) - ₱${parseFloat(item.price).toFixed(2)}</li>`;
                 });
-                orderHtml += "</ul>";
+                // orderHtml += "</ul>";
 
-                // Unlimited Ingredients (with Input Fields)
-                if (ingredients.length > 0) {
-                    orderHtml += "<h3 class='section-title'>Unlimited Ingredients</h3><ul class='ingredient-list'>";
-                    ingredients.forEach(ingredient => {
-                        if (ingredient.ingredient_type === 'unli') {
-                            orderHtml += `
-                            <li class='ingredient-item'>
-                                <input type="hidden" value="${ingredient.ingredient_id}" id="ingredient_id">
-                                <span>${ingredient.ingredient_name}</span> 
-                                <input type='number' class='input-field ingredient-quantity' 
-                                    data-ingredient-id="${ingredient.ingredient_id}" 
-                                    value="${ingredient.quantity_required || ''}" 
-                                    placeholder="Enter quantity">
-                            </li>
-                        `;
-                        }
-                    });
-                    orderHtml += "</ul>";
-                }
+                // // Unlimited Ingredients (with Input Fields)
+                // if (ingredients.length > 0) {
+                //     orderHtml += "<h3 class='section-title'>Unlimited Ingredients</h3><ul class='ingredient-list'>";
+                //     ingredients.forEach(ingredient => {
+                //         if (ingredient.ingredient_type === 'unli') {
+                //             orderHtml += `
+                //             <li class='ingredient-item'>
+                //                 <input type="hidden" value="${ingredient.ingredient_id}" id="ingredient_id">
+                //                 <span>${ingredient.ingredient_name}</span> 
+                //                 <input type='number' class='input-field ingredient-quantity' 
+                //                     data-ingredient-id="${ingredient.ingredient_id}" 
+                //                     value="${ingredient.quantity_required || ''}" 
+                //                     placeholder="Enter quantity">
+                //             </li>
+                //         `;
+                //         }
+                //     });
+                //     orderHtml += "</ul>";
+                // }
 
 
                 orderDetailsDiv.innerHTML = orderHtml;
@@ -343,43 +343,43 @@ try {
         let totalPriceText = document.getElementById("totalPrice").textContent;
         let totalPrice = parseFloat(totalPriceText.replace(/[^\d.]/g, ''));
 
-        let consumedIngredients = [];
+        // let consumedIngredients = [];
 
-        // Loop through all globalIngredients (both fixed and unli)
-        globalIngredients.forEach(ingredient => {
-            let quantityConsumed;
+        // // Loop through all globalIngredients (both fixed and unli)
+        // globalIngredients.forEach(ingredient => {
+        //     let quantityConsumed;
 
-            // If the ingredient type is 'unli', get the quantity from the input field
-            if (ingredient.ingredient_type === 'unli') {
-                let input = document.querySelector(`.ingredient-quantity[data-ingredient-id="${ingredient.ingredient_id}"]`);
+        //     // If the ingredient type is 'unli', get the quantity from the input field
+        //     if (ingredient.ingredient_type === 'unli') {
+        //         let input = document.querySelector(`.ingredient-quantity[data-ingredient-id="${ingredient.ingredient_id}"]`);
 
-                if (input) {
-                    let inputValue = parseFloat(input.value);
-                    if (isNaN(inputValue) || inputValue <= 0) {
-                        alert('Please enter a valid quantity for unlimited ingredients.');
-                        return; // Stop further execution if input is invalid
-                    }
-                    quantityConsumed = inputValue;
-                }
-            } else if (ingredient.ingredient_type === 'fixed') {
-                // For 'fixed' ingredients, use the predefined quantity_required
-                quantityConsumed = ingredient.quantity_required;
-            }
+        //         if (input) {
+        //             let inputValue = parseFloat(input.value);
+        //             if (isNaN(inputValue) || inputValue <= 0) {
+        //                 alert('Please enter a valid quantity for unlimited ingredients.');
+        //                 return; // Stop further execution if input is invalid
+        //             }
+        //             quantityConsumed = inputValue;
+        //         }
+        //     } else if (ingredient.ingredient_type === 'fixed') {
+        //         // For 'fixed' ingredients, use the predefined quantity_required
+        //         quantityConsumed = ingredient.quantity_required;
+        //     }
 
-            // Only push to consumedIngredients if quantityConsumed is a valid number and greater than 0
-            if (!isNaN(quantityConsumed) && quantityConsumed > 0) {
-                consumedIngredients.push({
-                    ingredient_id: ingredient.ingredient_id,
-                    quantity: quantityConsumed
-                });
-            }
-        });
+        //     // Only push to consumedIngredients if quantityConsumed is a valid number and greater than 0
+        //     if (!isNaN(quantityConsumed) && quantityConsumed > 0) {
+        //         consumedIngredients.push({
+        //             ingredient_id: ingredient.ingredient_id,
+        //             quantity: quantityConsumed
+        //         });
+        //     }
+        // });
 
         // Validate if at least one ingredient was added
-        if (consumedIngredients.length === 0) {
-            alert("There is no consumed ingredients.");
-            return;
-        }
+        // if (consumedIngredients.length === 0) {
+        //     alert("There is no consumed ingredients.");
+        //     return;
+        // }
 
         // Validate amountPaid
         if (isNaN(amountPaid) || amountPaid <= 0) {
@@ -403,7 +403,7 @@ try {
                     order_id: orderId,
                     amount_paid: amountPaid,
                     payment_method: paymentMethod,
-                    consumed_ingredients: consumedIngredients
+                    // consumed_ingredients: consumedIngredients
                 })
             })
             .then(response => response.json())
@@ -443,11 +443,16 @@ try {
 
                 let subtotal = parseFloat(order.total_price);
                 let discount = parseFloat(order.discount_amount) || 0;
-                let vat = subtotal * 0.12; // 12% VAT
                 let totalAfterDiscount = subtotal - discount;
-                let grandTotal = totalAfterDiscount + vat;
                 let paidAmount = parseFloat(order.paid_amount) || 0;
+                let grandTotal = totalAfterDiscount;
                 let change = paidAmount - grandTotal;
+
+                // Correct VAT calculations
+                let vatableSales = subtotal / 1.12; // Back-calculate VATable sales
+                let vatAmount = subtotal - vatableSales; // 12% of VATable sales
+                let vatExempt = 0.00; // Static for now
+                let zeroRated = 0.00; // Static for now
 
                 let receiptContainer = document.createElement("div");
                 receiptContainer.classList.add("receipt");
@@ -485,22 +490,32 @@ try {
 
                 let receiptFooter = `
                 <div class="exo-receipt-separator"></div>
-                <div class="item-details">
-                    <p>Subtotal:</p>
-                    <span class="exo-receipt-total">₱${subtotal.toFixed(2)}</span>
-                </div>
-                <div class="item-details">
-                    <p>VAT (12%):</p>
-                    <span class="item-total">₱${vat.toFixed(2)}</span>
+                <div class="item-details exo-receipt-total">
+                    <p><strong>Grand Total:</strong></p>
+                    <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
                 </div>
                 <div class="item-details">
                     <p>Discount:</p>
                     <span class="item-total">-₱${discount.toFixed(2)}</span>
                 </div>
-                <div class="exo-receipt-total">
-                    <p><strong>Grand Total:</strong></p>
-                    <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
+                <div class="item-details">
+                    <p>VAT (12%):</p>
+                    <span class="item-total">₱${vatAmount.toFixed(2)}</span>
                 </div>
+                <div class="item-details">
+                    <p>VATable Sales:</p>
+                    <span class="item-total">₱${vatableSales.toFixed(2)}</span>
+                </div>
+                
+                <div class="item-details">
+                    <p>VAT Exempt Sales:</p>
+                    <span class="item-total">₱${vatExempt.toFixed(2)}</span>
+                </div>
+                <div class="item-details">
+                    <p>Zero-rated Sales:</p>
+                    <span class="item-total">₱${zeroRated.toFixed(2)}</span>
+                </div>
+                <div class="exo-receipt-separator"></div>
                 <div class="item-details">
                     <p>Paid Amount:</p>
                     <span class="item-total">₱${paidAmount.toFixed(2)}</span>
@@ -509,8 +524,9 @@ try {
                     <p>Change:</p>
                     <span class="item-total">₱${change.toFixed(2)}</span>
                 </div>
-                <div class="exo-receipt-footer">        
-                    <p>THANK YOU AND ENJOY!</p>
+                <div class="exo-receipt-footer">
+                    <p>This serves as your OFFICIAL RECEIPT</p>
+                    <p>Thank you and enjoy!</p>
                 </div>
             `;
 

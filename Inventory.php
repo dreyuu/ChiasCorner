@@ -25,19 +25,43 @@ include 'inc/navbar.php';
                 <!-- Dropdown for Menu Category -->
                 <select class="custom-ingredients-dropdown" id="category-ingredient" name="category-ingredient" required>
                     <option value="" selected disabled>Select a Category</option>
-                    <option value="Meat">Meat</option>
-                    <option value="Drinks">Drinks</option>
-                    <option value="Mushrooms">Mushrooms</option>
-                    <option value="Chicken">Chicken</option>
-                    <option value="Beef">Beef</option>
+                    <option value="Meat">Meat</option> <!-- General category for all types of meat -->
+                    <option value="Pork">Pork</option> <!-- Specific category for pork-based ingredients (e.g., Pork Belly, Sausages) -->
+                    <option value="Beef">Beef</option> <!-- Beef-specific ingredients -->
+                    <option value="Chicken">Chicken</option> <!-- Chicken-specific ingredients -->
+
+                    <option value="Seafood">Seafood</option> <!-- For items like shrimp, fish, etc. -->
+                    <option value="Vegetables">Vegetables</option> <!-- For plant-based items (e.g., lettuce, mushrooms) -->
+                    <option value="Mushrooms">Mushrooms</option> <!-- Specific category for mushroom-based ingredients -->
+
+                    <option value="Sauces">Sauces</option> <!-- For sauces like soy sauce, barbecue sauce, etc. -->
+                    <option value="Seasonings">Seasonings</option> <!-- For spices and seasonings like pepper, salt, garlic powder, etc. -->
+
+                    <option value="Rice">Rice</option> <!-- If you offer rice or rice-based items -->
+                    <option value="Noodles">Noodles</option> <!-- If noodles are part of the menu -->
+
+                    <option value="Drinks">Drinks</option> <!-- Beverages like iced tea, lemonade, etc. -->
+                    <option value="Desserts">Desserts</option> <!-- For sweet items like cakes, ice cream, etc. -->
+
+                    <option value="Others">Others</option>
                 </select>
 
                 <!-- Dropdown for Menu Unit -->
                 <select class="custom-ingredients-dropdown" id="unit-ingredient" name="unit-ingredient" required>
                     <option value="" selected disabled>Select a Unit</option>
-                    <option value="grams">Grams</option>
-                    <option value="liters">Liters</option>
-                    <option value="pieces">Pieces</option>
+                    <option value="grams">Grams</option> <!-- For weight-based ingredients -->
+                    <option value="kilograms">Kilograms</option> <!-- For larger weight-based ingredients -->
+                    <option value="liters">Liters</option> <!-- For liquid-based ingredients -->
+                    <option value="milliliters">Milliliters</option> <!-- For smaller liquid-based ingredients -->
+                    <option value="pieces">Pieces</option> <!-- For count-based ingredients like eggs, fruits, etc. -->
+                    <option value="cups">Cups</option> <!-- For measurements like flour, sugar, etc. -->
+                    <option value="tablespoons">Tablespoons</option> <!-- For smaller quantities of liquid or dry ingredients -->
+                    <option value="teaspoons">Teaspoons</option> <!-- For even smaller measurements -->
+                    <option value="bunches">Bunches</option> <!-- For items like bananas, cilantro, etc. -->
+                    <option value="slices">Slices</option> <!-- For items that can be sliced like bread, fruits, etc. -->
+                    <option value="packets">Packets</option> <!-- For packaged ingredients like seasoning, sugar, etc. -->
+                    <option value="gallons">Gallons</option> <!-- For larger liquid measurements (for sauces, bulk liquids) -->
+                    <option value="pounds">Pounds</option>
                 </select>
 
                 <div class="custom-ingredients-buttons">
@@ -911,7 +935,7 @@ include 'inc/navbar.php';
 
             if (data.success) {
                 tableProcessor(data.data);
-            }  else {
+            } else {
                 tbody.innerHTML = `
                                 <tr>
                                     <td colspan="100%" style="text-align:center; color:red;">${data.message}</td>

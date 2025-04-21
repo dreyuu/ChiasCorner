@@ -71,16 +71,16 @@ try {
                 <img src='$imagePath' alt='$name' class='menu_image'>
                 <p id='item_name'>$name<br><strong id='item_price'>₱$price</strong></p>";
 
-            if ($sufficient) {
+            // if ($sufficient) {
                 echo "
                 <div class='item-controls'>
                     <button class='minus-item'>➖</button>
                     <span class='item-quantity'>0</span>
                     <button class='plus-item'>➕</button>
                 </div>";
-            } else {
-                echo "<p class='out-of-stock' style='color: red;'>⚠️ Not enough ingredients</p>";
-            }
+            // } else {
+            //     echo "<p class='out-of-stock' style='color: red;'>⚠️ Not enough ingredients</p>";
+            // }
 
             echo "</div>";
         }

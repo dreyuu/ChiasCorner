@@ -8,53 +8,67 @@ $whereClauses = [];
 
 // Apply date filters if provided
 if (!empty($dateFrom) && !empty($dateTo)) {
-    $whereClauses[] = "o.order_date BETWEEN :dateFrom AND :dateTo";
+    $whereClauses[] = "oh.archived_date BETWEEN :dateFrom AND :dateTo"; // Reference archived_date
     $params[':dateFrom'] = $dateFrom;
     $params[':dateTo'] = $dateTo;
 }
 
-// Fetch Monthly Sales
-$query = "SELECT MONTH(o.order_date) AS month, SUM(o.total_price) AS total
-          FROM orders o";
+// Fetch Monthly Sales (from order_history)
+$query = "SELECT 
+                MONTH(oh.archived_date) AS month, 
+                SUM(oh.total_price) AS total
+            FROM 
+                order_history oh
+            WHERE 
+                oh.payment_status = 'paid'"; // Payment status should be 'paid'
 
 if (!empty($whereClauses)) {
-    $query .= " WHERE " . implode(" AND ", $whereClauses);
+    $query .= " AND " . implode(" AND ", $whereClauses); // Apply additional filters (e.g., date range)
 }
-$query .= " GROUP BY MONTH(o.order_date) ORDER BY MONTH(o.order_date)";
+
+$query .= " GROUP BY MONTH(oh.archived_date)
+            ORDER BY MONTH(oh.archived_date);"; // Ensure ordering by month
 
 $stmt = $connect->prepare($query);
 $stmt->execute($params);
 $monthlySales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->closeCursor(); // Close the cursor to allow the next query to execute
 
-// Fetch Category Sales Breakdown
+// Fetch Category Sales Breakdown (from order_history, payment status 'paid')
 $query2 = "SELECT m.category, SUM(oi.quantity * oi.price) AS total
-           FROM orders o
-           JOIN order_items oi ON o.order_id = oi.order_id
-           JOIN menu m ON oi.menu_id = m.menu_id";
+            FROM order_history oh
+            JOIN order_items oi ON oh.order_id = oi.order_id
+            JOIN menu m ON oi.menu_id = m.menu_id
+            WHERE oh.payment_status = 'paid'"; // Filter for paid orders
 
 if (!empty($whereClauses)) {
-    $query2 .= " WHERE " . implode(" AND ", $whereClauses);
+    $query2 .= " AND " . implode(" AND ", $whereClauses); // Apply additional filters (e.g., date range)
 }
-$query2 .= " GROUP BY m.category ORDER BY total DESC";
+
+$query2 .= " GROUP BY m.category ORDER BY total DESC"; // Group by category and order by total sales
 
 $stmt2 = $connect->prepare($query2);
 $stmt2->execute($params);
 $categorySales = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$stmt2->closeCursor(); // Close the cursor to allow the next query to execute
 
-// Fetch Top-Selling Menu Items
+// Fetch Top-Selling Menu Items (from order_history, payment status 'paid')
 $query3 = "SELECT m.name, SUM(oi.quantity) AS total_quantity
-           FROM order_items oi
-           JOIN menu m ON oi.menu_id = m.menu_id
-           JOIN orders o ON oi.order_id = o.order_id";
+            FROM order_items oi
+            JOIN menu m ON oi.menu_id = m.menu_id
+            JOIN order_history oh ON oi.order_id = oh.order_id
+            WHERE oh.payment_status = 'paid'"; // Filter for paid orders
 
 if (!empty($whereClauses)) {
-    $query3 .= " WHERE " . implode(" AND ", $whereClauses);
+    $query3 .= " AND " . implode(" AND ", $whereClauses); // Apply additional filters (e.g., date range)
 }
-$query3 .= " GROUP BY m.menu_id ORDER BY total_quantity DESC LIMIT 5"; // Top 5 best-selling items
+
+$query3 .= " GROUP BY m.menu_id ORDER BY total_quantity DESC LIMIT 5"; // Get top 5 best-selling items
 
 $stmt3 = $connect->prepare($query3);
 $stmt3->execute($params);
 $topMenus = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+$stmt3->closeCursor(); // Close the cursor
 
 // Return JSON Response
 header('Content-Type: application/json');

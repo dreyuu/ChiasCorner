@@ -26,10 +26,10 @@ if (!empty($category) && $category !== 'all') {
 
 // Build the sales and customers query
 $query = "SELECT 
-    COALESCE(SUM(oh.total_price), 0) AS total_sales, 
-    COUNT(DISTINCT oh.order_id) AS customers_served
-FROM order_history oh
-WHERE oh.payment_status = 'paid'";
+                COALESCE(SUM(oh.total_price), 0) AS total_sales, 
+                COUNT(DISTINCT oh.order_id) AS customers_served
+            FROM order_history oh
+            WHERE oh.payment_status = 'paid'";
 
 // Apply WHERE conditions if any exist
 if (!empty($whereClauses)) {
@@ -44,7 +44,7 @@ $totalSales = $result['total_sales'] ?? 0;
 $customersServed = $result['customers_served'] ?? 0;
 
 // Query for total expenses (restock transactions)
-$expenseQuery = "SELECT COALESCE(SUM(it.quantity * sb.cost), 0) AS total_expenses
+$expenseQuery = "SELECT COALESCE(sum(sb.cost), 0) AS total_expenses
     FROM inventory_transactions it
     JOIN stock_batches sb ON it.ingredient_id = sb.ingredient_id
     WHERE it.transaction_type = 'restock'";

@@ -51,8 +51,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    try {
-                        console.log(data);
+                    try { 
                         if (data.success) {
                             showAlert("success-alert", "Login successful!");
                             // show loading screen

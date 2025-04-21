@@ -770,7 +770,7 @@ body.modal-open {
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 12px;
+    padding: 5px;
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 10px;
@@ -799,18 +799,24 @@ body.modal-open {
 
 .menu-item img {
     width: 100%;
-    max-width: 120px;
+    max-width: 200px;
     height: 120px;
     border-radius: 8px;
     object-fit: contain;
     display: block;
-    margin: 0 auto;
+    margin: 0;
 }
 .sauces .menu-item img {
     max-width: 80px;
 }
 .sauces .menu-item #item_price {
     display: none;
+}
+.menu-item #item_name {
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    width: 200px;
 }
 /* Centering the description below the image */
 .menu-item {
@@ -1045,6 +1051,9 @@ body.modal-open {
     margin-top: 16px;
 }
 
+.forgotten {
+    width: 100% !important;
+}
 /* Receipt Modal Background */
 
 .receipt-modal-bg {

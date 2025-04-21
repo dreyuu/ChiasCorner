@@ -69,7 +69,12 @@ thead {
     background-color: #FFD428;
     font-size: 18px;
 }
-
+.order-list {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 400px;
+}
 /* Action Layout */
 .action-layout {
     display: flex;
@@ -459,8 +464,8 @@ ul {
 /* Order Summary */
 
 .exo-receipt-total {
-    font-size: 16px;
-    font-weight: bold;
+    font-size: 16px !important;
+    font-weight: bold !important;
 }
 
 /* Footer */
@@ -486,6 +491,7 @@ ul {
 .item-details {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 12px;
     color: #444;
 }

@@ -142,13 +142,21 @@ include 'inc/navbar.php';
                     categorySales.map(item => item.category),
                     categorySales.map(item => item.total),
                     "Sales Breakdown",
-                    [ "#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD" ]
+                    ["#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD"]
                 );
             })
             .catch(error => console.error("Error fetching chart data:", error));
     }
 
     function updateChart(canvasId, chartInstance, chartType, labels, data, label, backgroundColors) {
+        // Maximum length of label before truncating and adding ellipsis
+        const MAX_LABEL_LENGTH = 10;
+
+        // Truncate labels if they exceed the specified length
+        const truncatedLabels = labels.map((label) => {
+            return label.length > MAX_LABEL_LENGTH ? label.substring(0, MAX_LABEL_LENGTH) + '...' : label;
+        });
+
         let ctx = document.getElementById(canvasId).getContext("2d");
 
         if (chartInstance) {
@@ -158,7 +166,7 @@ include 'inc/navbar.php';
         return new Chart(ctx, {
             type: chartType,
             data: {
-                labels: labels,
+                labels: truncatedLabels, // Use the truncated labels here
                 datasets: [{
                     label: label,
                     data: data,

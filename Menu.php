@@ -29,13 +29,15 @@ if (isset($_GET['order_id'])) {
             <button class="custom-menu-item" onclick="fetchMenus('Drinks', '.menu-items')">Drinks</button>
             <button class="custom-menu-item" onclick="fetchMenus('Others', '.menu-items')">Others</button>
 
-            <!-- Promos Button -->
-            <button class="custom-menu-item custom-promo-btn">
-                Promos <span class="custom-promo-icon">+</span>
-            </button>
+            <?php if ($user_type !== 'employee'): ?>
+                <!-- Promos Button -->
+                <button class="custom-menu-item custom-promo-btn">
+                    Promos <span class="custom-promo-icon">+</span>
+                </button>
 
-            <!-- Menu Button -->
-            <button class="custom-add-menu">Add New Menu</button>
+                <!-- Menu Button -->
+                <button class="custom-add-menu">Add New Menu</button>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -99,45 +101,6 @@ if (isset($_GET['order_id'])) {
     <div class="list_orders">
     </div>
 </div>
-<!-- Receipt Modal -->
-<!-- <div class="receipt-modal-bg" id="receiptModalBg">
-    <div class="receipt-modal">
-        <div class="receipt-paper">
-            <div class="receipt-header">
-                <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="receipt-logo">
-                <h2>CHIA'S CORNER</h2>
-                <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
-                <p>Phone#: 0926 200 4346</p>
-            </div>
-            <div class="receipt-separator"></div>
-            <div class="receipt-body">
-                <p><strong>Date:</strong> February 20, 2025 / <strong>Time:</strong> 10:23 PM</p>
-                <p><strong>Cashier:</strong> (Cashier Name)</p>
-                <p><strong>Waiter:</strong> (Waiter Name)</p>
-                <div class="receipt-separator"></div>
-                <p><strong>Order Type:</strong> [DINE-IN]</p>
-                <p><strong>Order No:</strong> 0923</p>
-                <div class="receipt-separator"></div>
-                <p><strong>Items Ordered:</strong></p>
-                <p>1 x Buldak 1Pc - ₱150.00</p>
-                <p>1 x 3pcs Wings w/ Rice and Honey Garlic Sauce - ₱89.00</p>
-                <div class="receipt-separator"></div>
-                <p class="receipt-total"><strong>TOTAL AMOUNT: ₱239.00</strong></p>
-                <p>Amount Paid: ₱500.00</p>
-                <p>Change Given: ₱261.00</p>
-                <p>Payment Method: CASH</p>
-            </div>
-            <div class="receipt-separator"></div>
-            <div class="receipt-footer">
-                <p>THANK YOU AND ENJOY!</p>
-            </div>
-        </div>
-    </div>
-</div> -->
-
-
-
-
 
 
 <!-- Menus Ingredients Modal -->
@@ -299,17 +262,18 @@ if (isset($_GET['order_id'])) {
             <div class="custom-promo-box">
                 <div class="custom-promo-form">
                     <form id="promoForm">
-                        <input type="text" id="promoName" placeholder="Promo Name" name="promoName" required>
 
+                        <input type="hidden" id="promoId" placeholder="Promo iD" name="promoId" required>
+                        <input type="text" id="promoName" placeholder="Promo Name" name="promoName" required>
                         <select id="discount_type" name="discount_type" class="custom-description-dropdown" required>
                             <option value="" disabled selected>Select Discount Type</option>
                             <option value="fixed">Fixed</option>
                             <option value="percentage">Percentage</option>
                         </select>
                         <input type="text" id="discount_value" placeholder="Discount Value" name="discount_value" required>
-                        <label for="date-from">START DATE:</label>
+                        <label for="start_date">START DATE:</label>
                         <input type="date" id="start_date" name="start_date" required>
-                        <label for="date-from">END DATE:</label>
+                        <label for="end_date">END DATE:</label>
                         <input type="date" id="end_date" name="end_date" required>
                         <select id="applicable_menu" name="applicable_menu" class="custom-description-dropdown" required>
                             <option value="" disabled selected>Select Applicable Menu</option>
@@ -460,27 +424,30 @@ if (isset($_GET['order_id'])) {
         const backBtn = document.querySelector(".custom-menus-back");
 
         const addMenusBtn = document.getElementById("add-ingredients");
+        // const addMenusBtn = document.getElementById("custom-add-menu");
         const menusBackBtn = document.querySelector(".menus-back");
         const menusModal = document.getElementById('menus-modal');
         const menusTable = document.querySelector('.menus-table')
         // Open Modal
 
+        // if (openModalBtn) {
+        //     openModalBtn.addEventListener("click", function() {
+        //         modalOverlay.classList.add("show");
+        //         modal.classList.add("show");
+        //         document.body.classList.add("modal-open"); // Add blur effect
+        //     });
+        // }
+
         if (openModalBtn) {
             openModalBtn.addEventListener("click", function() {
-                modalOverlay.classList.add("show");
-                modal.classList.add("show");
-                document.body.classList.add("modal-open"); // Add blur effect
-            });
-        }
-
-        if (addMenusBtn) {
-            addMenusBtn.addEventListener("click", function() {
                 menusModal.classList.add("show");
                 menusModal.classList.add("show");
                 document.body.classList.add("modal-open");
                 loadMenus();
                 document.getElementById("submitButton").textContent = "ADD"; // Reset button text
                 document.getElementById("edit_menu_id").value = ""; // Clear ID
+                modalOverlay.classList.add("show");
+                document.body.classList.add("modal-open"); // Add blur effect
             });
         }
         // Close Modal (X button)
@@ -497,6 +464,7 @@ if (isset($_GET['order_id'])) {
 
         if (menusBackBtn) {
             menusBackBtn.addEventListener("click", function() {
+                closeMenusModal();
                 menusModal.classList.remove("show");
             });
         }
@@ -600,6 +568,7 @@ if (isset($_GET['order_id'])) {
                         loadMenuIngredients(menu_id); // Refresh ingredient table
                         document.getElementById("submit-ingredient").textContent = "ADD"; // Reset button text
                         delete document.getElementById("submit-ingredient").dataset.update; // Remove update flag
+                        createMenu.reset();
                     } else {
                         console.error("Error:", data.error);
                     }
@@ -742,27 +711,33 @@ if (isset($_GET['order_id'])) {
             .catch(error => console.error("Error fetching menus:", error));
     }
 
-    document.getElementById("promoForm").addEventListener("submit", function(event) {
-        event.preventDefault(); // Prevent page reload
+    document.getElementById("promoForm").addEventListener("submit", function(e) {
+        e.preventDefault();
 
-        let formData = new FormData(this);
+        const form = new FormData(this);
+        const isUpdate = form.get("promoId") !== "";
 
-        fetch("db_queries/insert_queries/insert_promo.php", {
+        const url = isUpdate ?
+            "db_queries/update_queries/update_promo.php" :
+            "db_queries/insert_queries/insert_promo.php"; // ← You should have this script already
+
+        fetch(url, {
                 method: "POST",
-                body: formData
+                body: new URLSearchParams(form)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert("Promo added successfully!");
-                    document.getElementById("promoForm").reset(); // Clear the form
-                    fetchPromos("active"); // Load only active promos by default
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === "success") {
+                    alert(isUpdate ? "Promo updated!" : "Promo added!");
+                    fetchPromos("active");
+                    document.getElementById("promoForm").reset();
+                    document.getElementById("promoSubmitBtn").textContent = "ADD PROMO";
                 } else {
-                    alert("Error: " + data.error);
+                    alert(res.message || "Something went wrong.");
                 }
-            })
-            .catch(error => console.error("Error inserting promo:", error));
+            });
     });
+
 
 
     document.getElementById("promoFilter").addEventListener("change", function() {
@@ -793,8 +768,8 @@ if (isset($_GET['order_id'])) {
                         <td>${promo.applicable_menu ? promo.applicable_menu : "All"}</td>
                         <td>${promo.status}</td>
                         <td>
-                            <button class="edit-btn" data-id="${promo.promo_id}">Edit</button>
-                            <button class="delete-btn edit-btn" data-id="${promo.promo_id}">Delete</button>
+                            <button class="edit-btn edit-promo" data-id="${promo.promo_id}">Edit</button>
+                            <button class="delete-btn edit-btn delete-promo" data-id="${promo.promo_id}">Delete</button>
                         </td>
                     </tr>
                 `;
@@ -804,6 +779,52 @@ if (isset($_GET['order_id'])) {
             })
             .catch(error => console.error("Error fetching promos:", error));
     }
+
+    document.addEventListener("click", function(e) {
+        const target = e.target;
+
+        if (target.classList.contains("edit-promo")) {
+            const promoId = target.dataset.id;
+
+            // Fetch promo details by ID
+            fetch(`db_queries/select_queries/get_promo.php?promo_id=${promoId}`)
+                .then(response => response.json())
+                .then(promo => {
+                    document.getElementById("promoId").value = promo.promo_id;
+                    document.getElementById("promoName").value = promo.name;
+                    document.getElementById("discount_type").value = promo.discount_type;
+                    document.getElementById("discount_value").value = promo.discount_value;
+                    document.getElementById("start_date").value = promo.start_date;
+                    document.getElementById("end_date").value = promo.end_date;
+                    document.getElementById("applicable_menu").value = promo.applicable_menu_id ?? "";
+
+                    document.getElementById("promoSubmitBtn").textContent = "UPDATE PROMO";
+                });
+        }
+
+        if (target.classList.contains("delete-promo")) {
+            const promoId = target.dataset.id;
+
+            if (confirm("Are you sure you want to delete this promo?")) {
+                fetch("db_queries/delete_queries/delete_promo.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: `promoId=${promoId}`
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.status === "success") {
+                            alert("Promo deleted.");
+                            fetchPromos("all");
+                        } else {
+                            alert("Failed to delete promo.");
+                        }
+                    });
+            }
+        }
+    });
 
 
 
@@ -908,7 +929,7 @@ if (isset($_GET['order_id'])) {
         if (Object.keys(orders).length === 0) {
             orderListElement.innerHTML = "<p class='empty-order'>No items in the order.</p>";
             return;
-        }
+    }
 
         let receiptContainer = document.createElement("div");
         receiptContainer.classList.add("receipt");
