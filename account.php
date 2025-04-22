@@ -9,6 +9,7 @@ include 'inc/navbar.php';
 
 <div class="container">
     <div class="form-container">
+        <h2>Account Management</h2>
         <form id="addUserForm" method="POST">
             <input type="hidden" name="user_id" id="user_id" placeholder="user_id">
             <input type="text" name="name" id="name" placeholder="Full Name" required>
@@ -17,9 +18,10 @@ include 'inc/navbar.php';
             <input type="email" name="email" id="email" placeholder="Email Address" required>
             <select name="user_type" id="user_type" required>
                 <option value="admin">Admin</option>
-                <option value="employee">Employee</option>
+                <option value="employee" selected>Employee</option>
             </select>
             <button type="submit" id="add-user">SUBMIT</button>
+            <button type="submit" id="cancel">Cancel</button>
         </form>
     </div>
 
@@ -58,6 +60,12 @@ include 'inc/navbar.php';
 <script>
     document.getElementById('addUserForm').addEventListener('submit', function(e) {
         e.preventDefault(); // Prevent default form submission
+        const token = localStorage.getItem("jwt_token");
+
+        if (!token) {
+            alert('Restricted Access, Amin only')
+            return
+        }
 
         const addUserBtn = document.getElementById('add-user');
         const userId = document.getElementById('user_id').value;
@@ -75,7 +83,6 @@ include 'inc/navbar.php';
         }
 
         const formData = new FormData(this); // Collect form data
-
         // Convert the FormData to a plain object for easier handling
         const formObject = {};
         formData.forEach((value, key) => {
@@ -88,7 +95,9 @@ include 'inc/navbar.php';
         fetch(url, {
                 method: 'POST',
                 headers: {
+
                     'Content-Type': 'application/json', // Send JSON content type
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(formObject) // Send form data as JSON
             })
@@ -98,6 +107,7 @@ include 'inc/navbar.php';
                 if (data.success) {
                     this.reset(); // Clear the form after successful submission
                     fetchUser(); // Update the user list or display
+                    document.getElementById('user_id').value = ''; // Clear user_id field
                     addUserBtn.textContent = 'Submit'; // Reset button text
                 }
             })
@@ -105,44 +115,76 @@ include 'inc/navbar.php';
     });
 
 
+    const cancel = document.getElementById('cancel');
 
-
-    function fetchUser() {
-        fetch('db_queries/select_queries/fetch_user.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const userTableBody = document.getElementById("userTableBody");
-                    userTableBody.innerHTML = ""; // Clear table before adding new data
-
-                    let itemCount = 0;
-
-                    data.data.forEach(item => {
-
-                        const row = document.createElement("tr");
-
-                        row.innerHTML = `
-                        <td>${item.name}</td>
-                        <td>${item.username}</td>
-                        <td>${item.email}</td>
-                        <td>${item.user_type}</td>
-                        <td>${item.date_created}</td>
-                        <td>
-                            <button class="action-btn edit-btn edit-account" data-id="${item.user_id}">Update</button>
-                            <button class="action-btn remove-btn remove-account" data-id="${item.user_id}">Remove</button>
-                        </td>
-                    `;
-
-                        userTableBody.appendChild(row);
-                    });
-
-                } else {
-                    alert("Failed to load inventory: " + data.message);
-                }
-            })
-            .catch(error => console.error("Error:", error));
+    if (cancel) {
+        cancel.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('user_id').value = '';
+            document.getElementById('name').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('email').value = '';
+        })
     }
+
+    let previousUserData = [];
+
+    async function fetchUser() {
+        try {
+            const response = await fetch('db_queries/select_queries/fetch_user.php');
+            const data = await response.json();
+
+            if (data.success) {
+                if (!isEqual(previousUserData, data.data)) {
+                    previousUserData = data.data; // Update stored data
+                    updateUserTable(data.data); // Update UI only if data changed
+                }
+            } else {
+                alert("Failed to load user data: " + data.message);
+            }
+
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    }
+
+    function updateUserTable(users) {
+        const userTableBody = document.getElementById("userTableBody");
+        userTableBody.innerHTML = ""; // Clear existing rows
+
+        users.forEach(item => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.username}</td>
+            <td>${item.email}</td>
+            <td>${item.user_type}</td>
+            <td>${item.date_created}</td>
+            <td>
+                <div class="actions">
+                    <button class="action-btn edit-btn edit-account" data-id="${item.user_id}">Update</button>
+                    <button class="action-btn remove-btn remove-account" data-id="${item.user_id}">Remove</button>
+                </div>
+            </td>
+        `;
+
+            userTableBody.appendChild(row);
+        });
+    }
+
+    // Deep comparison for object arrays
+    function isEqual(arr1, arr2) {
+        return JSON.stringify(arr1) === JSON.stringify(arr2);
+    }
+
+    // Optional: Auto-refresh every 3 seconds
+    setInterval(fetchUser, 5000);
+
+    // Initial fetch
     fetchUser();
+
 
     document.addEventListener('DOMContentLoaded', function() {
         const addUserBtn = document.getElementById('add-user');

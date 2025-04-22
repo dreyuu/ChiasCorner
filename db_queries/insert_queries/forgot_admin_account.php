@@ -22,7 +22,7 @@ try {
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$admin) {
-        echo json_encode(['success' => false, 'message' => 'Admin username not found.']);
+        echo json_encode(['success' => false, 'message' => 'Invalid username.']);
         exit;
     }
 

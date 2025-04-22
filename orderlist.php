@@ -3,24 +3,6 @@ include_once 'connection.php';
 $backgroundImage = 'Capstone Assets/Log-in Form BG (Version 2).png';
 include 'inc/navbar.php';
 
-try {
-
-    // Query to get orders and order items
-    $sql = "SELECT o.order_id, 
-                    GROUP_CONCAT(m.name SEPARATOR ', ') AS order_list
-            FROM orders o
-            JOIN order_items oi ON o.order_id = oi.order_id
-            JOIN menu m ON oi.menu_id = m.menu_id
-            GROUP BY o.order_id
-            ORDER BY o.order_id DESC";
-
-    $stmt = $connect->prepare($sql);
-    $stmt->execute();
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
-}
-
 ?>
 <link rel="stylesheet" href="css/orderlist.css">
 
@@ -94,6 +76,11 @@ try {
     <div class="exo-receipt-modal">
         <div class="exo-receipt-paper">
 
+        </div>
+        <div class="exo-receipt-separator"></div>
+        <div class="exo-modal-buttons">
+            <button class="exo-action-btn exo-confirm-btn print-receipt" id="print-receipt">Print Receipt</button>
+            <button class="exo-action-btn exo-confirm-btn download-receipt" id="download-receipt">Download PDF</button>
         </div>
     </div>
 </div>
@@ -534,6 +521,176 @@ try {
                 receiptList.appendChild(receiptContainer);
             })
             .catch(error => console.error("Error loading order details:", error));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const receiptPaper = document.querySelector('.exo-receipt-paper');
+        const printReceipts = document.querySelector('.print-receipt');
+        const downloadReceipts = document.querySelector('.download-receipt');
+
+        printReceipts.addEventListener('click', function(e) {
+            e.preventDefault();
+            printReceipt();
+        })
+        downloadReceipts.addEventListener('click', function(e) {
+            e.preventDefault();
+            downloadReceiptAsPDF();
+        })
+    })
+
+    function printReceipt() {
+        let receiptContent = document.querySelector('.exo-receipt-paper').outerHTML;
+
+        let printStyles = `
+                <style>
+                    @media print {
+                        body {
+                            margin: 0;
+                            width: 300px;
+                            font-family: Arial, sans-serif;
+                            padding: 10px;
+                        }
+
+                        .exo-receipt-paper {
+                            width: 300px;
+                            padding: 15px;
+                            box-sizing: border-box;
+                        }
+
+                        .exo-receipt-header,
+                        .exo-receipt-footer {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-direction: column;
+                        }
+
+                        .exo-receipt-header, .exo-receipt-body, .exo-receipt-footer,
+                        .item-details, .receipt-item {
+                            margin-bottom: 10px;
+                        }
+
+                        .exo-receipt-header img,
+                        .exo-receipt-logo {
+                            width: 80px;
+                            height: auto;
+                        }
+
+                        .exo-receipt-header h2 {
+                            margin: 5px 0;
+                        }
+
+                        .exo-receipt-header p,
+                        .exo-receipt-body p,
+                        .exo-receipt-footer p {
+                            font-size: 14px;
+                            margin: 5px 0;
+                        }
+
+                        .exo-receipt-separator {
+                            border-top: 1px dashed #000;
+                            margin: 10px 0;
+                        }
+
+                        .item-details {
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 12px;
+                            color: #444;
+                        }
+
+                        .item-name {
+                            font-size: 14px;
+                            font-weight: bold;
+                        }
+
+                        .item-total {
+                            font-weight: bold;
+                        }
+
+                        .exo-receipt-total {
+                            font-size: 16px;
+                            font-weight: bold;
+                        }
+                    }
+
+                    @page {
+                        size: 80mm auto;
+                        margin: 0;
+                    }
+                </style>
+            `;
+
+        let printWindow = window.open('', '', 'width=320,height=800');
+        printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Print Receipt</title>
+                        ${printStyles}
+                    </head>
+                    <body>
+                        ${receiptContent}
+                    </body>
+                </html>
+            `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+    }
+
+
+
+    function sendToPrintNode(receiptHtml) {
+        fetch('https://api.printnode.com/printjobs', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Basic ' + btoa('C6-n0bWSDHha0phS0h98waZifIvh8wXy90g-inCOwK4'), // Replace this!
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    printerId: 123456, // Replace with your actual printer ID
+                    title: "Customer Receipt",
+                    contentType: "raw_html",
+                    content: receiptHtml,
+                    source: "Chia's POS"
+                })
+            })
+            .then(res => res.json())
+            .then(data => console.log("Print job sent!", data))
+            .catch(err => console.error("Error printing:", err));
+    }
+
+    function downloadReceiptAsPDF() {
+        const element = document.querySelector('.exo-receipt-paper');
+
+        // Get pixel dimensions
+        const widthPx = 300; // approx 80mm thermal paper
+        const heightPx = element.offsetHeight;
+
+        // Convert px to inches (1 inch = 96 px)
+        const pxToInch = px => px / 96;
+        const pdfWidth = pxToInch(widthPx); // ~3.125 inches
+        const pdfHeight = pxToInch(heightPx); // auto height in inches
+
+        const opt = {
+            margin: 0,
+            filename: `receipt-${Date.now()}.pdf`,
+            image: {
+                type: 'jpeg',
+                quality: 1.0
+            },
+            html2canvas: {
+                scale: 3
+            },
+            jsPDF: {
+                unit: 'in',
+                format: [pdfWidth, pdfHeight],
+                orientation: 'portrait'
+            }
+        };
+
+        html2pdf().from(element).set(opt).save();
     }
 </script>
 

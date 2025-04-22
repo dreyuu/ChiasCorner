@@ -56,6 +56,8 @@ body {
     text-align: center;
     line-height: 1;
     margin-left: 1%;
+    text-decoration: none;
+    
 }
 
 .logo span {
@@ -65,10 +67,24 @@ body {
 
 
 /* Navigation Bar */
+.admins,
+.admin {
+    /* width: 100%; */
+    display: none;
+    gap: 15px;
+}
 
+.admins.show-nav,
+.admin.show-nav {
+    display: flex;
+}
+.admins.show-menu-nav {
+    flex-direction: column;
+}
 .nav {
     display: flex;
-    gap: 15px;
+    gap: 10px !important;
+    align-items: center;
 }
 
 .nav a {

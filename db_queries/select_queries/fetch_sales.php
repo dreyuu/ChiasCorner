@@ -27,7 +27,8 @@ if (!empty($category) && $category !== 'all') {
 // Build the sales and customers query
 $query = "SELECT 
                 COALESCE(SUM(oh.total_price), 0) AS total_sales, 
-                COUNT(DISTINCT oh.order_id) AS customers_served
+                COUNT(DISTINCT oh.order_id) AS customers_served,
+                COALESCE(SUM(oh.vat_amount), 0) AS vat_amount
             FROM order_history oh
             WHERE oh.payment_status = 'paid'";
 
@@ -35,35 +36,15 @@ $query = "SELECT
 if (!empty($whereClauses)) {
     $query .= " AND " . implode(" AND ", $whereClauses);
 }
-
 $stmt = $connect->prepare($query);
 $stmt->execute($params);
 $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$totalSales = $result['total_sales'] ?? 0;
+$vat_amount = $result['vat_amount'] ?? 0;
+$Sales = $result['total_sales'] ?? 0;
 $customersServed = $result['customers_served'] ?? 0;
 
-// Query for total expenses (restock transactions)
-$expenseQuery = "SELECT COALESCE(sum(sb.cost), 0) AS total_expenses
-    FROM inventory_transactions it
-    JOIN stock_batches sb ON it.ingredient_id = sb.ingredient_id
-    WHERE it.transaction_type = 'restock'";
-
-// Apply date filter separately
-$expenseParams = [];
-if (!empty($dateFrom) && !empty($dateTo)) {
-    $expenseQuery .= " AND it.transaction_date BETWEEN :expenseDateFrom AND :expenseDateTo";
-    $expenseParams[':expenseDateFrom'] = $dateFrom;
-    $expenseParams[':expenseDateTo'] = $dateTo;
-}
-
-$stmtExpense = $connect->prepare($expenseQuery);
-$stmtExpense->execute($expenseParams);
-$expenseResult = $stmtExpense->fetch(PDO::FETCH_ASSOC);
-$totalExpenses = $expenseResult['total_expenses'] ?? 0;
-
-// Calculate net profit
-$netProfit = $totalSales - $totalExpenses ;
+$totalSales = $Sales - $vat_amount;
 
 // Fetch Best Seller
 $bestSellerQuery = "SELECT m.name 
@@ -85,11 +66,11 @@ $bestSeller = $bestSellerResult['name'] ?? 'N/A';
 
 // Return JSON Response
 echo json_encode([
-    'totalSales' => number_format($totalSales, 2),
+    'totalSales' => number_format($Sales, 2),
     'customersServed' => $customersServed,
     'bestSeller' => $bestSeller,
-    'totalExpenses' => number_format($totalExpenses, 2),
-    'netProfit' => number_format($netProfit, 2)
+    'vat_amount' => number_format($vat_amount, 2),
+    'net_sales' => number_format($totalSales, 2),
 ]);
 
 ?>

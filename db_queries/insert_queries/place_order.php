@@ -1,10 +1,9 @@
 <?php
 include_once '../../connection.php';
-session_start();
 
 try {
-    $user_id = $_SESSION["user_id"] ?? null;
     $items = json_decode($_POST['orders'], true);
+    $user_id = $items[0]['user_id'] ?? null;
     $dineType = $_POST['dine_type'] ?? 'Dine-In';
     $today = date("Y-m-d");
 

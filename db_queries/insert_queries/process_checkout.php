@@ -112,10 +112,10 @@ try {
     $stmt->execute([':order_id' => $order_id]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    $total_price = $order['total_price'];
+    $vat_amount = $total_price * $vat_rate;
+    $vatable_amount = $total_price / (1 + $vat_rate);
     if ($order) {
-        $total_price = $order['total_price'];
-        $vat_amount = $total_price * $vat_rate;
-        $vatable_amount = $total_price / (1 + $vat_rate);
 
         // Step 6: Mark Order as Paid
         $stmt = $connect->prepare("UPDATE orders SET payment_status = 'paid', paid_amount = :amount_paid, vat_amount = :vat_amount, vatable_amount = :vatable_amount WHERE order_id = :order_id");
@@ -136,8 +136,8 @@ try {
     $items_ordered = $order_items['items_ordered'] ?? 'No items';
 
     // Step 8: Move Order to Order History with Ordered Items
-    $stmt = $connect->prepare("INSERT INTO order_history (order_id, user_id, order_date, total_price, payment_status, paid_amount, discount_amount, items_ordered)
-        SELECT o.order_id, o.user_id, o.order_date, o.total_price, o.payment_status, o.paid_amount, o.discount_amount, :items_ordered
+    $stmt = $connect->prepare("INSERT INTO order_history (order_id, user_id, order_date, total_price, payment_status, paid_amount, discount_amount, vat_amount, vatable_amount, items_ordered)
+        SELECT o.order_id, o.user_id, o.order_date, o.total_price, o.payment_status, o.paid_amount, o.discount_amount, o.vat_amount, o.vatable_amount, :items_ordered
         FROM orders o WHERE o.order_id = :order_id");
     $stmt->execute([
         ':order_id' => $order_id,

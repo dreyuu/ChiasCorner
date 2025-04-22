@@ -419,6 +419,7 @@ ul {
 /* Receipt Paper */
 
 .exo-receipt-paper {
+    width: 300px; /* Around 3 inches */
     padding: 15px;
 }
 
@@ -486,6 +487,7 @@ ul {
 .item-name {
     font-size: 14px;
     font-weight: bold;
+    width: 250px;
 }
 
 .item-details {

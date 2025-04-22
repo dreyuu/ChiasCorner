@@ -55,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         if (data.success) {
                             showAlert("success-alert", "Login successful!");
                             // show loading screen
+                            localStorage.setItem('jwt_token', data.token);
                             pageLoader();
                             setTimeout(() => {
                                 loginForm.reset(); // Reset the form
@@ -78,6 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
     }
+
 
     function showAlert(alertId, message) {
         let alertBox = document.getElementById(alertId);
@@ -104,7 +106,6 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("pageLoader").style.opacity = "1";
 
         setTimeout(() => {
-            window.location.href = link.href;
             document.getElementById("pageLoader").style.visibility = "hidden";
             document.getElementById("pageLoader").style.opacity = "0";
         }, 3000);

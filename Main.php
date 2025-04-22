@@ -4,7 +4,17 @@ include 'connection.php';
 $backgroundImage = 'Capstone Assets/Log-in Form BG (Version 2).png';
 include 'inc/navbar.php';
 ?>
+
+
 <link rel="stylesheet" href="css/main.css">
+
+<!-- html2canvas and jsPDF CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <!-- Chian's Charts Section -->
 <form id="sales-report-form" method="POST" style="visibility: hidden;">
@@ -41,8 +51,8 @@ include 'inc/navbar.php';
             <div class="stat-box" id="total-sales">TOTAL SALES <span>₱ </span></div>
             <div class="stat-box" id="customer-served">CUSTOMER SERVED <span></span></div>
             <div class="stat-box" id="best-seller">BEST SELLER <span></span></div>
-            <div class="stat-box" id="total-expenses">TOTAL EXPENSES <span>₱ </span></div>
-            <div class="stat-box" id="net-profit">NET PROFIT <span>₱ </span></div>
+            <div class="stat-box" id="vat-summary">Vat Summary<span></span></div>
+            <div class="stat-box" id="net-sales">Net Sales <span></span></div>
         </div>
 
         <div class="chart-container small" id="categoryContainer">
@@ -63,7 +73,9 @@ include 'inc/navbar.php';
 
 <!-- Chian's JavaScript to Fetch Data & Update Charts -->
 
+<!-- <script src="js/navbar.js"></script> -->
 <script>
+
     document.addEventListener("DOMContentLoaded", function() {
         loadSalesData();
         loadChartData();
@@ -98,8 +110,8 @@ include 'inc/navbar.php';
                 document.getElementById("total-sales").innerHTML = `TOTAL SALES <span>₱ ${data.totalSales ?? 0}</span>`;
                 document.getElementById("customer-served").innerHTML = `CUSTOMER SERVED <span>${data.customersServed ?? 0}</span>`;
                 document.getElementById("best-seller").innerHTML = `BEST SELLER <span>${data.bestSeller || "N/A"}</span>`;
-                document.getElementById("total-expenses").innerHTML = `TOTAL EXPENSES <span>₱ ${data.totalExpenses ?? 0}</span>`;
-                document.getElementById("net-profit").innerHTML = `NET PROFIT <span>₱ ${data.netProfit ?? 0}</span>`;
+                document.getElementById("vat-summary").innerHTML = `VAT SUMMARY <span>${data.vat_amount || "N/A"}</span>`;
+                document.getElementById("net-sales").innerHTML = `NET SALES <span>${data.net_sales || "N/A"}</span>`;
 
             })
             .catch(error => console.error("Error loading sales data:", error));

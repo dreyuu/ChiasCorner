@@ -1,22 +1,9 @@
 <?php
-session_start();
-
-// Prevent caching for this page
+// Prevent browser caching
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
 header("Cache-Control: post-check=0, pre-check=0", false);
-header("Expires: Thu, 19 Nov 1981 08:52:00 GMT"); // This is an old date in the past to prevent caching
-
-// Check if the user is logged out
-if (!isset($_SESSION['username']) && !isset($_SESSION['user_id']) && !isset($_SESSION['logged_in'])) {
-    // Prevent caching if the user is logged out
-    header("Location: login.php"); // Redirect to login page if not logged in
-    exit();
-}
-$user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
-
+header("Pragma: no-cache");
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -39,6 +26,9 @@ $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
 
+    <!-- PDF DOWNLOAD -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 </head>
 
 <body style="background: url('<?php echo $backgroundImage; ?>') center/cover;">
@@ -51,7 +41,7 @@ $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
     </div>
 
     <div class="header">
-        <div class="logo">CHIA'S <br> CORNER</div>
+        <a href="main.php" class="logo">CHIA'S <br> CORNER</a>
         <div class="nav">
             <a href="Main.php">HOME</a>
 
@@ -62,17 +52,15 @@ $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
                     <a href="orderhistory.php" class="dropdown-item">ORDER HISTORY</a>
                 </div>
             </div>
-
-            <?php if ($user_type != 'employee'): ?>
+            <div class="admin">
                 <a href="Sales.php">SALES</a>
-                <a href="Inventory.php">INVENTORY</a>
+                <!-- <a href="Inventory.php">INVENTORY</a> -->
                 <a href="account.php">ACCOUNTS</a>
-            <?php endif; ?>
-
+            </div>
         </div>
         <div class="icons">
-            <img src="Capstone Assets/pngegg (12).png" alt="Notifications" class="notification-icon">
-            <a href="inc/logout.php">
+            <img src="Capstone Assets/pngegg (12).png" alt="Notifications" class="notification-icon" style="display: none;">
+            <a href="#" id="logout-btn" class="logout-btn">
                 <img src="Capstone Assets/logouticon.png" alt="Logout">
             </a>
         </div>
@@ -104,7 +92,131 @@ $user_type = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : '';
         </table>
     </div>
 
+    <!-- <script src="/js/navbar.js"></script> -->
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+
+            window.addEventListener("pageshow", function(event) {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
+
+            const token = localStorage.getItem("jwt_token");
+            // console.log("JWT Token: ", token);
+            if (!token) {
+                // Redirect to login page if token is not present
+                // console.log("No token found. Redirecting to login page.");
+                window.location.href = "login.php";
+                return
+            }
+            try {
+                const payloadBase64 = token.split('.')[1];
+                const payloadJson = atob(payloadBase64);
+                const payload = JSON.parse(payloadJson);
+
+                const currentTime = Math.floor(Date.now() / 1000); // current time in seconds
+
+                if (payload.exp && currentTime > payload.exp) {
+                    // Token is expired
+                    console.warn("Token expired. Redirecting to login.");
+                    localStorage.removeItem("jwt_token");
+                    window.location.href = "login.php";
+                    return;
+                }
+
+                // Optional: Handle showing admin nav
+                const admin = document.querySelector('.admin');
+                if (payload.user_type === 'admin') {
+                    admin.classList.add('show-nav');
+                } else {
+                    admin.classList.remove('show-nav');
+                }
+
+            } catch (e) {
+                console.error("Invalid token or decoding failed.", e);
+                localStorage.removeItem("jwt_token");
+                window.location.href = "login.php";
+            }
+
+
+
+            const logoutBtn = document.getElementById("logout-btn");
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default action
+
+                    // Remove JWT token from local storage
+                    localStorage.removeItem("jwt_token");
+
+                    // Redirect to the login page after logout
+                    window.location.href = "login.php";
+
+                })
+            }
+
+            // Function to refresh the access token using the refresh token
+            function refreshAccessToken() {
+                const refreshToken = localStorage.getItem('refresh_token');
+
+                if (!refreshToken) {
+                    // No refresh token, redirect to login
+                    window.location.href = 'login.php';
+                    return;
+                }
+
+                // Make an API request to refresh the access token
+                fetch('refresh_token.php', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            refresh_token: refreshToken
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Store the new access token
+                            localStorage.setItem('jwt_token', data.token);
+                        } else {
+                            // Token refresh failed, redirect to login
+                            window.location.href = 'login.php';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error refreshing token:', error);
+                    });
+            }
+
+            // Function to check if the JWT is about to expire
+            function checkTokenExpiration() {
+                const token = localStorage.getItem('jwt_token');
+                if (!token) return;
+
+                const payloadBase64 = token.split('.')[1];
+                const payloadJson = atob(payloadBase64);
+                const payload = JSON.parse(payloadJson);
+
+                const expTime = payload.exp * 1000; // Convert to milliseconds
+                const currentTime = Date.now();
+
+                // If the token is about to expire in 10 minutes or already expired, refresh it
+                if (expTime - currentTime <= 10 * 60 * 1000) {
+                    refreshAccessToken();
+                }
+            }
+
+            // Run the token expiration check on page load and periodically
+            document.addEventListener('DOMContentLoaded', () => {
+                checkTokenExpiration();
+                setInterval(checkTokenExpiration, 5 * 60 * 1000); // Check every 5 minutes
+            });
+
+        });
+
         // loading screen function 
 
         document.addEventListener("DOMContentLoaded", function() {

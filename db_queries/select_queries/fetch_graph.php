@@ -12,27 +12,32 @@ if (!empty($dateFrom) && !empty($dateTo)) {
     $params[':dateFrom'] = $dateFrom;
     $params[':dateTo'] = $dateTo;
 }
-
 // Fetch Monthly Sales (from order_history)
 $query = "SELECT 
-                MONTH(oh.archived_date) AS month, 
+                DATE_FORMAT(oh.order_date, '%Y-%m') AS sales_month, 
                 SUM(oh.total_price) AS total
             FROM 
                 order_history oh
             WHERE 
-                oh.payment_status = 'paid'"; // Payment status should be 'paid'
+                oh.payment_status = 'paid'";
 
+// Apply filters
 if (!empty($whereClauses)) {
-    $query .= " AND " . implode(" AND ", $whereClauses); // Apply additional filters (e.g., date range)
+    $query .= " AND " . implode(" AND ", $whereClauses);
 }
 
-$query .= " GROUP BY MONTH(oh.archived_date)
-            ORDER BY MONTH(oh.archived_date);"; // Ensure ordering by month
+$query .= " GROUP BY sales_month 
+            ORDER BY sales_month DESC";
+
+// Limit to 4 months if no filters
+if (empty($whereClauses)) {
+    $query .= " LIMIT 4";
+}
 
 $stmt = $connect->prepare($query);
 $stmt->execute($params);
 $monthlySales = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$stmt->closeCursor(); // Close the cursor to allow the next query to execute
+$stmt->closeCursor();
 
 // Fetch Category Sales Breakdown (from order_history, payment status 'paid')
 $query2 = "SELECT m.category, SUM(oi.quantity * oi.price) AS total

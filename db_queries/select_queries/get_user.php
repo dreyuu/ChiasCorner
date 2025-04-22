@@ -1,6 +1,12 @@
 <?php
-session_start();
+// Start the session if needed for some reason
+// session_start(); // Not required if using JWT
 include_once '../../connection.php';
+require_once '../../vendor/autoload.php';  // Load the Composer autoloader
+// Include JWT library
+use \Firebase\JWT\JWT;
+
+// Include database connection
 
 header('Content-Type: application/json');
 
@@ -29,15 +35,44 @@ try {
     if ($user) {
         // Verify password using password_verify()
         if (password_verify($password, $user["password"])) {
-            // Regenerate session ID to prevent session fixation
-            session_regenerate_id(true);
+            // Set token expiration time for the access token (2 days from now)
+            $expires_at = time() + (2 * 24 * 60 * 60); // 2 days in seconds
+            $refreshTokenExpiresAt = time() + (30 * 24 * 60 * 60); // 30 days for refresh token
 
-            $_SESSION["user_id"] = $user["user_id"];
-            $_SESSION["username"] = $user["username"];
-            $_SESSION["user_type"] = $user["user_type"];
-            $_SESSION["logged_in"] = true;
+            // Create the payload for the access token (JWT)
+            $payload = [
+                "user_id" => $user["user_id"],
+                "username" => $user["username"],
+                "user_type" => $user["user_type"],
+                "iat" => time(),  // Issued At: current timestamp
+                "exp" => $expires_at  // Expiry time for access token (2 days)
+            ];
 
-            echo json_encode(["success" => true, "message" => "Login successful"]);
+            // Create the payload for the refresh token
+            $refreshPayload = [
+                "user_id" => $user["user_id"],
+                "username" => $user["username"],
+                "user_type" => $user["user_type"],
+                "iat" => time(),
+                "exp" => $refreshTokenExpiresAt  // Expiry time for refresh token (30 days)
+            ];
+
+            // Define your secret key (use something complex and secure in production)
+            $secretKey = "chiascornersercretkey";  // Change this to a more secure key
+
+            // Encode the access token using the payload, secret key, and algorithm (HS256)
+            $jwt = JWT::encode($payload, $secretKey, 'HS256');
+
+            // Encode the refresh token using the refresh payload
+            $refreshToken = JWT::encode($refreshPayload, $secretKey, 'HS256');
+
+            // Respond with both the JWT access token and the refresh token
+            echo json_encode([
+                "success" => true,
+                "message" => "Login successful",
+                "token" => $jwt,
+                "refresh_token" => $refreshToken  // Include the refresh token in the response
+            ]);
             exit();
         } else {
             echo json_encode(["success" => false, "message" => "Invalid username or password"]);
@@ -51,4 +86,3 @@ try {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
 }
-?>

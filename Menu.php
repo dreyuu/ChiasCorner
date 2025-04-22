@@ -29,15 +29,14 @@ if (isset($_GET['order_id'])) {
             <button class="custom-menu-item" onclick="fetchMenus('Drinks', '.menu-items')">Drinks</button>
             <button class="custom-menu-item" onclick="fetchMenus('Others', '.menu-items')">Others</button>
 
-            <?php if ($user_type !== 'employee'): ?>
-                <!-- Promos Button -->
+            <div class="admins show-menu-nav">
                 <button class="custom-menu-item custom-promo-btn">
                     Promos <span class="custom-promo-icon">+</span>
                 </button>
 
                 <!-- Menu Button -->
                 <button class="custom-add-menu">Add New Menu</button>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
 
@@ -327,6 +326,27 @@ if (isset($_GET['order_id'])) {
 </footer>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = localStorage.getItem("jwt_token");
+        // console.log("JWT Token: ", token);
+        if (!token) {
+            // Redirect to login page if token is not present
+            // console.log("No token found. Redirecting to login page.");
+            window.location.href = "login.php";
+            return
+        } else {
+            const payloadBase64 = token.split('.')[1]; // get the payload part
+            const payloadJson = atob(payloadBase64); // decode from base64
+            const payload = JSON.parse(payloadJson); // convert to JS object
+
+            const admin = document.querySelector('.admins');
+            if (payload.user_type === 'admin') {
+                admin.classList.add('show-nav')
+            } else {
+                admin.classList.remove('show-nav')
+            }
+        }
+    })
     // Promo Modal
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -929,7 +949,7 @@ if (isset($_GET['order_id'])) {
         if (Object.keys(orders).length === 0) {
             orderListElement.innerHTML = "<p class='empty-order'>No items in the order.</p>";
             return;
-    }
+        }
 
         let receiptContainer = document.createElement("div");
         receiptContainer.classList.add("receipt");
@@ -1003,7 +1023,20 @@ if (isset($_GET['order_id'])) {
 
     // Function to place order
     function placeOrder() {
+
+
+        const token = localStorage.getItem("jwt_token");
+        if (!token) {
+            window.location.href = "login.php";
+            return
+        }
+        const payloadBase64 = token.split('.')[1];
+        const payloadJson = atob(payloadBase64);
+        const payload = JSON.parse(payloadJson);
+        const userId = payload.user_id;
+
         const orderData = Object.keys(orders).map(menuId => ({
+            user_id: userId,
             menu_id: menuId,
             quantity: orders[menuId].quantity,
             total_price: orders[menuId].total_price,
@@ -1027,6 +1060,7 @@ if (isset($_GET['order_id'])) {
                     orders = {}; // Clear orders after placing
                     renderOrderList();
                     updateTotal();
+                    updateItemQuantity();
                 } else {
                     alert(`Error: ${data.message}`);
                 }
@@ -1039,6 +1073,16 @@ if (isset($_GET['order_id'])) {
         placeOrders.addEventListener("click", function(e) {
             e.preventDefault();
             placeOrder();
+        });
+    }
+
+    function updateItemQuantity() {
+        const menuItems = document.querySelectorAll('.menu-item'); // Select all menu items
+        menuItems.forEach(item => {
+            const quantityElement = item.querySelector('.item-quantity'); // Find the quantity element within each menu item
+            if (quantityElement) {
+                quantityElement.innerText = 0; // Set the quantity to 0
+            }
         });
     }
 

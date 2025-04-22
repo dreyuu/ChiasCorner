@@ -41,19 +41,39 @@
     text-align: center;
 }
 
+.generate-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.clear-btn,
+.download-btn,
 .generate-btn {
     background: #FFD428;
     border: none;
     padding: 10px 20px;
-    margin-top: 10px;
-    width: 50%;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     border-radius: 6px;
     transition: 0.3s;
-    margin-left: 50%;
+    width: 40%;
 }
 
+.generate-btn {
+    width: 87% !important;
+}
+
+.clear-btn {
+    background: #fff;
+}
+.clear-btn:hover {
+    background: #eea620;
+    color: black;
+}
+.download-btn:hover,
 .generate-btn:hover {
     background: black;
     color: #FFD428;
@@ -63,7 +83,7 @@
     background: white;
     border-radius: 12px;
     padding: 20px;
-    width: 60%;
+        width: 60%;
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
