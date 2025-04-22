@@ -83,6 +83,7 @@ if (isset($_GET['order_id'])) {
                 <div class="order-options">
                     <button class="order-btn" id="dine-in">Dine-In</button>
                     <button class="order-btn" id="take-out">Take-Out</button>
+                    <button class="order-btn" id="clear-order">Clear Order</button>
                 </div>
 
 
@@ -589,6 +590,8 @@ if (isset($_GET['order_id'])) {
                         document.getElementById("submit-ingredient").textContent = "ADD"; // Reset button text
                         delete document.getElementById("submit-ingredient").dataset.update; // Remove update flag
                         createMenu.reset();
+                        fetchMenus('Samgyupsal', '.menu-items');
+                        fetchMenus('Add-Ons', '.sauces');
                     } else {
                         console.error("Error:", data.error);
                     }
@@ -941,6 +944,13 @@ if (isset($_GET['order_id'])) {
         }
         renderOrderList();
     });
+
+    document.getElementById('clear-order').addEventListener('click', function() {
+        orders = {};
+
+        renderOrderList();
+        updateItemQuantity();
+    })
     // Function to render order receipt
     function renderOrderList() {
         let orderListElement = document.querySelector(".list_orders");

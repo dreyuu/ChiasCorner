@@ -69,14 +69,22 @@ try {
             <div class='menu-item'>
                 <input type='hidden' name='menu_id' value='$menu_id' id='menu_id'>
                 <img src='$imagePath' alt='$name' class='menu_image'>
-                <p id='item_name'>$name<br><strong id='item_price'>₱$price</strong></p>";
+                <div class='menu-content'>
+                    <div class='item-name' id='item_name'>
+                        <h3>$name</h3>
+                    </div>
+                ";
 
             // if ($sufficient) {
                 echo "
-                <div class='item-controls'>
-                    <button class='minus-item'>➖</button>
-                    <span class='item-quantity'>0</span>
-                    <button class='plus-item'>➕</button>
+                    <div class='item-bottom'>
+                        <strong class='item-price' id='item_price'>$price</strong>
+                        <div class='item-controls'>
+                            <button class='minus-item'>➖</button>
+                            <span class='item-quantity'>0</span>
+                            <button class='plus-item'>➕</button>
+                        </div>
+                    </div>
                 </div>";
             // } else {
             //     echo "<p class='out-of-stock' style='color: red;'>⚠️ Not enough ingredients</p>";
