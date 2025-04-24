@@ -159,3 +159,66 @@
     width: 100%;
     margin-top: auto;
 }
+
+@media (max-width: 480px) {
+    .sales-container {
+        align-items: center;
+    }
+
+    .sales-content {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .sales-filter,
+    .chart-container,
+    .chart-container.small,
+    .sales-stats,
+    .stat-box {
+        width: 90% !important;
+        margin-right: 0;
+    }
+
+    .sales-filter input,
+    .sales-filter select {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .generate-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .clear-btn,
+    .download-btn,
+    .generate-btn {
+        width: 100% !important;
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .stats-container {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .stat-box span {
+        font-size: 20px;
+        margin-top: 1rem;
+    }
+
+    .chart-container.small h3 {
+        font-size: 1rem;
+    }
+
+    .footer {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+

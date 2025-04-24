@@ -36,6 +36,7 @@ include 'inc/navbar.php';
         </div>
         <div class="chart-container" id="salesChartContainer">
             <canvas id="salesChart"></canvas>
+            <p class="no-sales-data" style='text-align:center;display:none; color:red;'>No sales data available.</p>
         </div>
     </div>
 
@@ -52,9 +53,11 @@ include 'inc/navbar.php';
         <div class="chart-container small" id="categoryContainer">
             <h3>SALES BREAKDOWN BY CATEGORY</h3>
             <canvas id="categoryChart"></canvas>
+            <p class="no-category-data" style='text-align:center;display:none; color:red;'>No category data available.</p>
         </div>
     </div>
 </div>
+
 
 <!-- Chian's Footer Section -->
 <footer class="footer">
@@ -71,52 +74,99 @@ include 'inc/navbar.php';
             generateReport();
         });
 
-        function generatePDF() {
-            const element = document.querySelector(".sales-container");
+        async function generatePDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF("p", "mm", "a4");
+            const margin = 20;
+            let y = margin;
 
-            html2canvas(element).then(canvas => {
-                const imgData = canvas.toDataURL("image/png");
-                const {
-                    jsPDF
-                } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
+            // Title
+            doc.setFontSize(18);
+            doc.text("Sales Summary Report", margin, y);
+            y += 10;
 
-                const imgProps = doc.getImageProperties(imgData);
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            // Fetch data
+            const dateFrom = document.getElementById("date-from").value;
+            const dateTo = document.getElementById("date-to").value;
+            const category = document.getElementById("category").value;
 
-                const pageHeight = doc.internal.pageSize.getHeight();
-                let position = 10; // Start position with top margin (adjust as needed)
+            try {
+                // Load stats
+                const salesRes = await fetch(`db_queries/select_queries/fetch_sales.php?dateFrom=${dateFrom}&dateTo=${dateTo}&category=${category}`);
+                const salesData = await salesRes.json();
 
-                // Add a header text
-                doc.setFontSize(16);
-                doc.text("Sales Summary of Chia's Corner", 20, position);
-                position += 10; // Increase position to give space below the header
+                // Format section
+                doc.setFontSize(12);
+                doc.setTextColor(50);
 
-                // If the content is short enough to fit on the page, just add it
-                if (pdfHeight + position < pageHeight) {
-                    doc.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-                } else {
-                    // For larger content, split across multiple pages
-                    while (position < pdfHeight) {
-                        doc.addImage(imgData, 'PNG', 0, position ? position : position, pdfWidth, pdfHeight);
-                        position += pageHeight;
-                        if (position < pdfHeight) {
-                            doc.addPage();
-                        }
-                    }
+                doc.text(`Date Range: ${dateFrom || 'All'} to ${dateTo || 'All'}`, margin, y);
+                y += 8;
+                doc.text(`Category: ${category}`, margin, y);
+                y += 12;
+
+                doc.setFont(undefined, "bold");
+                doc.text("Sales Summary:", margin, y);
+                doc.setFont(undefined, "normal");
+                y += 8;
+
+                doc.text(`Total Sales:  ${salesData.totalSales ?? 0}`, margin, y);
+                y += 8;
+                doc.text(`Customers Served: ${salesData.customersServed ?? 0}`, margin, y);
+                y += 8;
+                doc.text(`Best Seller: ${salesData.bestSeller ?? 'N/A'}`, margin, y);
+                y += 8;
+                doc.text(`VAT Amount: ${salesData.vat_amount ?? 'N/A'}`, margin, y);
+                y += 8;
+                doc.text(`Net Sales: ${salesData.net_sales ?? 'N/A'}`, margin, y);
+                y += 12;
+
+                // Optional: Add category breakdown
+                const graphRes = await fetch(`db_queries/select_queries/fetch_graph.php?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+                const graphData = await graphRes.json();
+
+                const categories = graphData.categorySales || [];
+
+                if (categories.length > 0) {
+                    doc.setFont(undefined, "bold");
+                    doc.text("Category Breakdown:", margin, y);
+                    doc.setFont(undefined, "normal");
+                    y += 8;
+
+                    categories.forEach(cat => {
+                        doc.text(`• ${cat.category}:  ${cat.total}`, margin, y);
+                        y += 6;
+                    });
                 }
 
-                // Save the generated PDF
                 doc.save("Sales_Report.pdf");
-            });
+            } catch (err) {
+                console.error("Failed to generate report:", err);
+                alert("Failed to generate PDF.");
+            }
         }
+
+
+
 
 
         document.querySelector(".download-btn").addEventListener("click", function(event) {
             event.preventDefault(); // Prevent the default form submission
             generatePDF(); // Call the function to generate the PDF
         });
+
+        document.querySelector('.clear-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+
+            document.querySelector(".no-sales-data").style.display = 'none'; // Hide chart
+            document.querySelector(".no-category-data").style.display = 'none'; // Hide chart
+            // Regenerate the report and charts
+            generateReport();
+        });
+
     });
 
     let salesChart, categoryChart;
@@ -125,6 +175,7 @@ include 'inc/navbar.php';
         let dateFrom = document.getElementById("date-from").value;
         let dateTo = document.getElementById("date-to").value;
         let category = document.getElementById("category").value;
+
         loadSalesData(dateFrom, dateTo, category);
         loadChartData(dateFrom, dateTo);
     }
@@ -153,32 +204,37 @@ include 'inc/navbar.php';
                 let monthlySales = data.monthlySales || [];
                 let categorySales = data.categorySales || [];
 
+                // Hide the sales chart container if no monthly sales data is available
                 if (monthlySales.length === 0) {
-                    document.getElementById("salesChartContainer").innerHTML = "<p style='text-align:center; color:red;'>No monthly sales data found.</p>";
+                    document.getElementById("salesChart").style.display = 'none'; // Hide chart
+                    document.querySelector(".no-sales-data").style.display = 'block'; // Show no data message
+                } else {
+                    document.querySelector(".no-sales-data").style.display = 'none';
+                    document.getElementById("salesChartContainer").style.display = 'block'; // Show chart
+                    const months = monthlySales.map(item => `Month ${item.month}`);
+                    const totals = monthlySales.map(item => item.total);
+
+                    salesChart = updateChart("salesChart", salesChart, "bar", months, totals, "Total Sales", "#FFD428");
                 }
 
+                // Hide the category chart container if no category sales data is available
                 if (categorySales.length === 0) {
-                    if (categoryChart) {
-                        categoryChart.destroy();
-                        categoryChart = null;
-                    }
-                    document.getElementById("categoryContainer").innerHTML = "<p style='text-align:center; color:red;'>No category sales data found.</p>";
+                    document.getElementById("categoryChart").style.display = 'none'; // Hide chart
+                    document.querySelector(".no-category-data").style.display = 'block'; // Show no data message
+                } else {
+                    document.querySelector(".no-category-data").style.display = 'none'; // Hide chart
+                    document.getElementById("categoryContainer").style.display = 'block'; // Show chart
+                    const categories = categorySales.map(item => item.category);
+                    const categoryTotals = categorySales.map(item => item.total);
+
+                    categoryChart = updateChart("categoryChart", categoryChart, "doughnut", categories, categoryTotals, "Sales Breakdown", [
+                        "#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD"
+                    ]);
                 }
-
-                const months = monthlySales.map(item => `Month ${item.month}`);
-                const totals = monthlySales.map(item => item.total);
-
-                salesChart = updateChart("salesChart", salesChart, "bar", months, totals, "Total Sales", "#FFD428");
-
-                const categories = categorySales.map(item => item.category);
-                const categoryTotals = categorySales.map(item => item.total);
-
-                categoryChart = updateChart("categoryChart", categoryChart, "doughnut", categories, categoryTotals, "Sales Breakdown", [
-                    "#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD"
-                ]);
             })
             .catch(error => console.error("Error fetching chart data:", error));
     }
+
 
     function updateChart(canvasId, chartInstance, chartType, labels, data, label, backgroundColors) {
         let ctx = document.getElementById(canvasId).getContext("2d");
@@ -207,6 +263,7 @@ include 'inc/navbar.php';
         });
     }
 </script>
+
 
 </body>
 

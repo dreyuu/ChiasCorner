@@ -76,22 +76,43 @@ include 'inc/navbar.php';
         });
     });
 
+    let previousOrderHistory = [];
     // Fetch orders from the server
-    function fetchOrders() {
-        fetch('db_queries/select_queries/fetch_order_history.php')
-            .then(response => response.json())
-            .then(data => {
-                const orderTableBody = document.getElementById('orderTableBody');
-                orderTableBody.innerHTML = ''; // Clear existing rows
+    async function fetchOrders() {
+        try {
+            const response = await fetch('db_queries/select_queries/fetch_order_history.php');
+            const data = await response.json();
 
-                if (data.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="10">No archived orders found</td>';
-                    orderTableBody.appendChild(row);
-                } else {
-                    data.forEach(order => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
+            if (data.success) {
+                if (!isEqual(previousOrderHistory, data.orders)) {
+                    previousOrderList = data.orders;
+                    displayOrderHistory(data.orders);
+                }
+            } else {
+                alert('Error fetching order history: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error fetching order history:', error);
+        }
+    }
+    // Deep comparison for object arrays
+    function isEqual(arr1, arr2) {
+        return JSON.stringify(arr1) === JSON.stringify(arr2);
+    }
+    setInterval(fetchOrders, 5000);
+
+    function displayOrderHistory(orderHistory) {
+        const orderTableBody = document.getElementById('orderTableBody');
+        orderTableBody.innerHTML = ''; // Clear existing rows
+
+        if (orderHistory.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="10">No archived orders found</td>';
+            orderTableBody.appendChild(row);
+        } else {
+            orderHistory.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
                         <td>${order.order_id}</td>
                         <td class="order-list">${order.items_ordered}</td>
                         <td>₱${parseFloat(order.total_price).toFixed(2)}</td>
@@ -107,11 +128,9 @@ include 'inc/navbar.php';
                                 : ''}
                         </td>
                     `;
-                        orderTableBody.appendChild(row);
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching orders:', error));
+                orderTableBody.appendChild(row);
+            });
+        }
     }
 
     function ShowReceipt(orderId) {

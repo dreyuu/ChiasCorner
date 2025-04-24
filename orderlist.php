@@ -54,8 +54,8 @@ include 'inc/navbar.php';
             <label for="amountPaid">Amount Paid:</label>
             <input type="number" id="amountPaid" class="input-field" placeholder="Enter amount paid">
 
-            <label for="paymentMethod">Payment Method:</label>
-            <select id="paymentMethod" class="input-field">
+            <label for="paymentMethod" style="display: none;">Payment Method:</label>
+            <select id="paymentMethod" class="input-field" style="display: none;">
                 <option value="cash">Cash</option>
                 <option value="gcash">GCash</option>
             </select>
@@ -128,7 +128,7 @@ include 'inc/navbar.php';
             // Check if the clicked button is for "Add Item"
             if (event.target.classList.contains("add-item-btn")) {
                 let orderId = event.target.getAttribute("data-order-id");
-                window.location.href = `menu.php?order_id=${orderId}`;
+                window.location.href = `Menu.php?order_id=${orderId}`;
             }
         });
 
@@ -192,24 +192,31 @@ include 'inc/navbar.php';
             receiptModalBg.style.display = "none";
         }, 300);
     }
-
+    let previousOrderList = [];
     // Function to fetch orders from the server
-    function fetchOrders() {
-        fetch('db_queries/select_queries/fetch_order_list.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.orders) {
+    async function fetchOrders() {
+        try {
+            const response = await fetch('db_queries/select_queries/fetch_order_list.php');
+            const data = await response.json();
+
+            if (data.success) {
+                if (!isEqual(previousOrderList, data.orders)) {
+                    previousOrderList = data.orders;
                     displayOrders(data.orders);
-                } else if (data.error) {
-                    alert('Error fetching orders: ' + data.error);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error fetching orders.');
-            });
+            } else {
+                alert('Error fetching orders: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        }
+    }
+    // Deep comparison for object arrays
+    function isEqual(arr1, arr2) {
+        return JSON.stringify(arr1) === JSON.stringify(arr2);
     }
 
+    setInterval(fetchOrders, 5000);
     // Function to display orders in the table
     function displayOrders(orders) {
         const ordersTableBody = document.querySelector('#ordersTable tbody');
@@ -234,8 +241,8 @@ include 'inc/navbar.php';
                     <td>
                         <div class="action-layout">
                             <button class="action-button remove-btn" data-order-id="${order.order_id}">Check Out</button>
-                            <button class="action-button view-btn add-item-btn" data-order-id="${order.order_id}">Add Item</button>
-                            <button class="action-button view-btn cancel-btn" data-order-id="${order.order_id}">Cancel Order</button>
+                            <button class="action-button add-item-btn" data-order-id="${order.order_id}">Add Item</button>
+                            <button class="action-button cancel-btn" data-order-id="${order.order_id}">Cancel Order</button>
                         </div>
                     </td>
                 `;

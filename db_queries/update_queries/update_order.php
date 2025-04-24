@@ -11,7 +11,7 @@ if (!$data) {
 }
 
 try {
-    $user_id = $_SESSION["user_id"] ?? null;
+    $user_id = $data['user_id'] ?? null;
     $order_id = $data['order_id'] ?? null;
     $updatedItems = $data['updatedItems'] ?? [];
     $removedItems = $data['removedItems'] ?? [];

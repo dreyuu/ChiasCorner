@@ -21,8 +21,8 @@ try {
     $stmt->execute();
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode($orders);
+    echo json_encode(['success' => true, 'orders' => $orders]);
 } catch (PDOException $e) {
-    echo json_encode(["error" => $e->getMessage()]);
+    echo json_encode(['success' => true,"error" => $e->getMessage()]);
 }
 ?>

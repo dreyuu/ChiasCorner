@@ -115,6 +115,8 @@
             object-fit: cover;
         }
 
+
+
         .right {
             flex: 1;
             padding: 40px;
@@ -212,6 +214,23 @@
 
             .right {
                 padding: 20px;
+            }
+        }
+
+        /* changes need to put online */
+        @media (max-width: 768px) {
+            .left img {
+                display: none;
+            }
+            .input-box input {
+                padding: 8px;
+                font-size: 13px;
+            }
+            .toggle-password {
+                top: 20%    ;
+            }
+            .forgot-pass {
+                font-size: 12px;
             }
         }
     </style>
@@ -326,9 +345,16 @@
                 promoModal.classList.remove("show");
                 setTimeout(() => {
                     promoModal.style.display = "none";
-                    checkModals();
+                    // checkModals();
                 }, 300);
             }
+
+            // function checkModals() {
+            //     const anyModalOpen = document.querySelector(".custom-promo-modal.show");
+            //     if (!anyModalOpen) {
+            //         body.classList.remove("modal-open");
+            //     }
+            // }
         })
 
         document.addEventListener('DOMContentLoaded', function() {

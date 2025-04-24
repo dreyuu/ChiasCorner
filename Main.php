@@ -32,13 +32,15 @@ include 'inc/navbar.php';
 <div class="charts-section">
     <h1 class="header-text">Welcome to Chia's Corner, MAEM!</h1>
     <div class="charts">
-        <div class="chart-container">
+        <div class="chart-container" id="salesChartContainer">
             <h2 class="hero">Total Sales</h2>
             <canvas id="salesChart"></canvas>
+            <p class="no-sales-data" style='text-align:center;display:none; color:red;'>No sales data available.</p>
         </div>
-        <div class="chart-container">
+        <div class="chart-container" id="menuChartContainer">
             <h2 class="hero">Top Menu Picks</h2>
             <canvas id="menuChart"></canvas>
+            <p class="no-menu-data" style='text-align:center;display:none; color:red;'>No top menu data available.</p>
         </div>
     </div>
     <h2 class="header-text">Total Sales This Month & Top Menu Picks</h2>
@@ -58,6 +60,7 @@ include 'inc/navbar.php';
         <div class="chart-container small" id="categoryContainer">
             <h3>SALES BREAKDOWN BY CATEGORY</h3>
             <canvas id="categoryChart"></canvas>
+            <p class="no-category-data" style='text-align:center;display:none; color:red;'>No category data available.</p>
         </div>
     </div>
 </div>
@@ -75,7 +78,6 @@ include 'inc/navbar.php';
 
 <!-- <script src="js/navbar.js"></script> -->
 <script>
-
     document.addEventListener("DOMContentLoaded", function() {
         loadSalesData();
         loadChartData();
@@ -102,7 +104,6 @@ include 'inc/navbar.php';
             .then(response => response.json())
             .then(data => {
                 if (!data || Object.keys(data).length === 0) {
-                    console.warn("No sales data available.");
                     document.querySelector(".stats-container").innerHTML = "<p style='text-align:center; color:red;'>No sales data available.</p>";
                     return;
                 }
@@ -122,40 +123,51 @@ include 'inc/navbar.php';
             .then(response => response.json())
             .then(data => {
                 // console.log("Fetched Data:", data); 
-
-                if (!data || !data.topMenus) {
-                    console.warn("No bestsellers data available.");
-                    document.getElementById("salesChartContainer").innerHTML = "<p style='text-align:center; color:red;'>No bestsellers found.</p>";
-                    return;
-                }
-
                 let topMenus = data.topMenus || [];
                 let monthlySales = data.monthlySales || [];
                 let categorySales = data.categorySales || [];
 
-                // Update Best Sellers Chart
-                menuChart = updateChart("menuChart", menuChart, "doughnut",
-                    topMenus.map(item => item.name || "Unknown"),
-                    topMenus.map(item => item.total_quantity || 0),
-                    "Best Sellers",
-                    ["#FFD428", "#FFCE56", "#FFC107", "#4BC0C0", "#9966FF"]
-                );
+                if (topMenus.length === 0) {
+                    document.getElementById("salesChart").style.display = 'none'; // Hide chart
+                    document.querySelector(".no-sales-data").style.display = 'block'; // Show no data message
+                } else {
+                    document.querySelector(".no-sales-data").style.display = 'none'; // Show no data message
+                    // Update Best Sellers Chart
+                    menuChart = updateChart("menuChart", menuChart, "doughnut",
+                        topMenus.map(item => item.name || "Unknown"),
+                        topMenus.map(item => item.total_quantity || 0),
+                        "Best Sellers",
+                        ["#FFD428", "#FFCE56", "#FFC107", "#4BC0C0", "#9966FF"]
+                    );
+                }
 
-                // Update Monthly Sales Chart
-                salesChart = updateChart("salesChart", salesChart, "bar",
-                    monthlySales.map(item => `Month ${item.month}`),
-                    monthlySales.map(item => item.total),
-                    "Total Sales",
-                    "#FFD428"
-                );
-
-                // Update Category Breakdown Chart
+                if (monthlySales.length === 0) {
+                    document.getElementById("menuChart").style.display = 'none'; // Hide chart
+                    document.querySelector(".no-menu-data").style.display = 'block'; // Show no data message
+                } else {
+                    document.querySelector(".no-menu-data").style.display = 'none';
+                    // Update Monthly Sales Chart
+                    salesChart = updateChart("salesChart", salesChart, "bar",
+                        monthlySales.map(item => `Month ${item.month}`),
+                        monthlySales.map(item => item.total),
+                        "Total Sales",
+                        "#FFD428"
+                    );
+                }
+                if (categorySales.length === 0) {
+                    document.getElementById("categoryChart").style.display = 'none'; // Hide chart
+                    document.querySelector(".no-category-data").style.display = 'block'; // Show no data message
+                } else {
+                    document.querySelector(".no-category-data").style.display = 'none';
+                    // Update Category Breakdown Chart
                 categoryChart = updateChart("categoryChart", categoryChart, "doughnut",
                     categorySales.map(item => item.category),
                     categorySales.map(item => item.total),
                     "Sales Breakdown",
                     ["#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD"]
                 );
+                }
+                
             })
             .catch(error => console.error("Error fetching chart data:", error));
     }

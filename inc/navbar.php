@@ -40,14 +40,54 @@ header("Pragma: no-cache");
         <div class="loading-text">Loading...</div>
     </div>
 
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="mobile-header-logo">
+            <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="sidebar-logo-img">
+            <a href="main.php" class="sidebar-logo">CHIA'S <br> CORNER</a>
+        </div>
+        <div class="hamburger" id="hamburger">&#9776;</div>
+    </div>
+
+    <!-- Sidebar for Mobile -->
+    <div class="sidebar" id="sidebar">
+        <div class="mobile-header-logo">
+            <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="sidebar-logo-img">
+            <h1 href="main.php" class="sidebar-logo">CHIA'S <br> CORNER</h1>
+        </div>
+        <a href="Main.php">HOME</a>
+        <div class="sidebar-dropdown-container">
+            <button class="dropdown-btn">MENUS</button>
+            <div class="sidebar-dropdown">
+                <a href="Menu.php" class="dropdown-item">TAKE ORDER</a>
+                <a href="orderlist.php" class="dropdown-item">ORDER LIST</a>
+                <a href="orderhistory.php" class="dropdown-item">ORDER HISTORY</a>
+            </div>
+        </div>
+        <div class="admin mobile-admin">
+            <a href="Sales.php">SALES</a>
+            <!-- <a href="Inventory.php">INVENTORY</a> -->
+            <a href="account.php">ACCOUNTS</a>
+        </div>
+        <a href="#" id="mobile-logout">
+            <img src="Capstone Assets/logouticon.png" alt="Logout" class="logout-icon">
+            Logout
+        </a>
+    </div>
+
+    <div class="sidebar-overlay">
+    </div>
+
     <div class="header">
         <a href="main.php" class="logo">CHIA'S <br> CORNER</a>
         <div class="nav">
+
             <a href="Main.php">HOME</a>
 
             <div class="dropdown-container">
-                <a href="Menu.php" class="dropdown-btn">MENUS</a>
+                <button class="dropdown-btn">MENUS</button>
                 <div class="dropdown">
+                    <a href="Menu.php" class="dropdown-item">TAKE ORDER</a>
                     <a href="orderlist.php" class="dropdown-item">ORDER LIST</a>
                     <a href="orderhistory.php" class="dropdown-item">ORDER HISTORY</a>
                 </div>
@@ -95,6 +135,22 @@ header("Pragma: no-cache");
     <!-- <script src="/js/navbar.js"></script> -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            const sidebarOverlay = document.querySelector('.sidebar-overlay');
+            hamburger.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.style.display = 'flex';
+            });
+
+            sidebarOverlay.addEventListener('click', function() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.style.display = 'none';
+            })
+            // Optional: close sidebar when clicking a link
+            document.querySelectorAll('#sidebar a').forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                });
+            });
 
             window.addEventListener("pageshow", function(event) {
                 if (event.persisted) {
@@ -102,12 +158,26 @@ header("Pragma: no-cache");
                 }
             });
 
+            const dropdownContainer = document.querySelector('.dropdown-container')
+
+            dropdownContainer.addEventListener('click', function(e) {
+                e.preventDefault();
+                dropdownContainer.classList.toggle('show');
+            })
+
+            const sidebarDropdownContainer = document.querySelector('.sidebar-dropdown-container')
+
+            sidebarDropdownContainer.addEventListener('click', function(e) {
+                e.preventDefault();
+                sidebarDropdownContainer.classList.toggle('show');
+            })
+
             const token = localStorage.getItem("jwt_token");
             // console.log("JWT Token: ", token);
             if (!token) {
                 // Redirect to login page if token is not present
                 // console.log("No token found. Redirecting to login page.");
-                window.location.href = "login.php";
+                window.location.href = "index.php";
                 return
             }
             try {
@@ -121,25 +191,45 @@ header("Pragma: no-cache");
                     // Token is expired
                     console.warn("Token expired. Redirecting to login.");
                     localStorage.removeItem("jwt_token");
-                    window.location.href = "login.php";
+                    window.location.href = "index.php";
                     return;
                 }
 
                 // Optional: Handle showing admin nav
-                const admin = document.querySelector('.admin');
+                const admin = document.querySelectorAll('.admin');
                 if (payload.user_type === 'admin') {
-                    admin.classList.add('show-nav');
+                    admin.forEach(function(element) {
+                        element.classList.add('show-nav');
+                    });
                 } else {
-                    admin.classList.remove('show-nav');
+                    admin.forEach(function(element) {
+                        element.classList.remove('show-nav');
+                    });
                 }
+
 
             } catch (e) {
                 console.error("Invalid token or decoding failed.", e);
                 localStorage.removeItem("jwt_token");
-                window.location.href = "login.php";
+                window.location.href = "index.php";
             }
 
 
+
+            const mobileLogoutBtn = document.getElementById("mobile-logout");
+
+            if (mobileLogoutBtn) {
+                mobileLogoutBtn.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default action
+
+                    // Remove JWT token from local storage
+                    localStorage.removeItem("jwt_token");
+
+                    // Redirect to the login page after logout
+                    window.location.href = "index.php";
+
+                })
+            }
 
             const logoutBtn = document.getElementById("logout-btn");
 
@@ -151,7 +241,7 @@ header("Pragma: no-cache");
                     localStorage.removeItem("jwt_token");
 
                     // Redirect to the login page after logout
-                    window.location.href = "login.php";
+                    window.location.href = "index.php";
 
                 })
             }
@@ -162,7 +252,7 @@ header("Pragma: no-cache");
 
                 if (!refreshToken) {
                     // No refresh token, redirect to login
-                    window.location.href = 'login.php';
+                    window.location.href = 'index.php';
                     return;
                 }
 
@@ -183,7 +273,7 @@ header("Pragma: no-cache");
                             localStorage.setItem('jwt_token', data.token);
                         } else {
                             // Token refresh failed, redirect to login
-                            window.location.href = 'login.php';
+                            window.location.href = 'index.php';
                         }
                     })
                     .catch(error => {

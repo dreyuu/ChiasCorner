@@ -71,7 +71,7 @@ try {
                 <img src='$imagePath' alt='$name' class='menu_image'>
                 <div class='menu-content'>
                     <div class='item-name' id='item_name'>
-                        <h3>$name</h3>
+                        <h3 id='item-title'>$name</h3>
                     </div>
                 ";
 

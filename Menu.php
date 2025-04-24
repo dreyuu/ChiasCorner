@@ -55,27 +55,9 @@ if (isset($_GET['order_id'])) {
         <div class="options-container">
             <div class="sauces-container">
                 <h3>Add - Ons</h3>
-                <div class="sauces">
-                    <!-- <div class="sauce-item">
-                        <img src="Capstone Assets/LogoMain.png" alt="BBQ Sauce">
-                        <span>BBQ</span>
+                <div class="sauce-container">
+                    <div class="sauces">
                     </div>
-                    <div class="sauce-item">
-                        <img src="Capstone Assets/LogoMain.png" alt="Buffalo Sauce">
-                        <span>Buffalo</span>
-                    </div>
-                    <div class="sauce-item">
-                        <img src="Capstone Assets/LogoMain.png" alt="Garlic Parmesan">
-                        <span>Garlic Parmesan</span>
-                    </div>
-                    <div class="sauce-item">
-                        <img src="Capstone Assets/LogoMain.png" alt="Teriyaki Sauce">
-                        <span>Teriyaki</span>
-                    </div>
-                    <div class="sauce-item">
-                        <img src="Capstone Assets/LogoMain.png" alt="Honey Mustard">
-                        <span>Honey Mustard</span>
-                    </div> -->
                 </div>
             </div>
 
@@ -85,9 +67,6 @@ if (isset($_GET['order_id'])) {
                     <button class="order-btn" id="take-out">Take-Out</button>
                     <button class="order-btn" id="clear-order">Clear Order</button>
                 </div>
-
-
-
                 <div class="order-controls">
                     <div class="order-total">ORDER TOTAL: ₱ <span id="total-amount">0.00</span></div>
                     <button class="review-btn" id="placeOrder">Place Order</button>
@@ -206,7 +185,7 @@ if (isset($_GET['order_id'])) {
                     <option value="Short Order">Short Order</option>
                     <option value="Bilao">Bilao</option>
                     <option value="Sizzling">Sizzling</option>
-                    <option value="Sizzling">Sauces</option>
+                    <option value="Sauces">Sauces</option>
                     <option value="Others">Others</option>
                 </select>
                 <input type="text" class="custom-menus-input" placeholder="Price: ₱ 00000" id="price" name="price" required>
@@ -218,13 +197,13 @@ if (isset($_GET['order_id'])) {
                 <input type="file" class="custom-menus-upload" id="menu_image" name="menu_image" accept="image/" required>
 
                 <div class="custom-menus-buttons">
-                    <button class="custom-menus-add" id="submitButton" ype="submit">ADD</button>
+                    <button class="custom-menus-add" id="submitButton" type="submit">ADD</button>
                 </div>
             </form>
         </div>
 
         <div class="menu-right">
-            <p>Total Ingredients of menu:</p>
+            <p>Total Menu:</p>
             <span class="custom-menus-count">0</span>
         </div>
     </div>
@@ -333,7 +312,7 @@ if (isset($_GET['order_id'])) {
         if (!token) {
             // Redirect to login page if token is not present
             // console.log("No token found. Redirecting to login page.");
-            window.location.href = "login.php";
+            window.location.href = "index.php";
             return
         } else {
             const payloadBase64 = token.split('.')[1]; // get the payload part
@@ -666,6 +645,8 @@ if (isset($_GET['order_id'])) {
                     this.reset();
                     document.getElementById("submitButton").textContent = "ADD"; // Reset button text
                     document.getElementById("edit_menu_id").value = ""; // Clear ID
+                    fetchMenus('Samgyupsal', '.menu-items');
+                    fetchMenus('Add-Ons', '.sauces');
                 } else {
                     alert(data.error);
                 }
@@ -750,17 +731,15 @@ if (isset($_GET['order_id'])) {
             })
             .then(res => res.json())
             .then(res => {
-                if (res.status === "success") {
-                    alert(isUpdate ? "Promo updated!" : "Promo added!");
-                    fetchPromos("active");
-                    document.getElementById("promoForm").reset();
-                    document.getElementById("promoSubmitBtn").textContent = "ADD PROMO";
-                } else {
-                    alert(res.message || "Something went wrong.");
-                }
+                alert(isUpdate ? "Promo updated!" : "Promo added!");
+                fetchPromos("active");
+                document.getElementById("promoForm").reset();
+                document.getElementById("promoSubmitBtn").textContent = "ADD PROMO";
+            })
+            .catch(error => {
+                console.error('Error:', error);
             });
     });
-
 
 
     document.getElementById("promoFilter").addEventListener("change", function() {
@@ -877,9 +856,9 @@ if (isset($_GET['order_id'])) {
 
                     // Fix selection for item name and price
                     let menuId = itemElement.querySelector('#menu_id').value;
-                    let itemName = itemElement.querySelector("#item_name").childNodes[0].nodeValue.trim();
-                    let price = parseFloat(itemElement.querySelector("#item_price").innerText.replace("₱", ""));
+                    let itemName = itemElement.querySelector("#item-title").innerText.trim();
 
+                    let price = parseFloat(itemElement.querySelector("#item_price").innerText.replace("₱", ""));
                     updateOrder(menuId, itemName, price, quantity);
                 }
             });
@@ -897,7 +876,7 @@ if (isset($_GET['order_id'])) {
                     quantityElement.innerText = quantity;
 
                     let menuId = itemElement.querySelector('#menu_id').value;
-                    let itemName = itemElement.querySelector("#item_name").childNodes[0].nodeValue.trim();
+                    let itemName = itemElement.querySelector("#item-title").innerText.trim();
                     let price = parseFloat(itemElement.querySelector("#item_price").innerText.replace("₱", ""));
 
                     updateOrder(menuId, itemName, price, quantity);
@@ -947,7 +926,7 @@ if (isset($_GET['order_id'])) {
 
     document.getElementById('clear-order').addEventListener('click', function() {
         orders = {};
-
+        document.getElementById('total-amount').textContent = '0.00';
         renderOrderList();
         updateItemQuantity();
     })
@@ -988,14 +967,13 @@ if (isset($_GET['order_id'])) {
             receiptBody += `
                         <div class="receipt-item">
                             <div class="item-details">
-                                <div class="item-name">${item.name}</div>
+                                <div class="item-names">${item.name}</div>
                                 <span>${item.quantity} x ₱${(item.total_price / item.quantity).toFixed(2)}</span>
                             </div>
                         </div>
                     `;
             total += item.total_price;
         }
-
         let receiptFooter = `
                 <div class="receipt-separator"></div>
                 <div class="item-details">
@@ -1037,9 +1015,10 @@ if (isset($_GET['order_id'])) {
 
         const token = localStorage.getItem("jwt_token");
         if (!token) {
-            window.location.href = "login.php";
+            window.location.href = "index.php";
             return
         }
+
         const payloadBase64 = token.split('.')[1];
         const payloadJson = atob(payloadBase64);
         const payload = JSON.parse(payloadJson);
@@ -1053,6 +1032,9 @@ if (isset($_GET['order_id'])) {
             dine: orders[menuId].dine,
         }));
 
+        if (orderData.length === 0) {
+            return;
+        }
         const formData = new URLSearchParams();
         formData.append("orders", JSON.stringify(orderData));
 
@@ -1187,6 +1169,15 @@ if (isset($_GET['order_id'])) {
 
     // Save Updated Order (Insert, Update, Delete)
     function saveOrder() {
+        const token = localStorage.getItem("jwt_token");
+        if (!token) {
+            window.location.href = "index.php";
+            return
+        }
+        const payloadBase64 = token.split('.')[1];
+        const payloadJson = atob(payloadBase64);
+        const payloads = JSON.parse(payloadJson);
+
         let orderId = document.getElementById("order_id").value;
         let updatedItems = Object.values(orders);
         let removedItems = [];
@@ -1198,7 +1189,10 @@ if (isset($_GET['order_id'])) {
             }
         });
 
+        const user_id = payloads.user_id;
+
         let payload = {
+            user_id: user_id,
             order_id: orderId,
             updatedItems: updatedItems,
             removedItems: removedItems

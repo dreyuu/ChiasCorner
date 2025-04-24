@@ -22,7 +22,7 @@ try {
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Send the fetched orders as JSON
-    echo json_encode(['orders' => $orders]);
+    echo json_encode(['success' => true, 'orders' => $orders]);
 } catch (PDOException $e) {
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

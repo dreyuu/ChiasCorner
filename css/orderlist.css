@@ -6,7 +6,7 @@
 .table-container {
     display: flex;
     justify-content: center;
-    
+
 }
 
 table {
@@ -25,8 +25,10 @@ td {
     padding: 15px;
     text-align: center;
     background: rgba(255, 212, 40, 0.3);
-    word-wrap: break-word ; /* Break long words */
-    text-overflow: ellipsis ; /* Add ellipsis for overflow text */
+    word-wrap: break-word;
+    /* Break long words */
+    text-overflow: ellipsis;
+    /* Add ellipsis for overflow text */
     max-width: 200px;
 }
 
@@ -45,9 +47,12 @@ th {
 /* Create scrollable body */
 tbody {
     display: block;
-    max-height: 800px; /* Set the height for the body */
-    min-height: 550px; /* Set the minimum height for the body */
-    overflow-y: auto; /* Enable scrolling */
+    max-height: 800px;
+    /* Set the height for the body */
+    min-height: 750px;
+    /* Set the minimum height for the body */
+    overflow-y: auto;
+    /* Enable scrolling */
     background: rgba(255, 212, 40, 0.5);
     scrollbar-width: none;
     table-layout: auto;
@@ -69,12 +74,14 @@ thead {
     background-color: #FFD428;
     font-size: 18px;
 }
+
 .order-list {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 400px;
 }
+
 /* Action Layout */
 .action-layout {
     display: flex;
@@ -134,26 +141,6 @@ thead {
     /* Golden outline */
 }
 
-/* Responsive Design - Mobile View */
-@media (max-width: 768px) {
-    .action-layout {
-        flex-direction: column;
-        /* Stack buttons vertically on smaller screens */
-        gap: 10px;
-        /* Reduce the gap between buttons */
-        align-items: center;
-        /* Center align the buttons */
-    }
-
-    .action-button {
-        width: 90%;
-        /* Make buttons wider on smaller screens */
-        padding: 12px 0;
-        /* Adjust padding for more comfortable tap targets */
-    }
-}
-
-
 
 /* Search & Filters */
 
@@ -163,6 +150,7 @@ thead {
     justify-content: flex-end;
     width: 100%;
 }
+
 .search-container {
     display: flex;
     justify-content: flex-end;
@@ -238,6 +226,10 @@ select {
     transform: translate(-50%, -50%) scale(0.9);
     background: #fff;
     width: 450px;
+    max-height: 80vh;
+    overflow-y: auto; /* Make sure vertical scroll works if needed */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scrollbar-width: none; /* For Firefox */
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
@@ -421,6 +413,20 @@ ul {
 .exo-receipt-paper {
     width: 300px; /* Around 3 inches */
     padding: 15px;
+    max-height: 80vh;
+    overflow-x: auto;
+    overflow-y: auto; /* Make sure vertical scroll works if needed */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scrollbar-width: none; /* For Firefox */
+}
+
+/* For Chrome, Edge, and Safari */
+.exo-receipt-paper::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+.exo-receipt-paper::-webkit-scrollbar-thumb {
+    background: transparent;
 }
 
 /* Logo & Header */
@@ -502,3 +508,155 @@ ul {
     font-weight: bold;
 }
 
+@media (max-width: 768px) {
+
+    /* Adjust table layout for small screens */
+    table {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        max-width: 150px;
+    }
+
+    .order-list {
+        width: 250px;
+        /* Adjust for smaller screen */
+    }
+
+    .action-layout {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .action-button {
+        width: 80%;
+        padding: 12px 0;
+    }
+
+    /* Search container for small screens */
+    .search-container {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .search-container input {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .search-container select {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    /* Modal content scaling for mobile */
+    .exo-modal {
+        width: 80%;
+        padding: 15px;
+    }
+
+    .exo-receipt-modal {
+        width: 90%;
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow-x: auto;
+        flex-direction: column ;
+    }
+}
+
+/* Additional breakpoints for larger devices if needed */
+@media (max-width: 480px) {
+    .wrapper {
+        margin-top: 4%;
+    }
+
+    .table-container {
+        padding: 10px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+    th,
+    td {
+        padding: 8px;
+    }
+
+    th {
+        font-size: 12px;
+    }
+
+    .action-button {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: transparent;
+        position: relative;
+    }
+    
+    .remove-btn::before {
+        content: "✔";
+        color: black;
+        position: absolute;
+        font-size: 1rem;
+    }
+    .add-item-btn::before {
+        content: "➕";
+        color: black;
+        position: absolute;
+        font-size: 1rem;
+    }
+    .cancel-btn::before {
+        content: "✖";
+        color: black;
+        position: absolute;
+        font-size: 1rem;
+    }
+    .view-btn::before {
+        content: "🔍";
+        color: black;
+        position: absolute;
+        font-size: 1rem;
+    }
+    
+
+    .search-container input {
+        width: 100%;
+        padding: 8px;
+    }
+
+    .search-container select {
+        width: 100%;
+    }
+
+    #ordersTable th:nth-child(1),
+    #ordersTable td:nth-child(1),
+    #ordersTable th:nth-child(5),
+    #ordersTable td:nth-child(5),
+    #ordersTable th:nth-child(6),
+    #ordersTable td:nth-child(6) {
+        display: none;
+    }
+
+    #orderTable th:nth-child(4),
+    #orderTable td:nth-child(4),
+    #orderTable th:nth-child(6),
+    #orderTable td:nth-child(6),
+    #orderTable th:nth-child(8),
+    #orderTable td:nth-child(8),
+    #orderTable th:nth-child(9),
+    #orderTable td:nth-child(9) {
+        display: none;
+    }
+}

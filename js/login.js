@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             pageLoader();
                             setTimeout(() => {
                                 loginForm.reset(); // Reset the form
-                                window.location.href = "main.php";
+                                window.location.href = "Main.php";
                             }, 3000);
                         } else {
                             showAlert("warning-alert", "Invalid username or password");

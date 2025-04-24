@@ -7,12 +7,12 @@ try {
     $dineType = $_POST['dine_type'] ?? 'Dine-In';
     $today = date("Y-m-d");
 
-    if (empty($user_id)) {
-        die(json_encode(["status" => "error", "message" => "User not logged in."]));
-    }
-
     if (empty($items)) {
         die(json_encode(["status" => "error", "message" => "No items in order."]));
+    }
+    
+    if (empty($user_id)) {
+        die(json_encode(["status" => "error", "message" => "User not logged in."]));
     }
 
     $connect->beginTransaction();

@@ -53,7 +53,7 @@ include 'inc/navbar.php';
     </div>
 </div>
 
-<div class="footer" style="position: absolute; bottom: 0;">
+<div class="footer">
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </div>
 
@@ -111,7 +111,10 @@ include 'inc/navbar.php';
                     addUserBtn.textContent = 'Submit'; // Reset button text
                 }
             })
-            .catch(error => console.error('Error:', error)); // Log any errors
+            .catch(error => {
+                console.log(`Error: ${error.message}`);
+                console.error('Error:', error);
+            });
     });
 
 
@@ -125,6 +128,7 @@ include 'inc/navbar.php';
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             document.getElementById('email').value = '';
+            document.getElementById('add-user').textContent = 'SUBMIT'; // Reset button text
         })
     }
 

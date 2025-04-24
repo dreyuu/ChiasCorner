@@ -16,7 +16,7 @@
     color: white;
     margin-top: 8%;
     border: solid 4px black;
-    max-height: 500px;
+    max-height: 600px;
 }
 
 .form-container input,
@@ -172,8 +172,109 @@
 .action-btn:hover {
     transform: scale(1.1);
 }
-
+.footer {
+    position: absolute; bottom: 0;
+}
 
 /* Footer Section */
 
+@media (max-width: 480px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+    }
+
+    .form-container,
+    .table-container {
+        width: 90% !important;
+        margin-top: 20px;
+    }
+
+    .form-container {
+        padding: 30px;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container #add-user,
+    .form-container #cancel {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .user-Table {
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .table-container th,
+    .table-container td {
+        padding: 8px;
+        font-size: 14px;
+        max-width: 150px;
+    }
+
+    .search-container input,
+    .search-container select {
+        width: 90% !important;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+        width: 100%;
+    }
+    .footer {
+        position: relative; bottom: 0;
+    }
+    .actions {
+        gap: 2px;
+        flex-direction: row;
+    }
+    .action-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: transparent !important;
+        position: relative;
+        border-radius: 5px;
+    }
+    .remove-btn::before {
+        content: "✖️";
+        color: black;
+        position: absolute;
+        font-size: 1rem;
+    }
+    .edit-btn::before {
+        content: "🔄";
+        color: black;
+        position: absolute;
+        font-size: 1rem;
+    }
+    .user-Table th:nth-child(3),
+    .user-Table td:nth-child(3),
+    .user-Table th:nth-child(5),
+    .user-Table td:nth-child(5),
+    .user-Table th:nth-child(8),
+    .user-Table td:nth-child(8),
+    .user-Table th:nth-child(9),
+    .user-Table td:nth-child(9) {
+        display: none;
+    }
+}
 

@@ -51,17 +51,17 @@
 .salesChart {
     width: 100%;
 }
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
     .chart-container {
-        width: 48%;  /* Each chart container takes 48% width on larger screens */
+        width: 48%; 
     }
 }
 
 @media (min-width: 1024px) {
     .chart-container {
-        width: 30%;  /* On large screens, each chart container will take 30% width */
+        width: 30%;  
     }
-}
+} */
 
 /* Stats Section */
 .exp {
@@ -132,12 +132,70 @@
 }
 
 /* Typography adjustments for larger screens */
-@media (min-width: 1024px) {
+/* @media (min-width: 1024px) {
     .stat-box {
-        font-size: 20px;  /* Adjust font size for larger screens */
+        font-size: 20px; 
     }
 
     .chart-container.small {
-        width: 60%;  /* Adjusted width for larger screens */
+        width: 60%;  
+    }
+} */
+
+@media (max-width: 768px) {
+    .charts-section {
+        padding: 10% 5%;
+        text-align: center;
+    }
+
+    .charts-section .header-text {
+        font-size: 1.75rem;
+        margin-bottom: 15px;
+    }
+
+    .charts {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .chart-container {
+        width: 100%;
+        height: auto;
+    }
+
+    .chart-container.small {
+        width: 100%;
+        height: auto;
+        padding: 15px;
+    }
+
+    .chart-container.small h3 {
+        font-size: 1.25rem;
+    }
+
+    .exp {
+        padding: 5%;
+    }
+
+    .stats-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        padding: 0 10px;
+    }
+
+    .sales-stats {
+        width: 100%;
+        align-items: center;
+    }
+
+    .stat-box {
+        width: 100%;
+        font-size: 16px;
+        padding: 15px;
+    }
+
+    .stat-box span {
+        font-size: 22px;
     }
 }
