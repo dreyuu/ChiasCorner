@@ -6,7 +6,14 @@
 .table-container {
     display: flex;
     justify-content: center;
+    align-items: center;
+}
 
+/* Hide the arrows for Chrome, Safari, Edge, and Opera */
+#amountPaid::-webkit-inner-spin-button,
+#amountPaid::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 table {
@@ -75,35 +82,63 @@ thead {
     font-size: 18px;
 }
 
+.dine-in {
+    background-color: #FFD428;
+    /* blue */
+}
+
+.take-out {
+    background-color: #f59e0b;
+    /* orange */
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Status-based colors */
+.status-paid {
+    background-color: #e9f9e9;
+    /* light green */
+}
+
+.status-pending {
+    background-color: #fffbe6;
+    /* soft yellow */
+}
+
+.status-cancelled {
+    background-color: #ffe6e6;
+    /* soft red */
+}
+
 .order-list {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 400px;
 }
 
 /* Action Layout */
 .action-layout {
     display: flex;
-    justify-content: space-evenly;
-    /* Evenly space the buttons */
+    justify-content: start;
+    gap: 5px;
     align-items: center;
-    /* Vertically align the buttons */
-    /* Space between the buttons */
     flex-wrap: wrap;
-    /* Allow the buttons to wrap on smaller screens */
     padding: 5px 0;
-    /* Add padding to give it some breathing space */
     width: 250px;
 }
 
 /* Action Button Styles */
 .action-button {
-    width: 4.5rem;
+    width: 3rem;
     /* Consistent width for buttons */
-    height: 4.5rem;
+    height: 3rem;
     font-weight: bold;
-    padding: 5px;
+    padding: 3px;
     /* Ensure padding for balance */
     border-radius: 10px;
     border: solid 2px #000;
@@ -114,7 +149,7 @@ thead {
     /* White text */
     cursor: pointer;
     transition: all 0.3s ease-in-out;
-    font-size: 14px;
+    font-size: 16px;
     /* Adjust font size */
     text-transform: uppercase;
     /* Make text uppercase */
@@ -141,6 +176,58 @@ thead {
     /* Golden outline */
 }
 
+
+.paginated-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Pagination Container */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 10px 0;
+
+    font-family: inherit;
+}
+
+/* Pagination Buttons */
+.pagination-container button {
+    padding: 6px 14px;
+    background: #FFD428;
+    border: 1px solid #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.25s ease;
+}
+
+.pagination-container button:hover:not(:disabled) {
+    background: black;
+    color: #FFD428;
+    border-color: #FFD428;
+}
+
+.pagination-container button:disabled {
+    background: #eaeaea;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Page Info Text */
+#pageInfo {
+    font-size: 14px;
+    color: #444;
+    padding: 4px 10px;
+    background: #f8f8f8;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+}
 
 /* Search & Filters */
 
@@ -227,9 +314,12 @@ select {
     background: #fff;
     width: 450px;
     max-height: 80vh;
-    overflow-y: auto; /* Make sure vertical scroll works if needed */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    scrollbar-width: none; /* For Firefox */
+    overflow-y: auto;
+    /* Make sure vertical scroll works if needed */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+    scrollbar-width: none;
+    /* For Firefox */
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
@@ -411,13 +501,18 @@ ul {
 /* Receipt Paper */
 
 .exo-receipt-paper {
-    width: 300px; /* Around 3 inches */
+    width: 300px;
+    /* Around 3 inches */
     padding: 15px;
     max-height: 80vh;
     overflow-x: auto;
-    overflow-y: auto; /* Make sure vertical scroll works if needed */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    scrollbar-width: none; /* For Firefox */
+    overflow-y: auto;
+    /* Make sure vertical scroll works if needed */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+    scrollbar-width: none;
+    /* For Firefox */
+    font-family: "Courier New", monospace;
 }
 
 /* For Chrome, Edge, and Safari */
@@ -425,6 +520,7 @@ ul {
     width: 0px;
     height: 0px;
 }
+
 .exo-receipt-paper::-webkit-scrollbar-thumb {
     background: transparent;
 }
@@ -508,6 +604,174 @@ ul {
     font-weight: bold;
 }
 
+/* --- Shared Modal Structure --- */
+.void-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Centers the content box */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    /* Initially hidden */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Class to make the modal visible */
+.void-modal.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal Overlay */
+.void-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* --- Modal Content Styling --- */
+.void-modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    position: relative;
+    z-index: 1001;
+    max-width: 400px;
+    /* Slightly smaller for a simple input dialog */
+    width: 90%;
+    text-align: center;
+}
+
+.void-modal-content h2 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 20px;
+}
+
+/* Input Field Styling */
+.void-input {
+    position: relative;
+}
+
+.input-field {
+    width: calc(100% - 24px);
+    /* Full width minus padding */
+    padding: 12px 40px 12px 12px;
+    margin-bottom: 30px;
+    border: 2px solid #444;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-field:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 5px rgba(255, 212, 40, 0.5);
+    outline: none;
+}
+
+/* --- NEW: Checkbox Toggle Positioning and Styling --- */
+#toggleVoidCode {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* 2. Style the label to look like the toggle icon */
+.password-toggle-label {
+    position: absolute;
+    top: 16%;
+    right: 7%;
+    cursor: pointer;
+    color: #888;
+    font-size: 20px;
+    /* Size of the icon */
+    z-index: 10;
+    transition: color 0.2s ease;
+}
+
+.password-toggle-label:hover {
+    color: #444;
+}
+
+/* 3. Apply the icon using the ::before pseudo-element */
+.password-toggle-label::before {
+    /* Font Awesome Icon Code for fa-eye (Open Eye/Show Password) */
+    content: "\f06e";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    /* Use 900 for Solid icons */
+}
+
+/* 4. Change the icon when the checkbox is checked (i.e., password is shown) */
+#toggleVoidCode:checked+.password-toggle-label::before {
+    /* Font Awesome Icon Code for fa-eye-slash (Closed Eye/Hide Password) */
+    content: "\f070";
+}
+
+/* Button Container */
+.void-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Base Button Styling */
+.exo-action-btns {
+    padding: 10px 20px;
+    border: 2px solid black;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+    transition: all 0.2s ease, transform 0.1s ease;
+}
+
+/* Confirm Button (Uses the highlight color, similar to Export/Restore) */
+.exo-confirm-btns {
+    background: #FFD428;
+    color: #000;
+}
+
+.exo-confirm-btns:hover {
+    background: black;
+    border: 2px solid #FFD428;
+    color: #FFD428;
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* Cancel Button (Neutral/Danger Color) */
+.exo-cancel-btns {
+    background: #fff;
+    color: #000;
+    border-color: #ccc;
+}
+
+.exo-cancel-btns:hover {
+    background: #e7e7e7;
+    border-color: #000;
+    transform: translateY(-1px) scale(1.02);
+}
+
+
 @media (max-width: 768px) {
 
     /* Adjust table layout for small screens */
@@ -534,10 +798,7 @@ ul {
         width: 100%;
     }
 
-    .action-button {
-        width: 80%;
-        padding: 12px 0;
-    }
+
 
     /* Search container for small screens */
     .search-container {
@@ -568,7 +829,7 @@ ul {
         justify-content: center;
         align-items: center;
         overflow-x: auto;
-        flex-direction: column ;
+        flex-direction: column;
     }
 }
 
@@ -585,6 +846,7 @@ ul {
     table {
         font-size: 12px;
     }
+
     th,
     td {
         padding: 8px;
@@ -594,42 +856,7 @@ ul {
         font-size: 12px;
     }
 
-    .action-button {
-        width: 2.5rem;
-        height: 2.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        color: transparent;
-        position: relative;
-    }
-    
-    .remove-btn::before {
-        content: "✔";
-        color: black;
-        position: absolute;
-        font-size: 1rem;
-    }
-    .add-item-btn::before {
-        content: "➕";
-        color: black;
-        position: absolute;
-        font-size: 1rem;
-    }
-    .cancel-btn::before {
-        content: "✖";
-        color: black;
-        position: absolute;
-        font-size: 1rem;
-    }
-    .view-btn::before {
-        content: "🔍";
-        color: black;
-        position: absolute;
-        font-size: 1rem;
-    }
-    
+
 
     .search-container input {
         width: 100%;
@@ -640,21 +867,25 @@ ul {
         width: 100%;
     }
 
-    #ordersTable th:nth-child(1),
-    #ordersTable td:nth-child(1),
+    #ordersTable th:nth-child(2),
+    #ordersTable td:nth-child(2),
     #ordersTable th:nth-child(5),
     #ordersTable td:nth-child(5),
     #ordersTable th:nth-child(6),
-    #ordersTable td:nth-child(6) {
+    #ordersTable td:nth-child(6),
+    #ordersTable th:nth-child(7),
+    #ordersTable td:nth-child(7) {
         display: none;
     }
 
+    #orderTable td:nth-child(1),
+    #orderTable th:nth-child(1),
     #orderTable th:nth-child(4),
     #orderTable td:nth-child(4),
     #orderTable th:nth-child(6),
     #orderTable td:nth-child(6),
-    #orderTable th:nth-child(8),
-    #orderTable td:nth-child(8),
+    #orderTable th:nth-child(7),
+    #orderTable td:nth-child(7),
     #orderTable th:nth-child(9),
     #orderTable td:nth-child(9) {
         display: none;

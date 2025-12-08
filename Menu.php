@@ -13,6 +13,8 @@ if (isset($_GET['order_id'])) {
 
 ?>
 <link rel="stylesheet" href="css/menu.css">
+<!-- Font Awesome Free (CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <div class="custom-menus-modal-overlay"></div>
 
@@ -209,23 +211,30 @@ if (isset($_GET['order_id'])) {
     </div>
 
     <div class="menus-table-container">
-        <table class="menus-table">
-            <thead>
-                <tr>
-                    <th>Menu ID</th>
-                    <th>Menu</th>
-                    <th>Category</th>
-                    <th>Menu Type</th>
-                    <th>Price</th>
-                    <th>Availability</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Table rows will be dynamically added here -->
+        <div class="paginated-table">
+            <table class="menus-table">
+                <thead>
+                    <tr>
+                        <th>Menu ID</th>
+                        <th>Menu</th>
+                        <th>Category</th>
+                        <th>Menu Type</th>
+                        <th>Price</th>
+                        <th>Availability</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table rows will be dynamically added here -->
 
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+            <div class="menu-pagination-container">
+                <button id="menu-prevPage">Previous</button>
+                <span id="menu-pageInfo"></span>
+                <button id="menu-nextPage">Next</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -279,25 +288,36 @@ if (isset($_GET['order_id'])) {
             </select>
         </div>
         <table class="custom-promo-table">
-            <thead>
-                <tr>
-                    <th>Promo Name</th>
-                    <th>Discount Type</th>
-                    <th>Discount Value</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Applicable Menu</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="promoTableBody">
+            <div class="paginated-table">
+                <thead>
+                    <tr>
+                        <th>Promo Name</th>
+                        <th>Discount Type</th>
+                        <th>Discount Value</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Applicable Menu</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="promoTableBody">
 
-            </tbody>
+                </tbody>
         </table>
+        <div class="promo-pagination-container">
+            <button id="promo-prevPage">Previous</button>
+            <span id="promo-pageInfo"></span>
+            <button id="promo-nextPage">Next</button>
+        </div>
     </div>
 </div>
-
+</div>
+<div class="alerts">
+    <div id="success-alert" class="alert alert-success"></div>
+    <div id="error-alert" class="alert alert-danger"></div>
+    <div id="warning-alert" class="alert alert-warning"></div>
+</div>
 
 <!-- Chian's Footer Section -->
 
@@ -305,7 +325,30 @@ if (isset($_GET['order_id'])) {
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </footer>
 
+
 <script>
+    function showAlert(alertId, message) {
+        let alertBox = document.getElementById(alertId);
+        if (alertBox) {
+            alertBox.innerText = message;
+            alertBox.style.visibility = "visible";
+            alertBox.style.opacity = "1";
+            alertBox.style.top = "0";
+
+            clearTimeout(alertBox.hideTimeout);
+
+            alertBox.hideTimeout = setTimeout(() => {
+                alertBox.style.opacity = "0";
+                alertBox.style.top = "-70px";
+
+                setTimeout(() => {
+                    alertBox.style.visibility = "hidden";
+                    alertBox.innerText = "";
+                }, 300); // Delay to allow fade-out
+            }, 3000); // Display duration
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const token = localStorage.getItem("jwt_token");
         // console.log("JWT Token: ", token);
@@ -554,6 +597,7 @@ if (isset($_GET['order_id'])) {
 
             let url = isUpdate ? "db_queries/update_queries/update_ingredient.php" : "db_queries/insert_queries/insert_menu_ingredient.php";
 
+            loader.show()
             fetch(url, {
                     method: "POST",
                     headers: {
@@ -564,7 +608,8 @@ if (isset($_GET['order_id'])) {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message);
+                        // alert(data.message);
+                        showAlert('success-alert', data.message);
                         loadMenuIngredients(menu_id); // Refresh ingredient table
                         document.getElementById("submit-ingredient").textContent = "ADD"; // Reset button text
                         delete document.getElementById("submit-ingredient").dataset.update; // Remove update flag
@@ -575,7 +620,10 @@ if (isset($_GET['order_id'])) {
                         console.error("Error:", data.error);
                     }
                 })
-                .catch(error => console.error("Error:", error));
+                .catch(error => console.error("Error:", error))
+                .finally(() => {
+                    loader.hide()
+                })
         });
     }
 
@@ -633,6 +681,7 @@ if (isset($_GET['order_id'])) {
         let menuId = document.getElementById("edit_menu_id").value;
         let actionUrl = menuId ? "db_queries/update_queries/update_menu.php" : "db_queries/insert_queries/insert_menu.php";
 
+        loader.show()
         fetch(actionUrl, {
                 method: "POST",
                 body: formData
@@ -640,7 +689,8 @@ if (isset($_GET['order_id'])) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(menuId ? "Menu updated successfully!" : "Menu added successfully!");
+                    // alert(menuId ? "Menu updated successfully!" : "Menu added successfully!");
+                    showAlert('success-alert', menuId ? "Menu updated successfully!" : "Menu added successfully!");
                     loadMenus();
                     this.reset();
                     document.getElementById("submitButton").textContent = "ADD"; // Reset button text
@@ -648,10 +698,14 @@ if (isset($_GET['order_id'])) {
                     fetchMenus('Samgyupsal', '.menu-items');
                     fetchMenus('Add-Ons', '.sauces');
                 } else {
-                    alert(data.error);
+                    // alert(data.error);
+                    CustomAlert.alert(data.error, 'error');
                 }
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => console.error("Error:", error))
+            .finally(() => {
+                loader.hide();
+            })
     });
 
     // Add event listeners to Edit buttons (delegated event handling)
@@ -659,61 +713,129 @@ if (isset($_GET['order_id'])) {
     document.querySelector(".menus-table").addEventListener("click", function(event) {
         event.preventDefault();
 
-        if (event.target.classList.contains("edit-btn")) {
-            let menuId = event.target.getAttribute("data-id");
+        if (event.target.closest(".edit-menu")) {
+            let menu = JSON.parse(event.target.closest(".edit-menu").dataset.id);
+            console.log(menu);
+            document.getElementById("edit_menu_id").value = menu.menu_id;
+            document.getElementById("name").value = menu.name;
+            document.getElementById("category").value = menu.category;
+            document.getElementById("menu-type").value = menu.menu_type;
+            document.getElementById("price").value = menu.price;
+            document.getElementById("submitButton").textContent = "Update";
 
-            fetch(`db_queries/select_queries/fetch_to_edit_menu.php?id=${menuId}`)
-                .then(response => response.json())
-                .then(menu => {
-                    document.getElementById("edit_menu_id").value = menu.menu_id;
-                    document.getElementById("name").value = menu.name;
-                    document.getElementById("category").value = menu.category;
-                    document.getElementById("menu-type").value = menu.menu_type;
-                    document.getElementById("price").value = menu.price;
-                    document.getElementById("availability").value = menu.availability;
-                    document.getElementById("submitButton").textContent = "Update";
-                    loadMenus();
-                })
-                .catch(error => console.error("Error fetching menu details:", error));
+            const isAvailable = document.getElementById("availability");
+
+            if (menu.availability === 1) {
+                isAvailable.value = "Available";
+            } else {
+                isAvailable.value = "Not Available";
+            }
+            // fetch(`db_queries/select_queries/fetch_to_edit_menu.php?id=${menuId}`)
+            //     .then(response => response.json())
+            //     .then(menu => {
+            //         document.getElementById("edit_menu_id").value = menu.menu_id;
+            //         document.getElementById("name").value = menu.name;
+            //         document.getElementById("category").value = menu.category;
+            //         document.getElementById("menu-type").value = menu.menu_type;
+            //         document.getElementById("price").value = menu.price;
+            //         document.getElementById("availability").value = menu.availability;
+            //         document.getElementById("submitButton").textContent = "Update";
+            //         loadMenus();
+            //     })
+            //     .catch(error => console.error("Error fetching menu details:", error));
         }
 
         if (event.target.classList.contains("delete-btn")) {
             let menuId = event.target.getAttribute("data-id");
 
-            if (confirm("Are you sure you want to delete this menu item?")) {
-                fetch("db_queries/delete_queries/delete_menu.php", {
-                        method: "POST",
-                        body: new URLSearchParams({
-                            menu_id: menuId
-                        }),
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded"
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert("Menu item deleted successfully!");
-                            event.target.closest("tr").remove(); // Remove row from the table
-                            loadMenus(); // Refresh the table
-                        } else {
-                            alert("Error: " + data.error);
-                        }
-                    })
-                    .catch(error => console.error("Error deleting menu item:", error));
-            }
+            CustomAlert.confirm("Are you sure you want to delete this menu item?", "warning")
+                .then(result => {
+                    if (!result) return;
+
+                    loader.show();
+                    fetch("db_queries/delete_queries/delete_menu.php", {
+                            method: "POST",
+                            body: new URLSearchParams({
+                                menu_id: menuId
+                            }),
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // alert("Menu item deleted successfully!");
+                                showAlert('success-alert', "Menu item deleted successfully!");
+                                event.target.closest("tr").remove(); // Remove row from the table
+                                loadMenus(); // Refresh the table
+                            } else {
+                                // alert("Error: " + data.error);
+                                CustomAlert.alert(data.error, 'error');
+                            }
+                        })
+                        .catch(error => console.error("Error deleting menu item:", error))
+                        .finally(() => {
+                            loader.hide();
+                        });
+                });
         }
     });
 
-    function loadMenus() {
-        fetch("db_queries/select_queries/fetch_menu.php")
-            .then(response => response.text())
-            .then(data => {
-                document.querySelector(".menus-table tbody").innerHTML = data;
+    let MenuCurrentPage = 1;
+    let MenuLimit = 10; // rows per page
+    let menuTotalRows = 0;
 
-            })
-            .catch(error => console.error("Error fetching menus:", error));
+    async function loadMenus(page = 1) {
+        MenuCurrentPage = page;
+
+        try {
+            const response = await fetch("db_queries/select_queries/fetch_menu.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    page: MenuCurrentPage,
+                    limit: MenuLimit
+                })
+            });
+
+            // Read the text (tr rows) and get total rows from header
+            const menuRowsHtml = await response.text();
+            menuTotalRows = parseInt(response.headers.get("X-Total-Rows")) || 0;
+
+            // Update pagination UI and table
+            updateMenuPaginationUI();
+            document.querySelector(".menus-table tbody").innerHTML = menuRowsHtml;
+
+        } catch (error) {
+            console.error("Error fetching menus:", error);
+        }
     }
+
+    function updateMenuPaginationUI() {
+        const totalPages = Math.ceil(menuTotalRows / MenuLimit);
+
+        document.getElementById("menu-pageInfo").innerText =
+            `Page ${MenuCurrentPage} of ${totalPages}`;
+
+        document.getElementById("menu-prevPage").disabled = MenuCurrentPage === 1;
+        document.getElementById("menu-nextPage").disabled = MenuCurrentPage === totalPages;
+    }
+
+    document.getElementById("menu-prevPage").addEventListener("click", () => {
+        if (MenuCurrentPage > 1) {
+            loadMenus(MenuCurrentPage - 1);
+        }
+    });
+
+    document.getElementById("menu-nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(menuTotalRows / MenuLimit);
+        if (MenuCurrentPage < totalPages) {
+            loadMenus(MenuCurrentPage + 1);
+        }
+    });
 
     document.getElementById("promoForm").addEventListener("submit", function(e) {
         e.preventDefault();
@@ -725,41 +847,62 @@ if (isset($_GET['order_id'])) {
             "db_queries/update_queries/update_promo.php" :
             "db_queries/insert_queries/insert_promo.php"; // ← You should have this script already
 
+        loader.show()
         fetch(url, {
                 method: "POST",
                 body: new URLSearchParams(form)
             })
             .then(res => res.json())
             .then(res => {
-                alert(isUpdate ? "Promo updated!" : "Promo added!");
+                // alert(isUpdate ? "Promo updated!" : "Promo added!");
+                showAlert('success-alert', isUpdate ? "Promo updated!" : "Promo added!");
                 fetchPromos("active");
                 document.getElementById("promoForm").reset();
                 document.getElementById("promoSubmitBtn").textContent = "ADD PROMO";
             })
             .catch(error => {
                 console.error('Error:', error);
+            }).finally(() => {
+                loader.hide();
             });
     });
 
 
     document.getElementById("promoFilter").addEventListener("change", function() {
-        fetchPromos(this.value); // Fetch based on selected filter
+        fetchPromos(this.value, PromoCurrentPage); // Fetch based on selected filter
     });
 
+    let PromoCurrentPage = 1;
+    let PromoLimit = 10; // rows per page
+    let PromoTotalRows = 0;
 
-    function fetchPromos(status) {
-        fetch(`db_queries/select_queries/fetch_promos.php?status=${status}`)
-            .then(response => response.json())
-            .then(data => {
-                let promoTableBody = document.getElementById("promoTableBody");
-                let totalPromoCount = document.querySelector(".custom-total-count");
+    async function fetchPromos(status, page = 1) {
+        PromoCurrentPage = page;
 
-                promoTableBody.innerHTML = ""; // Clear previous data
+        try {
+            const response = await fetch("db_queries/select_queries/fetch_promos.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status,
+                    page: PromoCurrentPage,
+                    limit: PromoLimit
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                PromoTotalRows = data.totalRows;
+                updatePromoPaginationUI();
+
+                const promoTableBody = document.getElementById("promoTableBody");
+                promoTableBody.innerHTML = "";
+
                 let activeCount = 0;
-
-                data.forEach(promo => {
+                data.promos.forEach(promo => {
                     if (promo.status === "active") activeCount++;
-
                     promoTableBody.innerHTML += `
                     <tr>
                         <td>${promo.name}</td>
@@ -767,64 +910,103 @@ if (isset($_GET['order_id'])) {
                         <td>${promo.discount_value}</td>
                         <td>${promo.start_date}</td>
                         <td>${promo.end_date}</td>
-                        <td>${promo.applicable_menu ? promo.applicable_menu : "All"}</td>
+                        <td>${promo.applicable_menu}</td>
                         <td>${promo.status}</td>
                         <td>
-                            <button class="edit-btn edit-promo" data-id="${promo.promo_id}">Edit</button>
-                            <button class="delete-btn edit-btn delete-promo" data-id="${promo.promo_id}">Delete</button>
+                            <div class="action">
+                                <button class="edit-btn edit-promo" data-id='${JSON.stringify(promo)}'>
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="delete-btn edit-btn delete-promo" data-id="${promo.promo_id}">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
                 });
 
-                totalPromoCount.textContent = activeCount; // Update total active count
-            })
-            .catch(error => console.error("Error fetching promos:", error));
+                document.querySelector(".custom-total-count").textContent = activeCount;
+
+            } else {
+                console.error("Error fetching promos:", data.message);
+            }
+        } catch (error) {
+            console.error("Error fetching promos:", error);
+        }
     }
+
+
+    function updatePromoPaginationUI() {
+        const totalPages = Math.ceil(PromoTotalRows / PromoLimit);
+
+        document.getElementById("promo-pageInfo").innerText =
+            `Page ${PromoCurrentPage} of ${totalPages}`;
+
+        document.getElementById("promo-prevPage").disabled = PromoCurrentPage === 1;
+        document.getElementById("promo-nextPage").disabled = PromoCurrentPage === totalPages;
+    }
+
+    document.getElementById("promo-prevPage").addEventListener("click", () => {
+        if (PromoCurrentPage > 1) {
+            fetchPromos("active", PromoCurrentPage - 1);
+        }
+    });
+
+    document.getElementById("promo-nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(PromoTotalRows / PromoLimit);
+        if (PromoCurrentPage < totalPages) {
+            fetchPromos("active", PromoCurrentPage + 1);
+        }
+    });
 
     document.addEventListener("click", function(e) {
         const target = e.target;
 
-        if (target.classList.contains("edit-promo")) {
-            const promoId = target.dataset.id;
+        if (target.closest(".edit-promo")) {
+            const promo = JSON.parse(target.closest(".edit-promo").dataset.id);
 
-            // Fetch promo details by ID
-            fetch(`db_queries/select_queries/get_promo.php?promo_id=${promoId}`)
-                .then(response => response.json())
-                .then(promo => {
-                    document.getElementById("promoId").value = promo.promo_id;
-                    document.getElementById("promoName").value = promo.name;
-                    document.getElementById("discount_type").value = promo.discount_type;
-                    document.getElementById("discount_value").value = promo.discount_value;
-                    document.getElementById("start_date").value = promo.start_date;
-                    document.getElementById("end_date").value = promo.end_date;
-                    document.getElementById("applicable_menu").value = promo.applicable_menu_id ?? "";
+            document.getElementById("promoId").value = promo.promo_id;
+            document.getElementById("promoName").value = promo.name;
+            document.getElementById("discount_type").value = promo.discount_type;
+            document.getElementById("discount_value").value = promo.discount_value;
+            document.getElementById("start_date").value = promo.start_date;
+            document.getElementById("end_date").value = promo.end_date;
+            document.getElementById("applicable_menu").value = promo.applicable_menu_id ?? "";
 
-                    document.getElementById("promoSubmitBtn").textContent = "UPDATE PROMO";
-                });
+            document.getElementById("promoSubmitBtn").textContent = "UPDATE PROMO";
         }
 
-        if (target.classList.contains("delete-promo")) {
-            const promoId = target.dataset.id;
+        if (target.closest(".delete-promo")) {
+            const promoId = target.closest(".delete-promo").dataset.id;
+            CustomAlert.confirm("Are you sure you want to delete this promo?", "warning")
+                .then(result => {
+                    if (!result) return;
+                    loader.show()
+                    fetch("db_queries/delete_queries/delete_promo.php", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            body: `promoId=${promoId}`
+                        })
+                        .then(res => res.json())
+                        .then(res => {
+                            if (res.status === "success") {
+                                // alert("Promo deleted.");
+                                showAlert('success-alert', 'Promo deleted.');
+                                fetchPromos("all", PromoCurrentPage);
+                            } else {
+                                // alert("Failed to delete promo.");
+                                CustomAlert.alert('Failed to delete promo.', 'error');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error))
+                        .finally(() => {
+                            loader.hide()
+                        })
+                });
 
-            if (confirm("Are you sure you want to delete this promo?")) {
-                fetch("db_queries/delete_queries/delete_promo.php", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded"
-                        },
-                        body: `promoId=${promoId}`
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.status === "success") {
-                            alert("Promo deleted.");
-                            fetchPromos("all");
-                        } else {
-                            alert("Failed to delete promo.");
-                        }
-                    });
-            }
         }
     });
 
@@ -834,10 +1016,11 @@ if (isset($_GET['order_id'])) {
 
     let originalOrders = {}; // Store original order items
     let dineType = '';
-    // Buttons Negative, Plus, Reset 
+    // Buttons Negative, Plus, Reset
     document.addEventListener("DOMContentLoaded", function() {
         fetchMenus('Samgyupsal', '.menu-items');
         fetchMenus('Add-Ons', '.sauces');
+
 
         const clickMenu = document.querySelectorAll('.menu-items, .sauces');
 
@@ -860,6 +1043,7 @@ if (isset($_GET['order_id'])) {
 
                     let price = parseFloat(itemElement.querySelector("#item_price").innerText.replace("₱", ""));
                     updateOrder(menuId, itemName, price, quantity);
+                    showAlert("success-alert", "Item added to order! ID: " + menuId + ", Quantity: " + quantity); // Show success alert
                 }
             });
 
@@ -880,6 +1064,7 @@ if (isset($_GET['order_id'])) {
                     let price = parseFloat(itemElement.querySelector("#item_price").innerText.replace("₱", ""));
 
                     updateOrder(menuId, itemName, price, quantity);
+                    showAlert("error-alert", "Item removed from order! ID: " + menuId + ", Quantity: " + quantity); // Show error alert
                 }
             });
         })
@@ -890,12 +1075,14 @@ if (isset($_GET['order_id'])) {
         if (dineIn) {
             dineIn.addEventListener("click", function() {
                 dineType = "Dine-In"
+                showAlert('success-alert', 'Dine In');
                 renderOrderList()
             });
         }
         if (takeOut) {
             takeOut.addEventListener("click", function() {
                 dineType = "Take-Out";
+                showAlert('success-alert', 'Take Out');
                 renderOrderList()
             });
         }
@@ -932,6 +1119,16 @@ if (isset($_GET['order_id'])) {
     })
     // Function to render order receipt
     function renderOrderList() {
+        const token = localStorage.getItem("jwt_token")
+        if (!token) {
+            window.location.href = "index.php"
+            return
+        }
+
+        const payloadBase64 = token.split('.')[1];
+        const payloadJson = atob(payloadBase64);
+        const payload = JSON.parse(payloadJson);
+
         let orderListElement = document.querySelector(".list_orders");
         orderListElement.innerHTML = ""; // Clear previous list
 
@@ -955,7 +1152,7 @@ if (isset($_GET['order_id'])) {
         let receiptBody = `
                     <div class="receipt-body">
                         <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                        <p><strong>Cashier:</strong> (Cashier Name)</p> <!-- Placeholder for now -->
+                        <p><strong>Cashier:</strong> ${payload.name}</p> <!-- Placeholder for now -->
                         <div class="receipt-separator"></div>
                         <p><strong>Order Type:</strong> ${dineType}</p>
                         <div class="receipt-separator"></div>
@@ -1011,8 +1208,6 @@ if (isset($_GET['order_id'])) {
 
     // Function to place order
     function placeOrder() {
-
-
         const token = localStorage.getItem("jwt_token");
         if (!token) {
             window.location.href = "index.php";
@@ -1037,7 +1232,7 @@ if (isset($_GET['order_id'])) {
         }
         const formData = new URLSearchParams();
         formData.append("orders", JSON.stringify(orderData));
-
+        loader.show();
         fetch("db_queries/insert_queries/place_order.php", {
                 method: "POST",
                 headers: {
@@ -1048,16 +1243,23 @@ if (isset($_GET['order_id'])) {
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
-                    alert(`Order Placed! Order ID: ${data.order_id}, Total: ₱${data.total_price}`);
+                    // alert(`Order Placed! Order ID: ${data.order_id}, Total: ₱${data.total_price}`);
+                    showAlert('success-alert', `Order Placed! Order ID: ${data.order_id}, Total: ₱${data.total_price}`);
                     orders = {}; // Clear orders after placing
                     renderOrderList();
                     updateTotal();
                     updateItemQuantity();
+                    setTimeout(() => {
+                        location.href = 'orderlist.php';
+                    }, 1000);
                 } else {
-                    alert(`Error: ${data.message}`);
+                    CustomAlert.alert(`Error: ${data.message}`, 'error');
                 }
             })
-            .catch(error => console.error("Error placing order:", error));
+            .catch(error => console.error("Error placing order:", error))
+            .finally(() => {
+                loader.hide();
+            });
     }
 
     const placeOrders = document.getElementById("placeOrder");
@@ -1109,6 +1311,9 @@ if (isset($_GET['order_id'])) {
         if (updateOrder) {
             updateOrder.addEventListener("click", function() {
                 saveOrder(); // Call the function to save the order
+                setTimeout(() => {
+                    location.href = 'orderlist.php';
+                }, 1000);
             });
         }
 
@@ -1116,20 +1321,25 @@ if (isset($_GET['order_id'])) {
         if (cancelOrder) {
             cancelOrder.addEventListener("click", function(e) {
                 e.preventDefault(); // Prevent the default action
-                if (confirm("Are you sure you want to cancel this order?")) {
-                    const url = window.location.href; // Get the current URL
-                    const newUrl = url.split('?')[0]; // Remove the query string (the part after '?')
-                    window.history.replaceState({}, document.title, newUrl); // Update the URL without reloading the page
-                    orders = {}; // Clear the orders
-                    originalOrders = {}; // Clear the original orders
-                    renderOrderList(); // Render the order list
-                    updateTotal(); // Update the total amount
+                CustomAlert.confirm("Are you sure you want to cancel this order?", "warning")
+                    .then(result => {
+                        if (!result) return;
 
-                    orderIdInput.value = ""; // Clear the order_id input field
-                    placeOrder.style.display = "block";
-                    updateOrder.style.display = "none";
-                    cancelOrder.style.display = "none";
-                }
+                        const url = window.location.href; // Get the current URL
+                        const newUrl = url.split('?')[0]; // Remove the query string (the part after '?')
+                        window.history.replaceState({}, document.title, newUrl); // Update the URL without reloading the page
+                        orders = {}; // Clear the orders
+                        originalOrders = {}; // Clear the original orders
+                        renderOrderList(); // Render the order list
+                        updateTotal(); // Update the total amount
+
+                        orderIdInput.value = ""; // Clear the order_id input field
+                        placeOrder.style.display = "block";
+                        updateOrder.style.display = "none";
+                        cancelOrder.style.display = "none";
+
+                        location.href = 'orderlist.php'; // Redirect to menu page
+                    });
             });
         }
     });
@@ -1199,7 +1409,7 @@ if (isset($_GET['order_id'])) {
         };
 
         // console.log("Sending Data:", JSON.stringify(payload));
-
+        loader.show()
         fetch("db_queries/update_queries/update_order.php", {
                 method: "POST",
                 headers: {
@@ -1209,10 +1419,10 @@ if (isset($_GET['order_id'])) {
             })
             .then(response => response.json())
             .then(data => {
-                // console.log("Server Response:", data); 
+                // console.log("Server Response:", data);
                 if (data.status === "success") { // Changed from `data.success`
-                    alert("Order updated successfully!");
-
+                    // alert("Order updated successfully!");
+                    showAlert('success-alert', 'Order updated successfully!')
                     const orderIdInput = document.getElementById("order_id"); // Get the order_id input field
                     const placeOrder = document.getElementById('placeOrder'); // Get the place order button
                     const updateOrder = document.getElementById('updateOrder'); // Get the update order button
@@ -1233,14 +1443,29 @@ if (isset($_GET['order_id'])) {
 
                 } else {
                     console.error("Failed to update order:", data.message);
-                    alert("Error: " + data.message);
+                    CustomAlert.alert("Error: " + data.message, 'alert');
                 }
             })
             .catch(error => {
                 console.error("Error:", error);
-                alert("Failed to update order. See console for details.");
-            });
+                CustomAlert.alert("Failed to update order. See console for details.", 'error');
+            })
+            .finally(() => {
+                loader.hide()
+            })
     }
+
+    function fetchThisMenu() {
+        fetchMenus('Samgyupsal', '.menu-items');
+        fetchMenus('Add-Ons', '.sauces');
+    }
+    // Initialize manager
+    const pusherManager = new PusherManager("<?php echo $_ENV['PUSHER_KEY']; ?>", "<?php echo $_ENV['PUSHER_CLUSTER']; ?>");
+
+    // Fetch users on add or update
+    pusherManager.bind('menu-channel', 'modify-menu', () => loadMenus(MenuCurrentPage), 200);
+    pusherManager.bind('menu-channel', 'modify-menu', fetchThisMenu, 200);
+    pusherManager.bind('promo-channel', 'modify-promo', () => fetchPromos("active", PromoCurrentPage), 200);
 </script>
 </body>
 

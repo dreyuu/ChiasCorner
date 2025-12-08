@@ -1,6 +1,5 @@
 <?php
-include_once '../../connection.php';
-
+include_once __DIR__ . '/../../connection.php';
 try {
     $today = date('Y-m-d');
     $threeDaysFromNow = date('Y-m-d', strtotime('+3 days'));
@@ -23,7 +22,7 @@ try {
         $connect->prepare($insertQuery)->execute([$ingredientId, $quantity]);
 
         // Update inventory stock
-        $updateInventory = "UPDATE inventory 
+        $updateInventory = "UPDATE inventory
                             SET current_stock = GREATEST(current_stock - ?, 0)
                             WHERE ingredient_id = ?";
         $connect->prepare($updateInventory)->execute([$quantity, $ingredientId]);
@@ -63,8 +62,6 @@ try {
     }
 
     echo json_encode(['success' => true, 'message' => 'Expired batches cleaned up and near-expiry notifications added.']);
-
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-?>

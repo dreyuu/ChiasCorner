@@ -1,5 +1,5 @@
 <?php
-include_once '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve action and other fields from the POST request
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Step 2: Perform the update (add or subtract stock)
         if ($action == 'add') {
             // Add stock batch: Update the quantity, and other fields
-            $query = "UPDATE stock_batches 
+            $query = "UPDATE stock_batches
                         SET quantity = quantity + :quantity,
                             ingredient_id = :ingredient_id,
                             supplier_id = :supplier_id,
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         WHERE batch_id = :batch_id";
             $stmt = $connect->prepare($query);
             $stmt->execute([
-                ':quantity' => $quantity, 
+                ':quantity' => $quantity,
                 ':ingredient_id' => $ingredient_id,
                 ':supplier_id' => $supplier_id,  // Use the supplier_id here
                 ':cost' => $cost,
@@ -52,16 +52,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => true, 'message' => 'Batch quantity updated (added).']);
         } elseif ($action == 'subtract') {
             // Subtract stock batch: Subtract quantity, and potentially update other fields
-            $query = "UPDATE stock_batches 
+            $query = "UPDATE stock_batches
                         SET quantity = quantity - :quantity,
                             ingredient_id = :ingredient_id,
-                            supplier_id = :supplier_id, 
+                            supplier_id = :supplier_id,
                             cost = :cost,
                             expiration_date = :expiration_date
                         WHERE batch_id = :batch_id AND quantity >= :quantity";
             $stmt = $connect->prepare($query);
             $stmt->execute([
-                ':quantity' => $quantity, 
+                ':quantity' => $quantity,
                 ':ingredient_id' => $ingredient_id,
                 ':supplier_id' => $supplier_id,  // Use supplier_id here
                 ':cost' => $cost,
@@ -82,4 +82,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => 'Error updating batch: ' . $e->getMessage()]);
     }
 }
-?>

@@ -1,11 +1,18 @@
 <?php
-require '../../connection.php';
-require '../../vendor/autoload.php';
+include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '/../../vendor/autoload.php';
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
+use Dotenv\Dotenv;
 
-$secretKey = "chiascornersercretkey";
+// Load env
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+$secretKey = $_ENV['JWS_SECRET_KEY'];
 
 // Get token from header
 $headers = apache_request_headers();
@@ -32,35 +39,59 @@ try {
 
     $name = $inputData['name'] ?? null;
     $username = $inputData['username'] ?? null;
-    $password = isset($inputData['password']) ? password_hash($inputData['password'], PASSWORD_DEFAULT) : null;
+    $passwordInput = $inputData['password'] ?? null;
     $email = $inputData['email'] ?? null;
     $user_type = $inputData['user_type'] ?? null;
+    $status = $inputData['status'] ?? null;
 
     // Validate required fields
-    if (!$name || !$username || !$password || !$email || !$user_type) {
-        http_response_code(400);
-        echo json_encode(["success" => false, "message" => "Missing required fields"]);
+    if (!$name || !$username || !$passwordInput || !$email || !$user_type || !$status) {
+        // http_response_code(400);
+        echo json_encode(["success" => false, "message" => "Missing required fields", "status" => "warning"]);
         exit;
     }
+    // Hash the password
+    $password = password_hash($passwordInput, PASSWORD_DEFAULT);
+    // Generate random PIN
+    $pin = random_int(100000, 999999);
+    if ($user_type === 'admin' || $user_type === 'dev') {
+        // Insert into DB
+        $query = "INSERT INTO users (name, username, password, email, user_type, status, auth_pin)
+                VALUES (:name, :username, :password, :email, :user_type, :status, :auth_pin)";
+        $stmt = $connect->prepare($query);
+        $stmt->execute([
+            ':name' => $name,
+            ':username' => $username,
+            ':password' => $password,
+            ':email' => $email,
+            ':user_type' => $user_type,
+            ':status' => $status,
+            ':auth_pin' => $pin
+        ]);
+    } else {
+        // Insert into DB
+        $query = "INSERT INTO users (name, username, password, email, user_type, status)
+                VALUES (:name, :username, :password, :email, :user_type, :status)";
+        $stmt = $connect->prepare($query);
+        $stmt->execute([
+            ':name' => $name,
+            ':username' => $username,
+            ':password' => $password,
+            ':email' => $email,
+            ':user_type' => $user_type,
+            ':status' => $status
+        ]);
+    }
 
-    // Insert into DB
-    $query = "INSERT INTO users (name, username, password, email, user_type) 
-                VALUES (:name, :username, :password, :email, :user_type)";
-    $stmt = $connect->prepare($query);
-    $stmt->execute([
-        ':name' => $name,
-        ':username' => $username,
-        ':password' => $password,
-        ':email' => $email,
-        ':user_type' => $user_type
-    ]);
 
-    echo json_encode(["success" => true, "message" => "User added successfully!"]);
-
+    echo json_encode(["success" => true, "message" => "User added successfully!", "status" => "success"]);
+    PusherHelper::send("users-channel", "modify-user", ["msg" => "User added successfully"]);
 } catch (ExpiredException $e) {
     http_response_code(401);
     echo json_encode(["error" => "Token has expired"]);
+    logError("Token has expired: " . $e->getMessage(), "ERROR");
 } catch (Exception $e) {
     http_response_code(401);
     echo json_encode(["error" => "Invalid token"]);
+    logError("Invalid token: " . $e->getMessage(), "ERROR");
 }

@@ -1,67 +1,67 @@
-
 @media print {
-    body {
-        padding: 10px;
-        font-family: Arial, sans-serif;
-    }
+  body {
+    padding: 10px;
+    font-family: "Courier New", monospace;
+  }
 
-    .exo-receipt-modal-bg,
-    .exo-receipt-modal {
-        display: none !important;
-    }
+  .exo-receipt-modal-bg,
+  .exo-receipt-modal {
+    display: none !important;
+    z-index: 5;
+  }
 
-    .exo-receipt-paper {
-        padding: 15px;
-        margin: 0 auto;
-    }
+  .exo-receipt-paper {
+    padding: 15px;
+    margin: 0 auto;
+    z-index: 7;
+  }
 
-    .exo-receipt-header,
-    .exo-receipt-body,
-    .exo-receipt-footer,
-    .item-details,
-    .receipt-item {
-        margin-bottom: 10px;
-    }
+  .exo-receipt-header,
+  .exo-receipt-body,
+  .exo-receipt-footer,
+  .item-details,
+  .receipt-item {
+    margin-bottom: 10px;
+  }
 
-    .exo-receipt-header img,
-    .exo-receipt-logo {
-        width: 80px;
-        height: auto;
-    }
+  .exo-receipt-header img,
+  .exo-receipt-logo {
+    width: 80px;
+    height: auto;
+  }
 
-    .exo-receipt-header h2 {
-        margin: 5px 0;
-    }
+  .exo-receipt-header h2 {
+    margin: 5px 0;
+  }
 
-    .exo-receipt-header p,
-    .exo-receipt-body p,
-    .exo-receipt-footer {
-        font-size: 14px;
-        margin: 5px 0;
-    }
+  .exo-receipt-header p,
+  .exo-receipt-body p,
+  .exo-receipt-footer {
+    font-size: 14px;
+    margin: 5px 0;
+  }
 
-    .exo-receipt-separator {
-        border-top: 1px dashed #000;
-        margin: 10px 0;
-    }
+  .exo-receipt-separator {
+    border-top: 1px dashed #000;
+    margin: 10px 0;
+  }
 
-    .item-details {
-        justify-content: space-between;
-        font-size: 12px;
-    }
+  .item-details {
+    justify-content: space-between;
+    font-size: 12px;
+  }
 
-    .item-name {
-        font-size: 14px;
-        font-weight: bold;
-    }
+  .item-name {
+    font-size: 14px;
+    font-weight: bold;
+  }
 
-    .item-total {
-        font-weight: bold;
-    }
+  .item-total {
+    font-weight: bold;
+  }
 
-    .exo-receipt-total {
-        font-size: 16px;
-        font-weight: bold;
-    }
+  .exo-receipt-total {
+    font-size: 16px;
+    font-weight: bold;
+  }
 }
-

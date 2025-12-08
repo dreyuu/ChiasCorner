@@ -1,6 +1,5 @@
 <?php
-include_once '../../connection.php';
-
+include_once __DIR__ . '/../../connection.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Decode the incoming JSON data
     $data = json_decode(file_get_contents('php://input'), true);
@@ -25,4 +24,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => 'No batch ID provided.']);
     }
 }
-?>

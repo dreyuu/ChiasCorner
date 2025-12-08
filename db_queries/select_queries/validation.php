@@ -1,5 +1,6 @@
 <?php
-require '../../vendor/autoload.php'; // For JWT
+require __DIR__ . '/../../vendor/autoload.php'; // For JWT
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -20,6 +21,6 @@ $decoded = JWT::decode($token, new Key($secretKey, 'HS256'));
 if ($decoded->usertype !== "admin") {
     http_response_code(403);
     echo json_encode(["error" => "Forbidden"]);
+    logError("Unauthorized access attempt by user: " . $decoded->username, "ERROR");
     exit;
 }
-

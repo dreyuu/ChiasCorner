@@ -1,4 +1,3 @@
-
 .container {
     display: flex;
     padding: 20px;
@@ -39,7 +38,9 @@
     font-weight: bold;
     transition: all 0.3s, transform 0.2s;
     border: 0;
+    color: #000;
 }
+
 .form-container #cancel {
     width: 100%;
     background: white;
@@ -51,6 +52,7 @@
     font-weight: bold;
     transition: all 0.3s, transform 0.2s;
     border: 0;
+    color: #000;
 }
 
 
@@ -59,11 +61,13 @@
     color: #FFD428;
     transform: scale(1.05);
 }
+
 .form-container #cancel:hover {
     background: #ccc;
     color: black;
     transform: scale(1.05);
 }
+
 .table-container {
     width: 70%;
     margin-top: 4.6%;
@@ -87,10 +91,42 @@
     padding: 10px;
     text-align: center;
     background: rgba(255, 212, 40, 0.3);
-    word-wrap: break-word ; /* Break long words */
-    text-overflow: ellipsis ; /* Add ellipsis for overflow text */
+    /* word-wrap: normal; */
+    /* Break long words */
+    text-overflow: ellipsis;
+    /* Add ellipsis for overflow text */
     max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
 }
+
+.table-container td span {
+    padding: 3px 10px;
+    border-radius: 15px;
+    color: #000;
+    /* Text color for better visibility */
+    font-weight: 500;
+    display: inline-block;
+}
+
+
+/* Style for active status */
+.table-container td .active {
+    background-color: #FFD428;
+    /* Green background for active */
+    color: #000;
+    /* Ensure text is white */
+}
+
+/* Style for inactive status */
+.table-container td .inactive {
+    background-color: gray;
+    /* Red background for inactive */
+    color: #fff;
+    /* Ensure text is white */
+}
+
+
 
 .user-Table tbody tr:hover {
     background: rgba(255, 212, 40, 0.5);
@@ -107,9 +143,12 @@
 
 .user-Table tbody {
     display: block;
-    max-height: 600px; /* Set the height for the body */
-    min-height: 450px; /* Set the minimum height for the body */
-    overflow-y: auto; /* Enable scrolling */
+    max-height: 600px;
+    /* Set the height for the body */
+    min-height: 450px;
+    /* Set the minimum height for the body */
+    overflow-y: auto;
+    /* Enable scrolling */
     background: rgba(255, 212, 40, 0.5);
     scrollbar-width: none;
     table-layout: auto;
@@ -139,6 +178,7 @@
     justify-content: center;
     align-items: center;
 }
+
 .action-btn {
     background: white !important;
     color: black !important;
@@ -155,14 +195,44 @@
     color: #FFD428;
 }
 
-.search-container input,
-.search-container select {
+.search-container-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-container-section input,
+.search-container-section select {
     padding: 8px;
     border: 2px solid black;
     border-radius: 5px;
-    width: 20%;
+    width: 250px;
     font-size: 16px;
     border-radius: 5rem !important;
+}
+
+.search-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-right button {
+    background: #FFD428;
+    border: 2px solid black;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+}
+
+.search-right button:hover {
+    background: black;
+    border: 2px solid #FFD428;
+    color: #FFD428;
+    transform: translateY(-3px);
 }
 
 .action-btn {
@@ -172,13 +242,342 @@
 .action-btn:hover {
     transform: scale(1.1);
 }
-.footer {
-    position: absolute; bottom: 0;
+
+/* Pagination Container */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 10px 0;
+
+    font-family: inherit;
+}
+
+/* Pagination Buttons */
+.pagination-container button {
+    padding: 6px 14px;
+    background: #FFD428;
+    border: 1px solid #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.25s ease;
+}
+
+.pagination-container button:hover:not(:disabled) {
+    background: black;
+    color: #FFD428;
+    border-color: #FFD428;
+}
+
+.pagination-container button:disabled {
+    background: #eaeaea;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Page Info Text */
+#pageInfo {
+    font-size: 14px;
+    color: #444;
+    padding: 4px 10px;
+    background: #f8f8f8;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+}
+
+/* --- Modal Background and Overlay (No Changes Needed) --- */
+.database-modal,
+.pin-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Key: This centers the immediate child: .database-overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    /* Initially hide the modal */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Class to make the modal visible */
+.database-modal.is-visible,
+.pin-modal.is-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.database-overlay,
+.pin-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* --- Modal Content Styling (New/Updated) --- */
+.database-modal-content,
+.pin-modal-content {
+    background: #fff;
+    /* White background for the content box */
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    position: relative;
+    /* Essential for positioning the close button */
+    z-index: 1001;
+    /* Ensure content is above the overlay */
+    max-width: 500px;
+    /* Set a reasonable max width */
+    width: 90%;
+    text-align: center;
+}
+
+.export-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.database-modal-content h2 {
+    color: #333;
+    margin-top: 0;
+    font-size: 24px;
+}
+
+.database-modal-content p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* Close button styling */
+.close-database-modal {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+
+.close-database-modal:hover {
+    color: #333;
+}
+
+/* --- Backup/Restore Controls Layout --- */
+.backup-container {
+
+    margin-top: 30px;
+    display: flex;
+    /* Align items to the center horizontally now that the container is wider */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    /* Stack the export button and the form */
+    gap: 25px;
+    /* Space between the export button and the form */
+    width: 100%;
+    /* Use full width of the modal content */
+}
+
+/* Ensure the form uses flexbox for its content layout */
+#restoreForm {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Export button */
+.export-btn {
+    background: #FFD428;
+    padding: 12px 24px;
+    border: 2px solid black;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    color: #000;
+    transition: all 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    width: 80%;
+    /* Make it wider for emphasis */
+    max-width: 300px;
+}
+
+.export-btn:hover {
+    background: #000;
+    border: 2px solid #FFD428;
+    color: #FFD428;
+    transform: translateY(-2px) scale(1.03);
+}
+
+/* Restore container */
+.restore-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #FFD428;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 2px solid black;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    /* Auto margins to center the container within the form */
+    margin: 0 auto;
+}
+
+/* Hide default file input (No Changes) */
+.restore-container input[type="file"] {
+    display: none;
+}
+
+/* Custom file label */
+.file-label {
+    background: #fff;
+    color: #000;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    /* Added to prevent button text wrapping */
+    white-space: nowrap;
+}
+
+.file-label:hover {
+    background: #000;
+    color: #FFD428;
+    border: 2px solid #000;
+}
+
+/* Restore button */
+.restore-btn {
+    background: #fff;
+    color: #000;
+    padding: 10px 18px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.restore-btn:hover {
+    background: #000;
+    color: #FFD428;
+    transform: translateY(-2px) scale(1.03);
+}
+
+/* Close button styling for PIN modal */
+.close-pin-modal {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+
+.close-pin-modal:hover {
+    color: #333;
+}
+
+/* Pin Modal Specific Layout */
+.generated-pin {
+    font-size: 25px;
+    /* Large and prominent PIN display */
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: 5px;
+    margin: 20px 0 30px 0;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    /* Highlight the generated PIN */
+    border-radius: 8px;
+    display: inline-block;
+    width: 300px;
+    /* Make it fit the content */
+    border: 1px solid black;
+}
+
+.pin-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Style for the action buttons */
+.copy-pin-btn,
+.generate-pin-btn {
+    /* padding: 12px 24px; */
+    border: 2px solid black;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    /* Shared styles */
+}
+
+.copy-pin-btn {
+    background: #FFD428;
+    color: #000;
+    padding: 10px 20px;
+    font-size: 25px;
+    margin-left: 5px;
+}
+
+.copy-pin-btn:hover {
+    background: #000;
+    border: 2px solid #FFD428;
+    color: #FFD428;
+    transform: translateY(-2px) scale(1.03);
+}
+
+.generate-pin-btn {
+    background: black;
+    /* Green for generation/refresh */
+    color: #FFD95A;
+    border-color: #FFD95A;
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.generate-pin-btn:hover {
+    background: #FFD95A;
+    border-color: black;
+    transform: translateY(-2px) scale(1.03);
+    color: black;
+}
+
+
+#status {
+    margin-top: 15px;
+    font-weight: bold;
 }
 
 /* Footer Section */
+.footer {
+    position: absolute;
+    bottom: 0;
+}
 
-@media (max-width: 480px) {
+
+@media (max-width: 500px) {
     .container {
         flex-direction: column;
         align-items: center;
@@ -219,8 +618,8 @@
         max-width: 150px;
     }
 
-    .search-container input,
-    .search-container select {
+    .search-container-section input,
+    .search-container-section select {
         width: 90% !important;
         font-size: 14px;
         margin-bottom: 10px;
@@ -236,13 +635,17 @@
         font-size: 14px;
         width: 100%;
     }
+
     .footer {
-        position: relative; bottom: 0;
+        position: relative;
+        bottom: 0;
     }
+
     .actions {
         gap: 2px;
         flex-direction: row;
     }
+
     .action-btn {
         width: 2.5rem;
         height: 2.5rem;
@@ -254,27 +657,46 @@
         position: relative;
         border-radius: 5px;
     }
+
     .remove-btn::before {
         content: "✖️";
         color: black;
         position: absolute;
         font-size: 1rem;
     }
+
     .edit-btn::before {
         content: "🔄";
         color: black;
         position: absolute;
         font-size: 1rem;
     }
+
+    .user-Table th:nth-child(2),
+    .user-Table td:nth-child(2),
     .user-Table th:nth-child(3),
     .user-Table td:nth-child(3),
     .user-Table th:nth-child(5),
     .user-Table td:nth-child(5),
-    .user-Table th:nth-child(8),
-    .user-Table td:nth-child(8),
-    .user-Table th:nth-child(9),
-    .user-Table td:nth-child(9) {
+    .user-Table th:nth-child(6),
+    .user-Table td:nth-child(6) {
         display: none;
     }
-}
 
+    .backup-container {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .restore-container {
+        flex-direction: column;
+        width: 90%;
+    }
+
+    .file-label,
+    .restore-btn,
+    .export-btn {
+        width: 100%;
+        text-align: center;
+    }
+}

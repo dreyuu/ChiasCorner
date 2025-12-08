@@ -1,12 +1,12 @@
 <?php
-include '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 if (isset($_GET['menu_id'])) {
     $menu_id = $_GET['menu_id'];
 
     try {
-        $query = "SELECT mi.menu_id, i.ingredient_id, i.ingredient_name, i.category, 
-                            mi.unit, mi.quantity_required, mi.ingredient_type, i.date_added 
+        $query = "SELECT mi.menu_id, i.ingredient_id, i.ingredient_name, i.category,
+                            mi.unit, mi.quantity_required, mi.ingredient_type, i.date_added
                     FROM menu_ingredients mi
                     INNER JOIN ingredients i ON mi.ingredient_id = i.ingredient_id
                     WHERE mi.menu_id = ?";

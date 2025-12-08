@@ -1,24 +1,24 @@
 <?php
-include_once '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 try {
     if (isset($_GET['ingredient_id'])) {
         // Fetch a single item for editing
         $ingredient_id = $_GET['ingredient_id'];
 
-        $query = "SELECT 
-                    i.ingredient_id, 
-                    ing.ingredient_name, 
-                    ing.category, 
+        $query = "SELECT
+                    i.ingredient_id,
+                    ing.ingredient_name,
+                    ing.category,
                     SUM(sb.quantity) AS total_stock,  -- Sum of stock quantities in stock_batches
                     -- Get the nearest expiration date
-                    (SELECT expiration_date 
-                        FROM stock_batches 
-                        WHERE ingredient_id = i.ingredient_id 
-                        ORDER BY expiration_date ASC 
+                    (SELECT expiration_date
+                        FROM stock_batches
+                        WHERE ingredient_id = i.ingredient_id
+                        ORDER BY expiration_date ASC
                         LIMIT 1) AS nearest_expiration_date,
                     -- Get the supplier with the most stock
-                    (SELECT s.supplier_name 
+                    (SELECT s.supplier_name
                         FROM stock_batches sb
                         JOIN suppliers s ON sb.supplier_id = s.supplier_id
                         WHERE sb.ingredient_id = i.ingredient_id
@@ -40,19 +40,19 @@ try {
         echo json_encode(['success' => true, 'data' => $inventoryData]);
     } else {
         // Fetch all items
-        $query = "SELECT 
-                    i.ingredient_id, 
-                    ing.ingredient_name, 
-                    ing.category, 
+        $query = "SELECT
+                    i.ingredient_id,
+                    ing.ingredient_name,
+                    ing.category,
                     SUM(sb.quantity) AS total_stock,  -- Sum of stock quantities in stock_batches
                     -- Get the nearest expiration date
-                    (SELECT expiration_date 
-                        FROM stock_batches 
-                        WHERE ingredient_id = i.ingredient_id 
-                        ORDER BY expiration_date ASC 
+                    (SELECT expiration_date
+                        FROM stock_batches
+                        WHERE ingredient_id = i.ingredient_id
+                        ORDER BY expiration_date ASC
                         LIMIT 1) AS nearest_expiration_date,
                     -- Get the supplier with the most stock
-                    (SELECT s.supplier_name 
+                    (SELECT s.supplier_name
                         FROM stock_batches sb
                         JOIN suppliers s ON sb.supplier_id = s.supplier_id
                         WHERE sb.ingredient_id = i.ingredient_id
@@ -76,4 +76,3 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error fetching data: ' . $e->getMessage()]);
 }
-?>

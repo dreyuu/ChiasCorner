@@ -1,5 +1,7 @@
 <?php
-require '../../connection.php'; // Adjust path as needed
+include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '../../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 $response = ["success" => false];
 
@@ -30,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $applicable_menu_id = ($applicable_menu_id === "") ? null : $applicable_menu_id;
 
         // Insert into the database
-        $stmt = $connect->prepare("INSERT INTO promotions (name, discount_type, discount_value, start_date, end_date, applicable_menu_id) 
+        $stmt = $connect->prepare("INSERT INTO promotions (name, discount_type, discount_value, start_date, end_date, applicable_menu_id)
                                     VALUES (:name, :discount_type, :discount_value, :start_date, :end_date, :applicable_menu_id)");
 
         $stmt->bindParam(":name", $promo_name);
@@ -42,15 +44,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->execute()) {
             $response["success"] = true;
+
+            PusherHelper::send('promo-channel', 'modify-promo', ['msg' => 'Promotion added successfully']);
         } else {
             throw new Exception("Failed to insert promo.");
         }
     } catch (Exception $e) {
         $response["error"] = $e->getMessage();
+        logError("Error inserting promo: " . $e->getMessage(), "ERROR");
+        http_response_code(500);  // Internal Server Error
     }
 } else {
     $response["error"] = "Invalid request method.";
+    http_response_code(405);  // Method Not Allowed
+    logError("Invalid request method for promo insertion", "ERROR");
 }
 
 echo json_encode($response);
-?>

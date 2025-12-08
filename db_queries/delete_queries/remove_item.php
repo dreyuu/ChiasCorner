@@ -1,6 +1,6 @@
 <?php
-require_once '../../connection.php';
-
+include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $ingredient_id = isset($data['ingredient_id']) ? $data['ingredient_id'] : null;
@@ -41,16 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $connect->commit();
             echo json_encode(['success' => true, 'message' => 'Item and related data removed successfully.']);
-
         } catch (PDOException $e) {
             $connect->rollBack();
             echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+            logError("Database error: " . $e->getMessage(), "ERROR");
+            http_response_code(500);  // Internal Server Error
         } catch (Exception $e) {
             $connect->rollBack();
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            logError("Remove item error: " . $e->getMessage(), "ERROR");
+            http_response_code(500);  // Internal Server Error
         }
     } else {
         echo json_encode(['success' => false, 'message' => 'Ingredient ID not provided.']);
+        http_response_code(400);  // Bad Request
+        logError("Remove item error: Ingredient ID not provided.", "ERROR");
     }
 }
-?>

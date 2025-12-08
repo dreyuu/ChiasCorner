@@ -1,6 +1,5 @@
 <?php
-require_once '../../connection.php';
-
+include_once __DIR__ . '/../../connection.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -51,7 +50,6 @@ try {
     $connect->commit();
 
     echo json_encode(['success' => true, 'message' => 'Ingredient added successfully!']);
-
 } catch (PDOException $e) {
     $connect->rollBack();
     http_response_code(500);
@@ -61,4 +59,3 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
-?>

@@ -1,6 +1,8 @@
 <?php
-include_once '../../connection.php';
-require '../../vendor/autoload.php'; // For JWT
+include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '/../../vendor/autoload.php'; // For JWT
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -9,7 +11,7 @@ $secretKey = "chiascornersercretkey";  // Same key used for signing the tokens
 // Check if the refresh token is provided
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh_token'])) {
     $refreshToken = $_POST['refresh_token'];
-    
+
     try {
         // Decode the refresh token
         $decodedRefresh = JWT::decode($refreshToken, new Key($secretKey, 'HS256'));
@@ -27,17 +29,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh_token'])) {
             "iat" => time(),
             "exp" => time() + (2 * 24 * 60 * 60)  // New JWT expires in 2 days
         ], $secretKey, 'HS256');
-        
+
         // Respond with the new access token
         echo json_encode([
             "success" => true,
             "token" => $newJwt
         ]);
-
     } catch (Exception $e) {
         echo json_encode([
             "success" => false,
             "message" => "Invalid or expired refresh token"
         ]);
+        logError("Refresh token error: " . $e->getMessage(), "ERROR");
+        http_response_code(401);  // Unauthorized
     }
+} else {
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid request method or missing refresh token"
+    ]);
+    logError("Invalid request for refresh token", "ERROR");
+    http_response_code(400);  // Bad Request
 }

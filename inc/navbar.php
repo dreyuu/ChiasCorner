@@ -3,6 +3,14 @@
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+// Load environment variables ONCE
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 ?>
 
 <!DOCTYPE html>
@@ -31,7 +39,7 @@ header("Pragma: no-cache");
 
 </head>
 
-<body style="background: url('<?php echo $backgroundImage; ?>') center/cover;">
+<body style=" background: url('<?php echo $backgroundImage; ?>') center/cover;">
 
     <!-- Page Transition Loader -->
 
@@ -81,9 +89,7 @@ header("Pragma: no-cache");
     <div class="header">
         <a href="main.php" class="logo">CHIA'S <br> CORNER</a>
         <div class="nav">
-
             <a href="Main.php">HOME</a>
-
             <div class="dropdown-container">
                 <button class="dropdown-btn">MENUS</button>
                 <div class="dropdown">
@@ -132,7 +138,14 @@ header("Pragma: no-cache");
         </table>
     </div>
 
+    <?php include 'components/alert_component.php'; ?>
     <!-- <script src="/js/navbar.js"></script> -->
+    <!-- Load Pusher JS library first -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+
+    <!-- Then load your manager -->
+    <script src="js/pusher_manager.js"></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const sidebarOverlay = document.querySelector('.sidebar-overlay');
@@ -197,7 +210,7 @@ header("Pragma: no-cache");
 
                 // Optional: Handle showing admin nav
                 const admin = document.querySelectorAll('.admin');
-                if (payload.user_type === 'admin') {
+                if (payload.user_type === 'admin' || payload.user_type === 'dev') {
                     admin.forEach(function(element) {
                         element.classList.add('show-nav');
                     });
@@ -222,12 +235,14 @@ header("Pragma: no-cache");
                 mobileLogoutBtn.addEventListener('click', function(event) {
                     event.preventDefault(); // Prevent default action
 
-                    // Remove JWT token from local storage
-                    localStorage.removeItem("jwt_token");
+                    CustomAlert.confirm("Are you sure you want to logout?").then(result => {
+                        if (!result) return;
+                        // Remove JWT token from local storage // Remove JWT token from local storage
+                        localStorage.removeItem("jwt_token");
 
-                    // Redirect to the login page after logout
-                    window.location.href = "index.php";
-
+                        // Redirect to the login page after logout
+                        window.location.href = "index.php";
+                    })
                 })
             }
 
@@ -236,12 +251,14 @@ header("Pragma: no-cache");
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function(event) {
                     event.preventDefault(); // Prevent default action
+                    CustomAlert.confirm("Are you sure you want to logout?").then(result => {
+                        if (!result) return;
+                        // Remove JWT token from local storage // Remove JWT token from local storage
+                        localStorage.removeItem("jwt_token");
 
-                    // Remove JWT token from local storage
-                    localStorage.removeItem("jwt_token");
-
-                    // Redirect to the login page after logout
-                    window.location.href = "index.php";
+                        // Redirect to the login page after logout
+                        window.location.href = "index.php";
+                    })
 
                 })
             }
@@ -257,7 +274,7 @@ header("Pragma: no-cache");
                 }
 
                 // Make an API request to refresh the access token
-                fetch('refresh_token.php', {
+                fetch('db_queries/update_queries/refresh_token.php', {
                         method: 'POST',
                         body: JSON.stringify({
                             refresh_token: refreshToken
@@ -307,7 +324,7 @@ header("Pragma: no-cache");
 
         });
 
-        // loading screen function 
+        // loading screen function
 
         document.addEventListener("DOMContentLoaded", function() {
             const links = document.querySelectorAll("a");
@@ -426,7 +443,7 @@ header("Pragma: no-cache");
                 runCleanup(); // Run once at midnight
                 setInterval(runCleanup, 24 * 60 * 60 * 1000);
                 loadNotifications(); // Load notifications after cleanup
-                // setInterval(runCleanup, 5000); 
+                // setInterval(runCleanup, 5000);
             }, delay);
         }
 

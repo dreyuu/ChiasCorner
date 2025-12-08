@@ -181,6 +181,7 @@
             cursor: pointer;
             transition: 0.3s ease-in-out;
             margin-top: 10px;
+            color: black;
         }
 
         .login-btn:hover {
@@ -222,13 +223,16 @@
             .left img {
                 display: none;
             }
+
             .input-box input {
                 padding: 8px;
                 font-size: 13px;
             }
+
             .toggle-password {
-                top: 20%    ;
+                top: 20%;
             }
+
             .forgot-pass {
                 font-size: 12px;
             }
@@ -291,6 +295,8 @@
             </div>
         </div>
     </div>
+
+    <?php include 'components/alert_component.php'; ?>
 
     <script src="js/login.js"></script>
     <script>
@@ -368,28 +374,53 @@
                     const username = adminUsername.value.trim();
 
                     if (username === "") {
-                        alert("Please enter your username.");
+                        showAlert("warning-alert", "Please enter your username.");
                         return;
                     }
+                    // Use FormData instead of JSON
+                    const formData = new FormData();
+                    formData.append("username", username);
 
+                    // show loader
+                    loader.show();
                     try {
                         const response = await fetch('db_queries/insert_queries/forgot_admin_account.php', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                username
-                            })
+                            body: formData
                         });
 
                         const result = await response.json();
-                        alert(result.message);
+                        showAlert("success-alert", result.message);
+                        adminUsername.value = ""; // Clear the input field after submission
                     } catch (error) {
-                        alert("Error: " + error.message);
+                        // alert("Error: " + error.message);
+                        CustomAlert.alert("Error: " + error.message, "error");
+                        showAlert("warning-alert", error.message);
+                    } finally {
+                        // hide loader
+                        loader.hide();
                     }
-
                 });
+            }
+
+            function showAlert(alertId, message) {
+                let alertBox = document.getElementById(alertId);
+                if (alertBox) {
+                    alertBox.innerText = message;
+                    alertBox.style.visibility = "visible"; // Make alert visible
+                    alertBox.style.opacity = 1; // Fade in
+                    alertBox.style.top = "0"; // Slide down
+
+                    setTimeout(() => {
+                        alertBox.style.opacity = 0; // Fade out
+                        alertBox.style.top = "-70px"; // Slide up
+
+                        setTimeout(() => {
+                            alertBox.style.visibility = "hidden"; // Hide alert after fading out
+                            alertBox.innerText = ""; // Clear alert message
+                        }, 300); // Delay visibility change to allow for the fade-out effect
+                    }, 3000); // Alert stays for 3 seconds
+                }
             }
         });
     </script>

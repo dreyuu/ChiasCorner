@@ -1,6 +1,7 @@
 <?php
 // Include the Composer autoloader
-require '../../vendor/autoload.php';
+include_once __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -33,4 +34,6 @@ try {
     echo 'Message has been sent';
 } catch (Exception $e) {
     echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+    logError("Mailer Error: " . $mail->ErrorInfo, "ERROR");
+    http_response_code(500);  // Internal Server Error
 }

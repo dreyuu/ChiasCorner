@@ -1,5 +1,7 @@
 <?php
-include_once '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
@@ -33,24 +35,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Step 3: Insert order into order_history
         $stmt = $connect->prepare("
-            INSERT INTO order_history (order_id, user_id, order_date, total_price, dine, payment_status, 
-                                        paid_amount, discount_amount, items_ordered, archived_date) 
+            INSERT INTO order_history (order_id, user_id, order_date, total_price, dine, payment_status,
+                                        paid_amount, discount_amount, items_ordered, archived_date)
             VALUES (?, ?, ?, ?, ?, 'cancelled', ?, ?, ?, NOW())
         ");
         $stmt->execute([
-            $order['order_id'], 
-            $order['user_id'], 
-            $order['order_date'], 
-            $order['total_price'], 
+            $order['order_id'],
+            $order['user_id'],
+            $order['order_date'],
+            $order['total_price'],
             $order['dine'] ?? 'Take-Out', // Default to 'Take-Out' if null
-            $order['paid_amount'] ?? 0.00, 
+            $order['paid_amount'] ?? 0.00,
             $order['discount_amount'] ?? 0.00,
             $items_ordered
         ]);
 
         // ** FIX: Delete order_ingredients first since it has a foreign key to orders **
         $stmt = $connect->prepare("
-            DELETE FROM order_ingredients 
+            DELETE FROM order_ingredients
             WHERE order_id = ?
         ");
         $stmt->execute([$order_id]);
@@ -66,9 +68,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $connect->commit();
 
         echo json_encode(["status" => "success", "message" => "Order cancelled and archived successfully."]);
+        PusherHelper::send("orders-channel", "modify-order", ["msg" => "Order cancelled successfully"]);
     } catch (PDOException $e) {
         $connect->rollBack();
         echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        logError("Cancel order error: " . $e->getMessage(), "ERROR");
+        http_response_code(500);  // Internal Server Error
     }
 }
-?>

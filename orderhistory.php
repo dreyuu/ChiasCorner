@@ -6,6 +6,9 @@ include 'inc/navbar.php';
 ?>
 <link rel="stylesheet" href="css/orderlist.css">
 
+<!-- Font Awesome Free (CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <div class="wrapper">
     <!-- Sort & Search Bar -->
     <div class="container-search">
@@ -23,26 +26,33 @@ include 'inc/navbar.php';
     <!-- Orders Table -->
 
     <div class="table-container">
-        <table id="orderTable">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Items Ordered</th>
-                    <th>Total Price</th>
-                    <th>Discount Amount</th>
-                    <th>Paid Amount</th>
-                    <th>Change Given</th>
-                    <th>Payment Status</th>
-                    <th>Cashier</th>
-                    <th>Archived Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="orderTableBody">
-                <!-- Orders will be loaded dynamically by JS -->
+        <div class="paginated-table">
+            <table id="orderTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Items Ordered</th>
+                        <th>Total Price</th>
+                        <th>Discount Amount</th>
+                        <th>Paid Amount</th>
+                        <th>Change Given</th>
+                        <th>Payment Status</th>
+                        <th>Cashier</th>
+                        <th>Archived Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="orderTableBody">
+                    <!-- Orders will be loaded dynamically by JS -->
 
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+            <div class="pagination-container">
+                <button id="prevPage">Previous</button>
+                <span id="pageInfo"></span>
+                <button id="nextPage">Next</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -64,6 +74,8 @@ include 'inc/navbar.php';
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </footer>
 </div>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         fetchOrders();
@@ -76,20 +88,36 @@ include 'inc/navbar.php';
         });
     });
 
-    let previousOrderHistory = [];
+    // let previousOrderHistory = [];
+    let currentPage = 1;
+    let limit = 20; // rows per page
+    let totalRows = 0;
     // Fetch orders from the server
-    async function fetchOrders() {
+    async function fetchOrders(page = 1) {
+        currentPage = page
         try {
-            const response = await fetch('db_queries/select_queries/fetch_order_history.php');
+            const response = await fetch('db_queries/select_queries/fetch_order_history.php', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application.json"
+                },
+                body: JSON.stringify({
+                    page,
+                    limit
+                })
+            });
             const data = await response.json();
 
             if (data.success) {
-                if (!isEqual(previousOrderHistory, data.orders)) {
-                    previousOrderList = data.orders;
-                    displayOrderHistory(data.orders);
-                }
+                // if (!isEqual(previousOrderHistory, data.orders)) {
+                //     previousOrderList = data.orders;
+                //     displayOrderHistory(data.orders);
+                // }
+                totalRows = data.totalRows;
+                displayOrderHistory(data.orders);
+                updatePaginationUI();
             } else {
-                alert('Error fetching order history: ' + data.error);
+                CustomAlert.alert('Error fetching order history: ' + data.error, 'error');
             }
         } catch (error) {
             console.error('Error fetching order history:', error);
@@ -99,7 +127,7 @@ include 'inc/navbar.php';
     function isEqual(arr1, arr2) {
         return JSON.stringify(arr1) === JSON.stringify(arr2);
     }
-    setInterval(fetchOrders, 5000);
+    // setInterval(fetchOrders, 5000);
 
     function displayOrderHistory(orderHistory) {
         const orderTableBody = document.getElementById('orderTableBody');
@@ -123,8 +151,8 @@ include 'inc/navbar.php';
                         <td>${order.cashier || 'N/A'}</td>
                         <td>${new Date(order.archived_date).toLocaleString()}</td>
                         <td>
-                            ${order.payment_status.toLowerCase() === 'paid' 
-                                ? `<button class="action-button view-btn" data-order-id="${order.order_id}">View Receipt</button>` 
+                            ${order.payment_status.toLowerCase() === 'paid'
+                                ? `<button class="action-button view-btn" data-order-id="${order.order_id}"><i class="fa-solid fa-eye"></i></button>`
                                 : ''}
                         </td>
                     `;
@@ -132,6 +160,30 @@ include 'inc/navbar.php';
             });
         }
     }
+
+    function updatePaginationUI() {
+        const totalPages = Math.ceil(totalRows / limit);
+
+        document.getElementById("pageInfo").innerText =
+            `Page ${currentPage} of ${totalPages}`;
+
+        document.getElementById("prevPage").disabled = currentPage === 1;
+        document.getElementById("nextPage").disabled = currentPage === totalPages;
+    }
+
+    document.getElementById("prevPage").addEventListener("click", () => {
+        if (currentPage > 1) {
+            fetchOrders(currentPage - 1);
+        }
+    });
+
+    document.getElementById("nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(totalRows / limit);
+        if (currentPage < totalPages) {
+            fetchOrders(currentPage + 1);
+        }
+    });
+
 
     function ShowReceipt(orderId) {
 
@@ -165,7 +217,7 @@ include 'inc/navbar.php';
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    CustomAlert.alert(data.error, 'error');
                     return;
                 }
 
@@ -208,6 +260,7 @@ include 'inc/navbar.php';
 
                 let receiptBody = `
                 <div class="exo-receipt-body">
+                    <p><strong>OR Number:</strong> ${order.order_id}</p>
                     <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                     <p><strong>Cashier:</strong> ${order.cashier_name || "N/A"}</p>
                     <div class="exo-receipt-separator"></div>
@@ -237,23 +290,6 @@ include 'inc/navbar.php';
                     <p>Discount:</p>
                     <span class="item-total">-₱${discount.toFixed(2)}</span>
                 </div>
-                <div class="item-details">
-                    <p>VAT (12%):</p>
-                    <span class="item-total">₱${vatAmount.toFixed(2)}</span>
-                </div>
-                <div class="item-details">
-                    <p>VATable Sales:</p>
-                    <span class="item-total">₱${vatableSales.toFixed(2)}</span>
-                </div>
-                
-                <div class="item-details">
-                    <p>VAT Exempt Sales:</p>
-                    <span class="item-total">₱${vatExempt.toFixed(2)}</span>
-                </div>
-                <div class="item-details">
-                    <p>Zero-rated Sales:</p>
-                    <span class="item-total">₱${zeroRated.toFixed(2)}</span>
-                </div>
                 <div class="exo-receipt-separator"></div>
                 <div class="item-details">
                     <p>Paid Amount:</p>
@@ -268,7 +304,23 @@ include 'inc/navbar.php';
                     <p>Thank you and enjoy!</p>
                 </div>
             `;
+                //                <div class="item-details">
+                //                     <p>VAT (12%):</p>
+                //                     <span class="item-total">₱${vatAmount.toFixed(2)}</span>
+                //                 </div>
+                //                 <div class="item-details">
+                //                     <p>VATable Sales:</p>
+                //                     <span class="item-total">₱${vatableSales.toFixed(2)}</span>
+                //                 </div>
 
+                //                 <div class="item-details">
+                //                     <p>VAT Exempt Sales:</p>
+                //                     <span class="item-total">₱${vatExempt.toFixed(2)}</span>
+                //                 </div>
+                //                 <div class="item-details">
+                //                     <p>Zero-rated Sales:</p>
+                //                     <span class="item-total">₱${zeroRated.toFixed(2)}</span>
+                //                 </div>
                 receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
                 receiptList.appendChild(receiptContainer);
             })
@@ -322,6 +374,11 @@ include 'inc/navbar.php';
             row.style.display = rowText.includes(searchInput) ? "" : "none";
         });
     }
+    // Initialize manager
+    const pusherManager = new PusherManager("<?php echo $_ENV['PUSHER_KEY']; ?>", "<?php echo $_ENV['PUSHER_CLUSTER']; ?>");
+
+    // Fetch users on add or update
+    pusherManager.bind('orders-channel', 'modify-order', () => fetchOrders(currentPage), 200);
 </script>
 
 </body>

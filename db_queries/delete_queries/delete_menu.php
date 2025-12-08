@@ -1,5 +1,7 @@
 <?php
-require '../../connection.php'; // Adjust path if needed
+include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '../../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 $response = ["success" => false];
 
@@ -35,15 +37,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             $response["success"] = true;
+
+            PusherHelper::send('menu-channel', 'modify-menu', ['msg' => 'Menu deleted successfully']);
         } else {
             throw new Exception("Database error: Unable to delete menu.");
         }
     } catch (Exception $e) {
         $response["error"] = $e->getMessage();
+        logError("Delete menu error: " . $e->getMessage(), "ERROR");
+        http_response_code(500);  // Internal Server Error
     }
 } else {
     $response["error"] = "Invalid request method.";
+    http_response_code(405);  // Method Not Allowed
+    logError("Invalid request method for delete_menu.php", "ERROR");
 }
 
 echo json_encode($response);
-?>

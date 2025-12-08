@@ -1,32 +1,48 @@
 <?php
-include_once '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../components/logger.php';
 
-// Get raw POST data
 $inputData = json_decode(file_get_contents("php://input"), true);
 
-$userId = $inputData['userId'] ?? null;  // Access userId from decoded JSON
+// Pagination parameters
+$page  = isset($inputData['page']) ? (int)$inputData['page'] : 1;
+$limit = isset($inputData['limit']) ? (int)$inputData['limit'] : 10;
+$offset = ($page - 1) * $limit;
 
 try {
-    if ($userId) {
-        // If user_id is provided, fetch that specific user's data
-        $query = "SELECT user_id, name, username, email, user_type, date_created FROM users WHERE user_id = :user_id";
-        
-        $stmt = $connect->prepare($query);
-        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);  // Bind the user_id parameter
-        $stmt->execute();
-        $userData = $stmt->fetch(PDO::FETCH_ASSOC);  // Fetch single user's data
-    } else {
-        // If no user_id is provided, fetch all users
-        $query = "SELECT user_id, name, username, email, user_type, date_created FROM users";
-        
-        $stmt = $connect->prepare($query);
-        $stmt->execute();
-        $userData = $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetch all users' data
-    }
+    // 1️⃣ Get total row count
+    $countQuery = "SELECT COUNT(*) FROM users WHERE user_type != 'dev'";
+    $stmt = $connect->prepare($countQuery);
+    $stmt->execute();
+    $totalRows = (int)$stmt->fetchColumn();
 
-    echo json_encode(['success' => true, 'data' => $userData]);  // Return the data as JSON
+    // 2️⃣ Fetch paginated rows
+    $query = "SELECT user_id, name, username, email, user_type, status, auth_pin, date_created
+              FROM users
+              WHERE user_type != 'dev'
+              ORDER BY user_id DESC
+              LIMIT :limit OFFSET :offset";
 
+    $stmt = $connect->prepare($query);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $userData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'success' => true,
+        'data' => $userData,
+        'totalRows' => $totalRows,
+        'page' => $page,
+        'limit' => $limit
+    ]);
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Error fetching data: ' . $e->getMessage()]);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error fetching data: ' . $e->getMessage()
+    ]);
+
+    logError("Database error: " . $e->getMessage(), "ERROR");
+    http_response_code(500);
 }
-?>

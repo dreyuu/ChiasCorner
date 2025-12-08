@@ -1,6 +1,6 @@
 <?php
-include '../../connection.php'; // Ensure database connection
-
+include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 try {
     $order_id = $_GET['order_id'];
 
@@ -27,5 +27,5 @@ try {
         "success" => false,
         "message" => "Database error: " . $e->getMessage()
     ]);
+    logError("Database error: " . $e->getMessage(), "ERROR");
 }
-?>

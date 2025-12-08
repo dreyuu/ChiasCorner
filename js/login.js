@@ -45,35 +45,42 @@ document.addEventListener("DOMContentLoaded", function () {
             formData.append("username", username.value);
             formData.append("password", password.value);
 
+            // show loader
+            loader.show();
+
             fetch("db_queries/select_queries/get_user.php", {
                 method: "POST",
                 body: formData
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    try { 
+                    try {
                         if (data.success) {
                             showAlert("success-alert", "Login successful!");
+                            // CustomAlert.alert("Login successful!", "success");
                             // show loading screen
                             localStorage.setItem('jwt_token', data.token);
                             pageLoader();
                             setTimeout(() => {
                                 loginForm.reset(); // Reset the form
+                                loader.hide();
                                 window.location.href = "Main.php";
                             }, 3000);
                         } else {
-                            showAlert("warning-alert", "Invalid username or password");
+                            showAlert("warning-alert", data.message);
+                            // CustomAlert.alert("Invalid username or password", "warning")
                             loginForm.reset(); // Reset the form
+                            loader.hide();
                         }
                     } catch (error) {
                         console.error(error);
-                        showAlert("warning-alert", "An error occurred. Please try again later");
+                        showAlert("warning-alert", error.message || "An error occurred. Please try again later");
                         loginForm.reset(); // Reset the form
                     }
                 })
                 .catch((error) => {
                     console.error(error);
-                    showAlert("error-alert", "An error occurred. Please try again later");
+                    showAlert("error-alert", error.message || "An error occurred. Please try again later");
                     loginForm.reset(); // Reset the form
                 })
 
@@ -110,7 +117,9 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("pageLoader").style.opacity = "0";
         }, 3000);
     }
-    
+
 });
+
+
 
 

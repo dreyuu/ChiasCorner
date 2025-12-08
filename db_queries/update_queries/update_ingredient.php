@@ -1,5 +1,5 @@
 <?php
-include '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $menu_id = $_POST['menu_id'];
@@ -8,8 +8,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $unit = $_POST['unit'];
 
     try {
-        $updateQuery = "UPDATE menu_ingredients 
-                SET ingredient_id = ?, quantity_required = ?, unit = ? 
+        $updateQuery = "UPDATE menu_ingredients
+                SET ingredient_id = ?, quantity_required = ?, unit = ?
                 WHERE menu_id = ? ";
         $stmt = $connect->prepare($updateQuery);
         $stmt->execute([$ingredient_id, $quantity, $unit, $menu_id]);

@@ -1,205 +1,251 @@
 <?php
 include 'connection.php';
-
 $backgroundImage = 'Capstone Assets/Log-in Form BG (Version 2).png';
 include 'inc/navbar.php';
 ?>
 
-
 <link rel="stylesheet" href="css/main.css">
-
-<!-- html2canvas and jsPDF CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<main class="charts-section">
+    <section class="bg-section">
+        <header class="header-text">
+            <h1 id="welcomeTitle">Welcome</h1>
+        </header>
 
-<!-- Chian's Charts Section -->
-<form id="sales-report-form" method="POST" style="visibility: hidden;">
-    <label for="date-from">DATE FROM:</label>
-    <input type="date" id="date-from">
-    <label for="date-to">DATE TO:</label>
-    <input type="date" id="date-to">
-    <label for="category">CATEGORY:</label>
-    <select id="category">
-        <option value="all">All</option>
-    </select>
-    <button class="generate-btn">GENERATE</button>
-</form>
+        <!-- ================= ADMIN SECTION ================= -->
+        <section id="adminSection" style="display:none;">
+            <div class="dashboard-grid">
+                <!-- LEFT COLUMN: STATS -->
+                <div class="stats-column">
+                    <div class="stat-box" id="statTotalSales">Total Sales<span>₱ 0.00</span></div>
+                    <div class="stat-box" id="statCustomers">Customers Served<span>0</span></div>
+                    <div class="stat-box" id="statToday">Sales Today<span>₱ 0.00</span></div>
+                    <div class="stat-box" id="statWeek">Sales This Week<span>₱ 0.00</span></div>
+                    <div class="stat-box" id="statMonth">Sales This Month<span>₱ 0.00</span></div>
+                </div>
 
-<div class="charts-section">
-    <h1 class="header-text">Welcome to Chia's Corner, MAEM!</h1>
-    <div class="charts">
-        <div class="chart-container" id="salesChartContainer">
-            <h2 class="hero">Total Sales</h2>
-            <canvas id="salesChart"></canvas>
-            <p class="no-sales-data" style='text-align:center;display:none; color:red;'>No sales data available.</p>
+                <!-- RIGHT COLUMN: CHARTS -->
+                <div class="charts-column">
+                    <div class="chart-container">
+                        <h3>Monthly Sales</h3>
+                        <canvas id="adminSalesChart"></canvas>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>Category Breakdown</h3>
+                        <canvas id="adminCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+    <!-- STAFF PERFORMANCE -->
+    <div class="chart-container wide">
+        <h3>Staff Performance</h3>
+        <table id="staffTable" class="table">
+            <thead>
+                <tr>
+                    <th>Staff</th>
+                    <th>Sales Today</th>
+                    <th>Total Sales</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- TOP & LEAST PRODUCTS -->
+    <div class="bottom-grid">
+        <div class="chart-container small">
+            <h3>Top Products</h3>
+            <ul id="topProductsList"></ul>
         </div>
-        <div class="chart-container" id="menuChartContainer">
-            <h2 class="hero">Top Menu Picks</h2>
-            <canvas id="menuChart"></canvas>
-            <p class="no-menu-data" style='text-align:center;display:none; color:red;'>No top menu data available.</p>
+
+        <div class="chart-container small">
+            <h3>Least Products</h3>
+            <ul id="leastProductsList"></ul>
         </div>
     </div>
-    <h2 class="header-text">Total Sales This Month & Top Menu Picks</h2>
-</div>
 
-<!-- Chian's Stats Section -->
-<div class="exp">
-    <div class="stats-container">
-        <div class="sales-stats">
-            <div class="stat-box" id="total-sales">TOTAL SALES <span>₱ </span></div>
-            <div class="stat-box" id="customer-served">CUSTOMER SERVED <span></span></div>
-            <div class="stat-box" id="best-seller">BEST SELLER <span></span></div>
-            <div class="stat-box" id="vat-summary">Vat Summary<span></span></div>
-            <div class="stat-box" id="net-sales">Net Sales <span></span></div>
+
+
+    <!-- ================= EMPLOYEE SECTION ================= -->
+    <section id="employeeSection" style="display:none;">
+        <div class="exp">
+            <div class="stats-container">
+                <div class="sales-stats">
+                    <div class="chart-container small employee-card">
+                        <h3>Employee Info</h3>
+                        <p id="empName">Name: —</p>
+                        <p id="empRole">Role: —</p>
+                        <p id="empJoined">Joined: —</p>
+                    </div>
+
+                    <div class="chart-container small">
+                        <h3>Active Promotions</h3>
+                        <ul id="promoList"></ul>
+                    </div>
+                </div>
+
+                <div class="sales-stats">
+                    <div class="chart-container small">
+                        <h3>My Completed Orders (Today)</h3>
+                        <div id="myOrdersList"></div>
+                    </div>
+
+                    <div class="chart-container small">
+                        <h3>My Stats</h3>
+                        <div class="center-chart">
+                            <div class="stat-box" id="empOrdersServed">Orders Served<span>0</span></div>
+                            <div class="stat-box" id="empSalesToday">My Sales Today<span>₱ 0.00</span></div>
+                            <div class="stat-box" id="empSalesWeek">My Sales Week<span>₱ 0.00</span></div>
+                            <div class="stat-box" id="empSalesMonth">My Sales Month<span>₱ 0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div class="chart-container small" id="categoryContainer">
-            <h3>SALES BREAKDOWN BY CATEGORY</h3>
-            <canvas id="categoryChart"></canvas>
-            <p class="no-category-data" style='text-align:center;display:none; color:red;'>No category data available.</p>
-        </div>
-    </div>
-</div>
-
-
-
-<!-- Chian's Footer Section -->
+    </section>
+</main>
 
 <footer class="footer">
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </footer>
 
-
-<!-- Chian's JavaScript to Fetch Data & Update Charts -->
-
-<!-- <script src="js/navbar.js"></script> -->
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        loadSalesData();
-        loadChartData();
-        document.querySelector(".generate-btn").addEventListener("click", generateReport);
-    });
+    const jwtKey = 'jwt_token';
+    const apiUrl = 'db_queries/select_queries/fetch_dashboard_data.php';
 
-    let salesChart, categoryChart, menuChart;
-
-    function generateReport(event) {
-        event.preventDefault();
-
-        let dateFrom = document.getElementById("date-from").value;
-        let dateTo = document.getElementById("date-to").value;
-        let category = document.getElementById("category").value;
-
-        // console.log(`Fetching report from ${dateFrom || "ALL TIME"} to ${dateTo || "ALL TIME"} for category: ${category}`);
-
-        loadSalesData(dateFrom, dateTo, category);
-        loadChartData(dateFrom, dateTo);
-    }
-
-    function loadSalesData(dateFrom = "", dateTo = "", category = "all") {
-        fetch(`db_queries/select_queries/fetch_sales.php?dateFrom=${dateFrom}&dateTo=${dateTo}&category=${category}`)
-            .then(response => response.json())
-            .then(data => {
-                if (!data || Object.keys(data).length === 0) {
-                    document.querySelector(".stats-container").innerHTML = "<p style='text-align:center; color:red;'>No sales data available.</p>";
-                    return;
-                }
-                // console.log(data)
-                document.getElementById("total-sales").innerHTML = `TOTAL SALES <span>₱ ${data.totalSales ?? 0}</span>`;
-                document.getElementById("customer-served").innerHTML = `CUSTOMER SERVED <span>${data.customersServed ?? 0}</span>`;
-                document.getElementById("best-seller").innerHTML = `BEST SELLER <span>${data.bestSeller || "N/A"}</span>`;
-                document.getElementById("vat-summary").innerHTML = `VAT SUMMARY <span>${data.vat_amount || "N/A"}</span>`;
-                document.getElementById("net-sales").innerHTML = `NET SALES <span>${data.net_sales || "N/A"}</span>`;
-
-            })
-            .catch(error => console.error("Error loading sales data:", error));
-    }
-
-    function loadChartData(dateFrom = "", dateTo = "") {
-        fetch(`db_queries/select_queries/fetch_graph.php?dateFrom=${dateFrom}&dateTo=${dateTo}`)
-            .then(response => response.json())
-            .then(data => {
-                // console.log("Fetched Data:", data); 
-                let topMenus = data.topMenus || [];
-                let monthlySales = data.monthlySales || [];
-                let categorySales = data.categorySales || [];
-
-                if (topMenus.length === 0) {
-                    document.getElementById("salesChart").style.display = 'none'; // Hide chart
-                    document.querySelector(".no-sales-data").style.display = 'block'; // Show no data message
-                } else {
-                    document.querySelector(".no-sales-data").style.display = 'none'; // Show no data message
-                    // Update Best Sellers Chart
-                    menuChart = updateChart("menuChart", menuChart, "doughnut",
-                        topMenus.map(item => item.name || "Unknown"),
-                        topMenus.map(item => item.total_quantity || 0),
-                        "Best Sellers",
-                        ["#FFD428", "#FFCE56", "#FFC107", "#4BC0C0", "#9966FF"]
-                    );
-                }
-
-                if (monthlySales.length === 0) {
-                    document.getElementById("menuChart").style.display = 'none'; // Hide chart
-                    document.querySelector(".no-menu-data").style.display = 'block'; // Show no data message
-                } else {
-                    document.querySelector(".no-menu-data").style.display = 'none';
-                    // Update Monthly Sales Chart
-                    salesChart = updateChart("salesChart", salesChart, "bar",
-                        monthlySales.map(item => `Month ${item.month}`),
-                        monthlySales.map(item => item.total),
-                        "Total Sales",
-                        "#FFD428"
-                    );
-                }
-                if (categorySales.length === 0) {
-                    document.getElementById("categoryChart").style.display = 'none'; // Hide chart
-                    document.querySelector(".no-category-data").style.display = 'block'; // Show no data message
-                } else {
-                    document.querySelector(".no-category-data").style.display = 'none';
-                    // Update Category Breakdown Chart
-                categoryChart = updateChart("categoryChart", categoryChart, "doughnut",
-                    categorySales.map(item => item.category),
-                    categorySales.map(item => item.total),
-                    "Sales Breakdown",
-                    ["#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD"]
-                );
-                }
-                
-            })
-            .catch(error => console.error("Error fetching chart data:", error));
-    }
-
-    function updateChart(canvasId, chartInstance, chartType, labels, data, label, backgroundColors) {
-        // Maximum length of label before truncating and adding ellipsis
-        const MAX_LABEL_LENGTH = 10;
-
-        // Truncate labels if they exceed the specified length
-        const truncatedLabels = labels.map((label) => {
-            return label.length > MAX_LABEL_LENGTH ? label.substring(0, MAX_LABEL_LENGTH) + '...' : label;
-        });
-
-        let ctx = document.getElementById(canvasId).getContext("2d");
-
-        if (chartInstance) {
-            chartInstance.destroy();
+    function parseJwt(token) {
+        try {
+            const base64 = token.split('.')[1];
+            const json = atob(base64.replace(/-/g, '+').replace(/_/g, '/'));
+            return JSON.parse(json);
+        } catch {
+            return null;
         }
+    }
 
+    const token = localStorage.getItem(jwtKey);
+    if (!token) window.location.href = 'index.php';
+    const payload = parseJwt(token);
+    if (!payload) {
+        localStorage.removeItem(jwtKey);
+        window.location.href = 'index.php';
+    }
+
+    const userType = payload.user_type;
+    const userId = payload.user_id;
+    const name = payload.name || payload.username || 'User';
+
+    document.getElementById('welcomeTitle').textContent = `Welcome, ${name}!`;
+
+    let adminSalesChart = null;
+    let adminCategoryChart = null;
+
+    async function loadDashboard() {
+        try {
+            const url = new URL(apiUrl, window.location.href);
+            url.searchParams.set('user_id', userId);
+            url.searchParams.set('user_type', userType);
+
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.error) return console.error('API Error:', data);
+            userType === 'admin' ? renderAdmin(data) : renderEmployee(data);
+
+        } catch (err) {
+            console.error('Load error:', err);
+        }
+    }
+
+    function renderAdmin(data) {
+        document.getElementById('adminSection').style.display = '';
+        document.getElementById('employeeSection').style.display = 'none';
+
+        document.querySelector('#statTotalSales span').textContent = '₱ ' + (data.totalSales || '0.00');
+        document.querySelector('#statCustomers span').textContent = data.customersServed ?? 0;
+        document.querySelector('#statToday span').textContent = '₱ ' + (data.todaySales || '0.00');
+        document.querySelector('#statWeek span').textContent = '₱ ' + (data.weekSales || '0.00');
+        document.querySelector('#statMonth span').textContent = '₱ ' + (data.monthSales || '0.00');
+
+        // STAFF
+        const tbody = document.querySelector('#staffTable tbody');
+        tbody.innerHTML = (data.staffSales || [])
+            .map(s => `<tr><td>${s.name}</td><td>₱ ${s.salesToday}</td><td>₱ ${s.totalSales}</td></tr>`)
+            .join('') || '<tr><td colspan="3">No data available</td></tr>';
+
+        // PRODUCTS
+        fillList('topProductsList', data.topProducts, i => `${i.name} — ${i.total_sold}`, 'No Top Products Data');
+        fillList('leastProductsList', data.leastProducts, i => `${i.name} — ${i.total_sold}`, 'No Least Products Data');
+
+
+        // CHARTS
+        renderChart('adminSalesChart', adminSalesChart, 'bar',
+                data.monthlySales.map(r => `${r.yr}-${String(r.mo).padStart(2,'0')}`),
+                data.monthlySales.map(r => parseFloat(r.total)), 'Monthly Sales')
+            .then(chart => adminSalesChart = chart);
+
+        renderChart('adminCategoryChart', adminCategoryChart, 'doughnut',
+                data.categorySales.map(r => r.category),
+                data.categorySales.map(r => parseFloat(r.total)))
+            .then(chart => adminCategoryChart = chart);
+    }
+
+    function renderEmployee(data) {
+        document.getElementById('adminSection').style.display = 'none';
+        document.getElementById('employeeSection').style.display = '';
+
+        const emp = data.employee || {};
+        document.getElementById('empName').textContent = `Name: ${emp.name || '—'}`;
+        document.getElementById('empRole').textContent = `Role: ${emp.user_type || '—'}`;
+        document.getElementById('empJoined').textContent = `Joined: ${emp.date_created || '—'}`;
+
+        fillList('promoList', data.activePromotions, p =>
+            `${p.name} — ${p.discount_type === 'percentage' ? p.discount_value + '%' : '₱' + p.discount_value}`,
+            'No active promotions'
+        );
+
+        const list = document.getElementById('myOrdersList');
+        list.innerHTML = (data.ordersToday || [])
+            .map(o => `<div class="order-row">
+        <strong>Order #${o.order_id}</strong> — ₱ ${o.total_price} — ${o.dine}
+        <div class="muted">${o.order_date}</div>
+        <div>${o.items_ordered}</div>
+        </div>`)
+            .join('') || '<p>No completed orders today.</p>';
+
+        document.querySelector('#empOrdersServed span').textContent = data.ordersServedToday ?? 0;
+        document.querySelector('#empSalesToday span').textContent = '₱ ' + (data.personalSalesToday || '0.00');
+        document.querySelector('#empSalesWeek span').textContent = '₱ ' + (data.personalSalesWeek || '0.00');
+        document.querySelector('#empSalesMonth span').textContent = '₱ ' + (data.personalSalesMonth || '0.00');
+    }
+
+    function fillList(id, arr, formatter = i => `${i.name} — ${i.total_sold || ''}`, message) {
+        const list = document.getElementById(id);
+        list.innerHTML = (arr && arr.length) ?
+            arr.map(i => `<li>${formatter(i)}</li>`).join('') :
+            `<li>${message || 'No data available'}</li>`;
+    }
+
+    async function renderChart(canvasId, existing, type, labels, dataVals, label = '') {
+        if (existing) existing.destroy();
+        const ctx = document.getElementById(canvasId).getContext('2d');
         return new Chart(ctx, {
-            type: chartType,
+            type,
             data: {
-                labels: truncatedLabels, // Use the truncated labels here
+                labels,
                 datasets: [{
-                    label: label,
-                    data: data,
-                    backgroundColor: backgroundColors
+                    label,
+                    data: dataVals,
+                    backgroundColor: ['#FFD428', '#FFCE56', '#FFC107', '#4BC0C0', '#9966FF']
                 }]
             },
             options: {
                 responsive: true,
-                scales: chartType === "bar" ? {
+                scales: type === 'bar' ? {
                     y: {
                         beginAtZero: true
                     }
@@ -207,8 +253,14 @@ include 'inc/navbar.php';
             }
         });
     }
+
+    loadDashboard();
+
+    // Initialize manager
+    const pusherManager = new PusherManager("<?php echo $_ENV['PUSHER_KEY']; ?>", "<?php echo $_ENV['PUSHER_CLUSTER']; ?>");
+
+    // Fetch users on add or update
+    pusherManager.bind('users-channel', 'modify-user', loadDashboard, 200);
+    pusherManager.bind('orders-channel', 'modify-order', loadDashboard, 200);
+    pusherManager.bind('promo-channel', 'modify-promo', loadDashboard, 200);
 </script>
-
-</body>
-
-</html>

@@ -5,28 +5,44 @@ include 'inc/navbar.php';
 
 ?>
 <link rel="stylesheet" href="css/orderlist.css">
+<!-- Font Awesome Free (CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.3/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
+
+
 
 
 <!-- Orders Table -->
 <div class="wrapper">
     <div class="table-container">
-        <table id="ordersTable">
-            <thead>
-                <tr>
-                    <th>Queue</th>
-                    <th>Order ID</th>
-                    <th>Order List</th>
-                    <th>Total Price</th>
-                    <th>Payment Status</th>
-                    <th>Paid Amount</th>
-                    <th>Discount</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Orders will be loaded dynamically by JS -->
-            </tbody>
-        </table>
+        <div class="paginated-table">
+            <table id="ordersTable">
+                <thead>
+                    <tr>
+                        <!-- <th>Queue</th> -->
+                        <th>Order ID</th>
+                        <th>Dine Type</th>
+                        <th>Order List</th>
+                        <th>Total Price</th>
+                        <th>Discount</th>
+                        <th>Paid Amount</th>
+                        <th>Order Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Orders will be loaded dynamically by JS -->
+                </tbody>
+            </table>
+            <div class="pagination-container">
+                <button id="prevPage">Previous</button>
+                <span id="pageInfo"></span>
+                <button id="nextPage">Next</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -73,7 +89,7 @@ include 'inc/navbar.php';
 <!-- Receipt Modal for Checkout -->
 
 <div class="exo-receipt-modal-bg" id="exo-receipt-modal-bg" onclick="exoCloseReceipt()">
-    <div class="exo-receipt-modal">
+    <div class="exo-receipt-modal" onclick="event.stopPropagation()">
         <div class="exo-receipt-paper">
 
         </div>
@@ -85,49 +101,183 @@ include 'inc/navbar.php';
     </div>
 </div>
 
+<div class="kitchen-slip" style="display: none;">
+    <!-- kitchen slip content -->
+</div>
+
+<div class="void-modal">
+    <div class="void-overlay"></div>
+    <div class="void-modal-content">
+        <h2>Provide Code to Void Order</h2>
+        <div class="void-input">
+            <input type="password" id="voidCodeInput" class="input-field" placeholder="Enter void code">
+            <input type="checkbox" id="toggleVoidCode" onclick="voidCodeInput.type = this.checked ? 'text' : 'password'">
+            <label for="toggleVoidCode" class="password-toggle-label"></label>
+        </div>
+        <div class="void-modal-buttons">
+            <button class="exo-action-btns exo-confirm-btns" id="voidConfirmBtn">Confirm</button>
+            <button class="exo-action-btns exo-cancel-btns" id="voidCancelBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="alerts">
+    <div id="success-alert" class="alert alert-success"></div>
+    <div id="error-alert" class="alert alert-danger"></div>
+    <div id="warning-alert" class="alert alert-warning"></div>
+</div>
+
 <!-- Chian's Footer Section -->
 <footer class="footer">
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </footer>
+
+
 <script>
+    function showAlert(alertId, message) {
+        let alertBox = document.getElementById(alertId);
+        if (alertBox) {
+            alertBox.innerText = message;
+            alertBox.style.visibility = "visible";
+            alertBox.style.opacity = "1";
+            alertBox.style.top = "0";
+
+            clearTimeout(alertBox.hideTimeout);
+
+            alertBox.hideTimeout = setTimeout(() => {
+                alertBox.style.opacity = "0";
+                alertBox.style.top = "-70px";
+
+                setTimeout(() => {
+                    alertBox.style.visibility = "hidden";
+                    alertBox.innerText = "";
+                }, 300); // Delay to allow fade-out
+            }, 3000); // Display duration
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         fetchOrders();
+        const voidModal = document.querySelector('.void-modal');
+        const voidCodeInput = document.getElementById('voidCodeInput');
+
+        const voidConfirmBtn = document.getElementById('voidConfirmBtn');
+        const voidCancelBtn = document.getElementById('voidCancelBtn');
+        const voidOverlay = document.querySelector('.void-overlay');
+
+        let orderIdToVoid = null;
+
+        const closeVoidModal = () => {
+            voidModal.classList.remove('is-visible');
+            voidCodeInput.value = ''; // Clear the input when closing
+        }
+
+        // 1. Cancel/Close button
+        voidCancelBtn.addEventListener('click', closeVoidModal);
+        // 2. Close on overlay click
+        voidOverlay.addEventListener('click', closeVoidModal);
+
+        voidConfirmBtn.addEventListener('click', async function() {
+            const voidCode = voidCodeInput.value.trim();
+
+            if (voidCode === '') {
+                showAlert('warning-alert', 'Please enter a void code.');
+                return;
+            }
+
+            try {
+                loader.show();
+
+                // 1. Verify admin PIN
+                const pinResponse = await fetch("db_queries/select_queries/verify_pin.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        pin: voidCode
+                    })
+                });
+
+                const pinData = await pinResponse.json();
+
+                if (!pinData.success) {
+                    showAlert('error-alert', 'Invalid admin code.');
+                    return;
+                }
+
+                // 2. PIN is correct → cancel order
+                const cancelResponse = await fetch("db_queries/delete_queries/cancel_order.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "order_id=" + encodeURIComponent(orderIdToVoid)
+                });
+
+                const cancelData = await cancelResponse.json();
+
+                showAlert(cancelData.status === "success" ? 'success-alert' : 'error-alert', cancelData.message);
+
+                if (cancelData.status === "success") {
+                    fetchOrders(); // refresh order list
+                }
+
+            } catch (error) {
+                console.error("Error during voiding order:", error);
+
+            } finally {
+                closeVoidModal();
+                loader.hide();
+            }
+        });
+
 
         // Use event delegation to handle dynamically added buttons (cancel and check out)
         document.querySelector("#ordersTable tbody").addEventListener("click", function(event) {
-            if (event.target.classList.contains("cancel-btn")) {
-                let orderId = event.target.getAttribute("data-order-id");
+            if (event.target.closest(".cancel-btn")) {
+                orderIdToVoid = event.target.closest('.cancel-btn').getAttribute("data-order-id");
 
-                if (confirm("Are you sure you want to cancel this order?")) {
-                    fetch("db_queries/delete_queries/cancel_order.php", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            },
-                            body: "order_id=" + orderId
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            alert(data.message);
-                            if (data.status === "success") {
-                                fetchOrders(); // Refresh the orders list dynamically
-                            }
-                        })
-                        .catch(error => console.error("Error:", error));
-                }
+                voidModal.classList.add('is-visible')
+                voidCodeInput.value = '';
+                voidCodeInput.focus();
+                // CustomAlert.confirm("Are you sure you want to cancel this order?", "warning")
+                //     .then(result => {
+                //         if (!result) return;
+                //         loader.show()
+                //         fetch("db_queries/delete_queries/cancel_order.php", {
+                //                 method: "POST",
+                //                 headers: {
+                //                     "Content-Type": "application/x-www-form-urlencoded"
+                //                 },
+                //                 body: "order_id=" + orderId
+                //             })
+                //             .then(response => response.json())
+                //             .then(data => {
+                //                 // alert(data.message);
+                //                 showAlert('success-alert', data.message)
+                //                 if (data.status === "success") {
+                //                     fetchOrders(); // Refresh the orders list dynamically
+                //                 }
+                //             })
+                //             .catch(error => console.error("Error:", error))
+                //             .finally(() => {
+                //                 loader.hide()
+                //             });
+                //     });
             }
 
             // Check if the clicked button is for "Check Out"
-            if (event.target.classList.contains("remove-btn")) {
-                let orderId = event.target.getAttribute("data-order-id");
+            if (event.target.closest(".remove-btn")) {
+                let orderId = event.target.closest('.remove-btn').getAttribute("data-order-id");
                 // Open the checkout modal and load order details
                 exoOpenCheckoutModal(orderId);
                 // console.log("Check Out button clicked");
             }
 
             // Check if the clicked button is for "Add Item"
-            if (event.target.classList.contains("add-item-btn")) {
-                let orderId = event.target.getAttribute("data-order-id");
+            if (event.target.closest(".add-item-btn")) {
+                let orderId = event.target.closest('.add-item-btn').getAttribute("data-order-id");
                 window.location.href = `Menu.php?order_id=${orderId}`;
             }
         });
@@ -158,7 +308,7 @@ include 'inc/navbar.php';
         let overlay = document.getElementById("exo-checkout-overlay");
 
         modal.classList.remove("show");
-
+        document.getElementById('amountPaid').value = '';
         setTimeout(() => {
             modal.style.display = "none";
             overlay.style.display = "none";
@@ -192,20 +342,38 @@ include 'inc/navbar.php';
             receiptModalBg.style.display = "none";
         }, 300);
     }
-    let previousOrderList = [];
+    // let previousOrderList = [];
     // Function to fetch orders from the server
-    async function fetchOrders() {
+    let currentPage = 1;
+    let limit = 10; // rows per page
+    let totalRows = 0;
+
+    async function fetchOrders(page = 1) {
+        currentPage = page
+
         try {
-            const response = await fetch('db_queries/select_queries/fetch_order_list.php');
+            const response = await fetch('db_queries/select_queries/fetch_order_list.php', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    page,
+                    limit
+                })
+            });
             const data = await response.json();
 
             if (data.success) {
-                if (!isEqual(previousOrderList, data.orders)) {
-                    previousOrderList = data.orders;
-                    displayOrders(data.orders);
-                }
+                // if (!isEqual(previousOrderList, data.orders)) {
+                //     previousOrderList = data.orders;
+                //     displayOrders(data.orders);
+                // }
+                totalRows = data.totalRows;
+                updatePaginationUI();
+                displayOrders(data.orders);
             } else {
-                alert('Error fetching orders: ' + data.error);
+                CustomAlert.alert('Error fetching orders: ' + data.error, 'error');
             }
         } catch (error) {
             console.error('Error fetching orders:', error);
@@ -216,41 +384,84 @@ include 'inc/navbar.php';
         return JSON.stringify(arr1) === JSON.stringify(arr2);
     }
 
-    setInterval(fetchOrders, 5000);
+    // setInterval(fetchOrders, 5000);
     // Function to display orders in the table
     function displayOrders(orders) {
         const ordersTableBody = document.querySelector('#ordersTable tbody');
-        ordersTableBody.innerHTML = ''; // Clear any existing rows
+        ordersTableBody.innerHTML = '';
 
         if (orders.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = '<td colspan="8">No pending orders</td>';
+            row.innerHTML = '<td colspan="10">No pending orders</td>';
             ordersTableBody.appendChild(row);
-        } else {
-            let queueNumber = 1001;
-            orders.forEach(order => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${str_pad(queueNumber++, 4, '0', 'STR_PAD_LEFT')}</td>
-                    <td>${order.order_id}</td>
-                    <td class="order-list">${order.order_list}</td>
-                    <td>$${parseFloat(order.total_price).toFixed(2)}</td>
-                    <td>${order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}</td>
-                    <td>$${parseFloat(order.paid_amount).toFixed(2)}</td>
-                    <td>$${parseFloat(order.discount_amount).toFixed(2)}</td>
-                    <td>
-                        <div class="action-layout">
-                            <button class="action-button remove-btn" data-order-id="${order.order_id}">Check Out</button>
-                            <button class="action-button add-item-btn" data-order-id="${order.order_id}">Add Item</button>
-                            <button class="action-button cancel-btn" data-order-id="${order.order_id}">Cancel Order</button>
-                        </div>
-                    </td>
-                `;
-
-                ordersTableBody.appendChild(row);
-            });
+            return;
         }
+
+        orders.forEach(order => {
+            const row = document.createElement('tr');
+
+            // Assign color classes based on status
+            let statusClass = '';
+            if (order.payment_status === 'paid') statusClass = 'status-paid';
+            else if (order.payment_status === 'pending') statusClass = 'status-pending';
+            else if (order.payment_status === 'cancelled') statusClass = 'status-cancelled';
+
+            // Dine type badge color
+            const dineBadge =
+                order.dine === 'Dine-In' ?
+                `<span class="badge dine-in"><i class="fa-solid fa-utensils"></i> Dine-In</span>` :
+                `<span class="badge take-out"><i class="fa-solid fa-box"></i> Take-Out</span>`;
+            const paymentStatusBadge =
+                order.payment_status === 'paid' ?
+                `<span class="badge status-paid"><i class="fa-solid fa-circle-check"></i> Paid</span>` :
+                order.payment_status === 'pending' ?
+                `<span class="badge status-pending"><i class="fa-solid fa-circle-half-stroke"></i> Pending</span>` :
+                `<span class="badge status-cancelled"><i class="fa-solid fa-circle-xmark"></i> Cancelled</span>`;
+
+            row.classList.add(statusClass);
+            row.innerHTML = `
+        <td>#${order.order_id}</td>
+        <td>${dineBadge}</td>
+        <td>${order.order_list}</td>
+        <td>₱ ${parseFloat(order.total_price).toFixed(2)}</td>
+        <td>₱ ${parseFloat(order.discount_amount).toFixed(2)}</td>
+        <td>₱ ${parseFloat(order.paid_amount).toFixed(2)}</td>
+        <td>${paymentStatusBadge}</td>
+        <td>
+            <div class="action-layout">
+                <button class="action-button remove-btn" data-order-id="${order.order_id}"><i class="fa-solid fa-cart-shopping"></i></button>
+                <button class="action-button add-item-btn" data-order-id="${order.order_id}"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button class="action-button cancel-btn" data-order-id="${order.order_id}"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </td>
+    `;
+
+            ordersTableBody.appendChild(row);
+        });
     }
+
+    function updatePaginationUI() {
+        const totalPages = Math.ceil(totalRows / limit);
+
+        document.getElementById("pageInfo").innerText =
+            `Page ${currentPage} of ${totalPages}`;
+
+        document.getElementById("prevPage").disabled = currentPage === 1;
+        document.getElementById("nextPage").disabled = currentPage === totalPages;
+    }
+
+    document.getElementById("prevPage").addEventListener("click", () => {
+        if (currentPage > 1) {
+            fetchOrders(currentPage - 1);
+        }
+    });
+
+    document.getElementById("nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(totalRows / limit);
+        if (currentPage < totalPages) {
+            fetchOrders(currentPage + 1);
+        }
+    });
 
     // Helper function to pad numbers with leading zeros
     function str_pad(input, length, pad_string, pad_type) {
@@ -270,7 +481,8 @@ include 'inc/navbar.php';
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    // alert(data.error);
+                    showAlert('error-alert', data.error)
                     return;
                 }
 
@@ -308,10 +520,10 @@ include 'inc/navbar.php';
                 //             orderHtml += `
                 //             <li class='ingredient-item'>
                 //                 <input type="hidden" value="${ingredient.ingredient_id}" id="ingredient_id">
-                //                 <span>${ingredient.ingredient_name}</span> 
-                //                 <input type='number' class='input-field ingredient-quantity' 
-                //                     data-ingredient-id="${ingredient.ingredient_id}" 
-                //                     value="${ingredient.quantity_required || ''}" 
+                //                 <span>${ingredient.ingredient_name}</span>
+                //                 <input type='number' class='input-field ingredient-quantity'
+                //                     data-ingredient-id="${ingredient.ingredient_id}"
+                //                     value="${ingredient.quantity_required || ''}"
                 //                     placeholder="Enter quantity">
                 //             </li>
                 //         `;
@@ -330,63 +542,31 @@ include 'inc/navbar.php';
 
     function exoShowReceipt(ingredients) {
         let orderId = document.getElementById('hiddenOrderId').value;
-        let amountPaid = parseFloat(document.getElementById("amountPaid").value);
+        let amountPaidInput = document.getElementById("amountPaid");
+        let amountPaid = amountPaidInput.value === "" ? 0 : parseFloat(amountPaidInput.value);
         let paymentMethod = document.getElementById("paymentMethod").value;
 
         // Extract numeric total price correctly
         let totalPriceText = document.getElementById("totalPrice").textContent;
         let totalPrice = parseFloat(totalPriceText.replace(/[^\d.]/g, ''));
 
-        // let consumedIngredients = [];
-
-        // // Loop through all globalIngredients (both fixed and unli)
-        // globalIngredients.forEach(ingredient => {
-        //     let quantityConsumed;
-
-        //     // If the ingredient type is 'unli', get the quantity from the input field
-        //     if (ingredient.ingredient_type === 'unli') {
-        //         let input = document.querySelector(`.ingredient-quantity[data-ingredient-id="${ingredient.ingredient_id}"]`);
-
-        //         if (input) {
-        //             let inputValue = parseFloat(input.value);
-        //             if (isNaN(inputValue) || inputValue <= 0) {
-        //                 alert('Please enter a valid quantity for unlimited ingredients.');
-        //                 return; // Stop further execution if input is invalid
-        //             }
-        //             quantityConsumed = inputValue;
-        //         }
-        //     } else if (ingredient.ingredient_type === 'fixed') {
-        //         // For 'fixed' ingredients, use the predefined quantity_required
-        //         quantityConsumed = ingredient.quantity_required;
-        //     }
-
-        //     // Only push to consumedIngredients if quantityConsumed is a valid number and greater than 0
-        //     if (!isNaN(quantityConsumed) && quantityConsumed > 0) {
-        //         consumedIngredients.push({
-        //             ingredient_id: ingredient.ingredient_id,
-        //             quantity: quantityConsumed
-        //         });
-        //     }
-        // });
-
-        // Validate if at least one ingredient was added
-        // if (consumedIngredients.length === 0) {
-        //     alert("There is no consumed ingredients.");
-        //     return;
-        // }
+        // Debug: Log the value of amountPaid
+        // console.log("Amount Paid (after parse):", amountPaid);
 
         // Validate amountPaid
         if (isNaN(amountPaid) || amountPaid <= 0) {
-            alert("Please enter a valid amount paid.");
+            console.log("Please enter a valid amount paid.", amountPaid);
+            showAlert('warning-alert', "Please enter a valid amount paid.");
             return;
         }
 
         // Validate if amount paid is enough
         if (isNaN(totalPrice) || amountPaid < totalPrice) {
-            alert(`Insufficient payment. Total price is ₱${totalPrice.toFixed(2)}.`);
+            // alert(`Insufficient payment. Total price is ₱${totalPrice.toFixed(2)}.`);
+            showAlert('warning-alert', `Insufficient payment. Total price is ₱${totalPrice.toFixed(2)}.`)
             return;
         }
-
+        loader.show()
         // Send Data to Server
         fetch("db_queries/insert_queries/process_checkout.php", {
                 method: "POST",
@@ -403,14 +583,19 @@ include 'inc/navbar.php';
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert("Checkout Successful!");
+                    // alert("Checkout Successful!");
+                    showAlert('success-alert', "Checkout Successful!")
                     fetchOrders();
                     ShowReceipt(orderId);
+                    document.getElementById('amountPaid').value = '';
                 } else {
-                    alert(data.error);
+                    CustomAlert.alert(data.error, 'error');
                 }
             })
-            .catch(error => console.error("Error processing checkout:", error));
+            .catch(error => console.error("Error processing checkout:", error))
+            .finally(() => {
+                loader.hide()
+            });
     }
 
 
@@ -420,7 +605,8 @@ include 'inc/navbar.php';
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert(data.error);
+                    // alert(data.error);
+                    showAlert('error-alert', data.error)
                     return;
                 }
 
@@ -463,6 +649,7 @@ include 'inc/navbar.php';
 
                 let receiptBody = `
                 <div class="exo-receipt-body">
+                    <p><strong>OR Number:</strong> ${order.order_id}</p>
                     <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                     <p><strong>Cashier:</strong> ${order.cashier_name || "N/A"}</p>
                     <div class="exo-receipt-separator"></div>
@@ -492,23 +679,6 @@ include 'inc/navbar.php';
                     <p>Discount:</p>
                     <span class="item-total">-₱${discount.toFixed(2)}</span>
                 </div>
-                <div class="item-details">
-                    <p>VAT (12%):</p>
-                    <span class="item-total">₱${vatAmount.toFixed(2)}</span>
-                </div>
-                <div class="item-details">
-                    <p>VATable Sales:</p>
-                    <span class="item-total">₱${vatableSales.toFixed(2)}</span>
-                </div>
-                
-                <div class="item-details">
-                    <p>VAT Exempt Sales:</p>
-                    <span class="item-total">₱${vatExempt.toFixed(2)}</span>
-                </div>
-                <div class="item-details">
-                    <p>Zero-rated Sales:</p>
-                    <span class="item-total">₱${zeroRated.toFixed(2)}</span>
-                </div>
                 <div class="exo-receipt-separator"></div>
                 <div class="item-details">
                     <p>Paid Amount:</p>
@@ -523,9 +693,26 @@ include 'inc/navbar.php';
                     <p>Thank you and enjoy!</p>
                 </div>
             `;
+                // <div class="item-details">
+                //     <p>VAT (12%):</p>
+                //     <span class="item-total">₱${vatAmount.toFixed(2)}</span>
+                // </div>
+                // <div class="item-details">
+                //     <p>VATable Sales:</p>
+                //     <span class="item-total">₱${vatableSales.toFixed(2)}</span>
+                // </div>
 
+                // <div class="item-details">
+                //     <p>VAT Exempt Sales:</p>
+                //     <span class="item-total">₱${vatExempt.toFixed(2)}</span>
+                // </div>
+                // <div class="item-details">
+                //     <p>Zero-rated Sales:</p>
+                //     <span class="item-total">₱${zeroRated.toFixed(2)}</span>
+                // </div>
                 receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
                 receiptList.appendChild(receiptContainer);
+                printKitchenSlip(data);
             })
             .catch(error => console.error("Error loading order details:", error));
     }
@@ -535,79 +722,169 @@ include 'inc/navbar.php';
         const printReceipts = document.querySelector('.print-receipt');
         const downloadReceipts = document.querySelector('.download-receipt');
 
+        async function printBoth() {
+            let receiptContent = document.querySelector('.exo-receipt-paper').outerHTML;
+            let kitchenSlipContent = document.querySelector('.kitchen-slip').outerHTML;
+
+            await convertHtmlToPdfAndSendToPrintNode(receiptContent);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            await convertHtmlToPdfAndSendToPrintNode(kitchenSlipContent);
+        }
         printReceipts.addEventListener('click', function(e) {
             e.preventDefault();
-            printReceipt();
-        })
+            printBoth();
+            // let receiptContent = document.querySelector('.exo-receipt-paper').outerHTML;
+
+            // // Detect if the device is mobile
+            // if (isMobileDevice()) {
+            //     // console.log("Mobile device detected. Sending to PrintNode.");
+            //     convertHtmlToPdfAndSendToPrintNode(receiptContent);
+            // } else {
+            //     // console.log("Desktop device detected. Printing directly.");
+            //     // printDirectly(receiptContent);
+            //     convertHtmlToPdfAndSendToPrintNode(receiptContent);
+            // }
+        });
+
         downloadReceipts.addEventListener('click', function(e) {
             e.preventDefault();
             downloadReceiptAsPDF();
-        })
-    })
+        });
+    });
 
-    function printReceipt() {
-        let receiptContent = document.querySelector('.exo-receipt-paper').outerHTML;
+    // Function to detect mobile device
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+
+    function printKitchenSlip(orderData) {
+        let div = document.createElement("div");
+        div.classList.add("kitchen-slip");
+
+        div.style.padding = "10px";
+        div.style.fontFamily = "Arial, sans-serif";
+        div.style.width = "100%";
+        div.style.fontSize = "14px";
+
+        div.innerHTML = `
+        <h2 style="text-align:center; margin-bottom: 10px; font-size: 18px;">
+            KITCHEN ORDER SLIP
+        </h2>
+        <p><strong>Order #:</strong> ${orderData.order.order_id}</p>
+        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+        <p><strong>Type:</strong> ${orderData.order.dine}</p>
+        <hr style="margin: 10px 0;">
+        <p><strong>ITEMS:</strong></p>
+    `;
+
+        orderData.items.forEach(item => {
+            div.innerHTML += `
+            <p style="font-size: 16px; margin: 5px 0;">
+                <strong>${item.quantity} × ${item.name}</strong>
+            </p>
+        `;
+        });
+        document.querySelector(".kitchen-slip").appendChild(div);
+    }
+
+    // Function to convert HTML to PDF and send to PrintNode (Mobile)
+    async function convertHtmlToPdfAndSendToPrintNode(htmlContent) {
+        const {
+            jsPDF
+        } = window.jspdf;
+
+        // Create a temporary container
+        let temp = document.createElement("div");
+        temp.style.position = "fixed";
+        temp.style.left = "-9999px";
+        temp.innerHTML = htmlContent;
+        document.body.appendChild(temp);
+
+        // Measure the content
+        const heightPx = temp.scrollHeight;
+        const heightMM = heightPx * 0.264583;
+
+        const doc = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: [80, heightMM]
+        });
+
+        await html2canvas(temp, {
+            scale: 2,
+            useCORS: true
+        }).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+            doc.addImage(imgData, "PNG", 0, 0, 80, heightMM);
+
+            const pdfBase64 = doc.output("datauristring").split(",")[1];
+            sendToPrintNode(pdfBase64);
+        });
+
+        document.body.removeChild(temp); // cleanup
+    }
+
+
+
+    // Function to print directly (Desktop)
+    function printDirectly(receiptContent) {
+        // Detect if the printer is 58mm (default for your Xprinter)
+        const is58mm = true; // Set this to true because we are using a 58mm thermal printer
 
         let printStyles = `
                 <style>
                     @media print {
                         body {
                             margin: 0;
-                            width: 300px;
-                            font-family: Arial, sans-serif;
-                            padding: 10px;
+                            width: ${is58mm ? '58mm' : '80mm'};
+                            font-family: "Courier New", monospace;
+                            padding: 0;
                         }
 
                         .exo-receipt-paper {
-                            width: 300px;
-                            padding: 15px;
+                            width: ${is58mm ? '58mm' : '80mm'};
+                            padding: 5px;
                             box-sizing: border-box;
+                            font-size: ${is58mm ? '12px' : '14px'};
                         }
 
                         .exo-receipt-header,
                         .exo-receipt-footer {
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            flex-direction: column;
-                        }
-
-                        .exo-receipt-header, .exo-receipt-body, .exo-receipt-footer,
-                        .item-details, .receipt-item {
-                            margin-bottom: 10px;
+                            text-align: center;
                         }
 
                         .exo-receipt-header img,
                         .exo-receipt-logo {
-                            width: 80px;
+                            width: ${is58mm ? '40px' : '60px'};
                             height: auto;
                         }
 
                         .exo-receipt-header h2 {
-                            margin: 5px 0;
+                            margin: 0;
+                            font-size: ${is58mm ? '14px' : '16px'};
                         }
 
                         .exo-receipt-header p,
                         .exo-receipt-body p,
                         .exo-receipt-footer p {
-                            font-size: 14px;
-                            margin: 5px 0;
+                            font-size: ${is58mm ? '12px' : '14px'};
+                            margin: 0;
                         }
 
                         .exo-receipt-separator {
                             border-top: 1px dashed #000;
-                            margin: 10px 0;
+                            margin: 5px 0;
                         }
 
                         .item-details {
                             display: flex;
                             justify-content: space-between;
-                            font-size: 12px;
-                            color: #444;
+                            font-size: ${is58mm ? '12px' : '14px'};
                         }
 
                         .item-name {
-                            font-size: 14px;
+                            font-size: ${is58mm ? '12px' : '14px'};
                             font-weight: bold;
                         }
 
@@ -616,13 +893,13 @@ include 'inc/navbar.php';
                         }
 
                         .exo-receipt-total {
-                            font-size: 16px;
+                            font-size: ${is58mm ? '14px' : '16px'};
                             font-weight: bold;
                         }
                     }
 
                     @page {
-                        size: 80mm auto;
+                        size: ${is58mm ? '58mm' : '80mm'} auto;
                         margin: 0;
                     }
                 </style>
@@ -647,58 +924,95 @@ include 'inc/navbar.php';
     }
 
 
+    // Function to send PDF to PrintNode (Mobile)
+    function sendToPrintNode(pdfBase64) {
+        try {
+            loader.show()
 
-    function sendToPrintNode(receiptHtml) {
-        fetch('https://api.printnode.com/printjobs', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Basic ' + btoa('C6-n0bWSDHha0phS0h98waZifIvh8wXy90g-inCOwK4'), // Replace this!
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    printerId: 123456, // Replace with your actual printer ID
-                    title: "Customer Receipt",
-                    contentType: "raw_html",
-                    content: receiptHtml,
-                    source: "Chia's POS"
+            fetch('https://api.printnode.com/printjobs', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Basic ' + btoa('O2zIWVEQaRsITtE8r5EYBSVeCKadKqq0YpxRibkDSP4:'), // Replace with your actual API key
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        printerId: 74971038, // Replace with your actual printer ID
+                        title: "Customer Receipt",
+                        contentType: "pdf_base64", // Correct content type
+                        content: pdfBase64,
+                        source: "Chia's POS"
+                    })
                 })
-            })
-            .then(res => res.json())
-            .then(data => console.log("Print job sent!", data))
-            .catch(err => console.error("Error printing:", err));
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Print job sent!", data);
+                    if (data && data.error) {
+                        console.error("PrintNode error:", data.error);
+                        CustomAlert.alert("Error: " + data.error, "error");
+                    } else {
+                        showAlert("success-alert", "Receipt sent to printer successfully!");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error printing:", err);
+                    CustomAlert.alert("Failed to send print job. Check console for errors.", "error");
+                });
+        } catch (error) {
+            console.error("Error in sendToPrintNode:", error);
+        } finally {
+            loader.hide()
+        }
     }
+
+
+
+
 
     function downloadReceiptAsPDF() {
-        const element = document.querySelector('.exo-receipt-paper');
+        try {
+            loader.show()
 
-        // Get pixel dimensions
-        const widthPx = 300; // approx 80mm thermal paper
-        const heightPx = element.offsetHeight;
+            const element = document.querySelector('.exo-receipt-paper');
 
-        // Convert px to inches (1 inch = 96 px)
-        const pxToInch = px => px / 96;
-        const pdfWidth = pxToInch(widthPx); // ~3.125 inches
-        const pdfHeight = pxToInch(heightPx); // auto height in inches
+            // Get pixel dimensions
+            const widthPx = 300; // approx 80mm thermal paper
+            const heightPx = element.offsetHeight;
 
-        const opt = {
-            margin: 0,
-            filename: `receipt-${Date.now()}.pdf`,
-            image: {
-                type: 'jpeg',
-                quality: 1.0
-            },
-            html2canvas: {
-                scale: 3
-            },
-            jsPDF: {
-                unit: 'in',
-                format: [pdfWidth, pdfHeight],
-                orientation: 'portrait'
-            }
-        };
+            // Convert px to inches (1 inch = 96 px)
+            const pxToInch = px => px / 96;
+            const pdfWidth = pxToInch(widthPx); // ~3.125 inches
+            const pdfHeight = pxToInch(heightPx); // auto height in inches
 
-        html2pdf().from(element).set(opt).save();
+            const opt = {
+                margin: 0,
+                filename: `receipt-${Date.now()}.pdf`,
+                image: {
+                    type: 'jpeg',
+                    quality: 1.0
+                },
+                html2canvas: {
+                    scale: 3
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: [pdfWidth, pdfHeight],
+                    orientation: 'portrait'
+                }
+            };
+
+            html2pdf().from(element).set(opt).save();
+        } catch (error) {
+            console.error("Error downloading receipt as PDF:", error);
+        } finally {
+            loader.hide()
+        }
     }
+
+    // Initialize manager
+    const pusherManager = new PusherManager("<?php echo $_ENV['PUSHER_KEY']; ?>", "<?php echo $_ENV['PUSHER_CLUSTER']; ?>");
+
+    // Fetch users on add or update
+    pusherManager.bind('orders-channel', 'modify-order', () => fetchOrders(currentPage), 200);
 </script>
 
 </body>

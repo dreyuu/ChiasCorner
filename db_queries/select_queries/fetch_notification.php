@@ -1,5 +1,5 @@
 <?php
-include_once '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 try {
     $query = "SELECT * FROM notifications ORDER BY created_at DESC";
@@ -11,4 +11,3 @@ try {
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => "Database error"]);
 }
-?>

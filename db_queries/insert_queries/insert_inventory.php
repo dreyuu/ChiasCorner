@@ -1,6 +1,5 @@
 <?php
-require_once '../../connection.php';
-
+include_once __DIR__ . '/../../connection.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ingredient_id = $_POST['ingredient_id'];
     $supplier_name = $_POST['supplier_name'];
@@ -23,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // ✅ Insert supplier (if not existing)
-        $supplierQuery = "INSERT INTO suppliers (supplier_name) 
-                            VALUES (:supplier_name) 
+        $supplierQuery = "INSERT INTO suppliers (supplier_name)
+                            VALUES (:supplier_name)
                             ON DUPLICATE KEY UPDATE supplier_name = VALUES(supplier_name)";
         $stmtSupplier = $connect->prepare($supplierQuery);
         $stmtSupplier->execute([':supplier_name' => $supplier_name]);
@@ -39,16 +38,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // ✅ Ensure ingredient exists in inventory (initialize to 0 if not)
-        $insertInventoryQuery = "INSERT IGNORE INTO inventory (ingredient_id, current_stock) 
+        $insertInventoryQuery = "INSERT IGNORE INTO inventory (ingredient_id, current_stock)
                                     VALUES (:ingredient_id, 0)";
         $stmtInsertInventory = $connect->prepare($insertInventoryQuery);
         $stmtInsertInventory->execute([':ingredient_id' => $ingredient_id]);
 
         // ✅ Insert stock batch (now safe because ingredient exists in inventory)
-        $batchQuery = "INSERT INTO stock_batches (ingredient_id, supplier_id, quantity, cost, expiration_date) 
+        $batchQuery = "INSERT INTO stock_batches (ingredient_id, supplier_id, quantity, cost, expiration_date)
                         VALUES (:ingredient_id, :supplier_id, :stock_quantity, :item_cost, :expiration_date)";
         $stmtBatch = $connect->prepare($batchQuery);
-        $stmtBatch->execute([ 
+        $stmtBatch->execute([
             ':ingredient_id' => $ingredient_id,
             ':supplier_id' => $supplier_id,
             ':stock_quantity' => $stock_quantity,
@@ -65,13 +64,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ Update inventory with recalculated quantity
         $inventoryQuery = "UPDATE inventory SET current_stock = :total_quantity WHERE ingredient_id = :ingredient_id";
         $stmtInventory = $connect->prepare($inventoryQuery);
-        $stmtInventory->execute([ 
+        $stmtInventory->execute([
             ':ingredient_id' => $ingredient_id,
             ':total_quantity' => $total_quantity
         ]);
 
         // ✅ Log restock in inventory_transactions
-        $transactionQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit) 
+        $transactionQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit)
                                 VALUES (:ingredient_id, 'restock', :stock_quantity, :unit)";
         $stmtTransaction = $connect->prepare($transactionQuery);
         $stmtTransaction->execute([
@@ -83,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ Commit transaction
         $connect->commit();
         echo json_encode(['success' => true, 'message' => 'Stock added successfully and inventory recalculated!']);
-
     } catch (PDOException $e) {
         $connect->rollBack();
         echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
@@ -92,4 +90,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
-?>

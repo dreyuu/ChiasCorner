@@ -3,7 +3,7 @@
 .custom-sidebar {
     width: 250px;
     background: #FFD233;
-    height: 650px;
+    height: 700px;
     padding: 20px;
     border-radius: 15px;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
@@ -286,6 +286,11 @@ body.modal-open {
     visibility: visible;
 }
 
+.action {
+    display: flex;
+    /* gap: 5px; */
+}
+
 .edit-btn,
 .remove-btn {
     background: white;
@@ -328,6 +333,64 @@ body.modal-open {
     color: #444;
 }
 
+
+.paginated-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Pagination Container */
+.menu-pagination-container,
+.promo-pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 10px 0;
+
+    font-family: inherit;
+}
+
+/* Pagination Buttons */
+.menu-pagination-container button,
+.promo-pagination-container button {
+    padding: 6px 14px;
+    background: #FFD428;
+    border: 1px solid #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.25s ease;
+}
+
+.menu-pagination-container button:hover:not(:disabled),
+.promo-pagination-container button:hover:not(:disabled) {
+    background: black;
+    color: #FFD428;
+    border-color: #FFD428;
+}
+
+.menu-pagination-container button:disabled,
+.promo-pagination-container button:disabled {
+    background: #eaeaea;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Page Info Text */
+#menu-pageInfo,
+#promo-pageInfo {
+    font-size: 14px;
+    color: #444;
+    padding: 4px 10px;
+    background: #f8f8f8;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+}
+
 /* ===== Modal Background Overlay (Blurred) ===== */
 
 .custom-menus-modal-overlay {
@@ -335,7 +398,7 @@ body.modal-open {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
+    height: 200vh;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
     display: none;
@@ -574,6 +637,7 @@ body.modal-open {
     background: rgba(0, 0, 0, 0.8);
     padding: 4%;
     border-radius: 15px;
+    color: #000;
 }
 
 /* ===== Left Side: Form Inputs ===== */
@@ -593,6 +657,7 @@ body.modal-open {
     border-radius: 5px;
     margin-bottom: 10px;
     background: white;
+    color: #000;
     outline: none;
 }
 
@@ -604,6 +669,7 @@ body.modal-open {
     border-radius: 5px;
     margin-bottom: 10px;
     background: white;
+    color: #000;
     outline: none;
 }
 
@@ -1027,9 +1093,11 @@ body.modal-open {
         grid-column: span 3;
         width: 100%;
     }
+
     .admins.show-nav {
         display: grid;
     }
+
     .custom-promo-btn,
     .custom-add-menu {
         font-size: 12px;
@@ -1749,9 +1817,12 @@ body.modal-open {
     text-align: left;
     min-height: 600px;
     max-height: 950px;
-    overflow-y: auto; /* Make sure vertical scroll works if needed */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    scrollbar-width: none; /* For Firefox */
+    overflow-y: auto;
+    /* Make sure vertical scroll works if needed */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+    scrollbar-width: none;
+    /* For Firefox */
 }
 
 .receipt-header {

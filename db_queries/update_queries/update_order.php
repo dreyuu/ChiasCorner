@@ -1,6 +1,7 @@
 <?php
-include_once '../../connection.php';
 session_start();
+include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 header('Content-Type: application/json');
 // Decode JSON input
@@ -117,5 +118,7 @@ try {
     echo json_encode(["status" => "success", "message" => "Order updated successfully!", "order_id" => $order_id, "total_price" => $total_price]);
 } catch (PDOException $e) {
     $connect->rollBack();
+    logError("Update order error: " . $e->getMessage(), "ERROR");
+    http_response_code(500);  // Internal Server Error
     die(json_encode(["status" => "error", "message" => $e->getMessage()]));
 }

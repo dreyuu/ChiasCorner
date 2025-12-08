@@ -448,8 +448,8 @@ include 'inc/navbar.php';
     //         <td>$${totalCost.toFixed(2)}</td>
     //         <td>
     //             <div class="inv-action">
-    //                 <button class="edit-btn" data-id="${item.ingredient_id}" >Update</button> 
-    //                 <button class="remove-btn" data-id="${item.ingredient_id}" >Remove</button> 
+    //                 <button class="edit-btn" data-id="${item.ingredient_id}" >Update</button>
+    //                 <button class="remove-btn" data-id="${item.ingredient_id}" >Remove</button>
     //             </div>
     //             </td>
     //             `;
@@ -470,25 +470,28 @@ include 'inc/navbar.php';
 
 
     function removeFromInventory(id) {
-        if (confirm('Are you sure you want to remove this item from inventory?')) {
-            fetch(`db_queries/delete_queries/remove_item.php`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        ingredient_id: id
+        CustomAlert.confirm("Are you sure you want to remove this item from inventory?", "warning")
+            .then(result => {
+                if (!result) return;
+
+                fetch(`db_queries/delete_queries/remove_item.php`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            ingredient_id: id
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    if (data.success) {
-                        fetchAndDisplay('inventory');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-        }
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        if (data.success) {
+                            fetchAndDisplay('inventory');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -506,7 +509,7 @@ include 'inc/navbar.php';
             event.preventDefault();
             if (event.target.classList.contains("edit-btn")) {
                 const ingredient_id = event.target.dataset.id;
-                // fetchInventory(ingredient_id); 
+                // fetchInventory(ingredient_id);
                 openInventoryModal(ingredient_id);
             }
 
@@ -639,25 +642,29 @@ include 'inc/navbar.php';
         }
 
         function removeBatch(batch_id, item_id) {
-            if (confirm('Are you sure you want to remove this batch?')) {
-                fetch(`db_queries/delete_queries/remove_batch.php`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            batch_id: batch_id
+            CustomAlert.confirm("Are you sure you want to remove this batch?", "warning")
+                .then(result => {
+                    if (!result) return;
+
+                    fetch(`db_queries/delete_queries/remove_batch.php`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                batch_id: batch_id
+                            })
                         })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(data.message);
-                        if (data.success) {
-                            stockBatches(item_id);
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
+                        .then(response => response.json())
+                        .then(data => {
+                            alert(data.message);
+                            if (data.success) {
+                                stockBatches(item_id);
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                });
+
         }
 
     })

@@ -1,6 +1,5 @@
 <?php
-require '../../connection.php';
-
+include_once __DIR__ . '/../../connection.php';
 if (isset($_GET['id'])) {
     $menu_id = $_GET['id'];
 
@@ -14,4 +13,3 @@ if (isset($_GET['id'])) {
         echo json_encode(["error" => "Error fetching menu: " . $e->getMessage()]);
     }
 }
-?>

@@ -1,11 +1,19 @@
 <?php
-include_once '../../connection.php';
-require '../../vendor/autoload.php'; // For JWT
+include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../vendor/autoload.php'; // For JWT
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 
-$secretKey = "chiascornersercretkey";
+use Dotenv\Dotenv;
+
+// Load env
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+$secretKey = $_ENV['JWS_SECRET_KEY'];
 
 $headers = apache_request_headers();
 if (!isset($headers['Authorization'])) {
@@ -35,8 +43,9 @@ try {
     $password = $inputData['password'] ?? null;
     $email = $inputData['email'] ?? null;
     $user_type = $inputData['user_type'] ?? null;
+    $status = $inputData['status'] ?? null;
 
-    if (!$userId || !$name || !$username || !$email || !$user_type) {
+    if (!$userId || !$name || !$username || !$email || !$user_type || !$status) {
         http_response_code(400);
         echo json_encode(["success" => false, "message" => "Missing required fields"]);
         exit;
@@ -45,9 +54,9 @@ try {
     try {
         if ($password) {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $query = "UPDATE users SET name = :name, username = :username, password = :password, email = :email, user_type = :user_type WHERE user_id = :user_id";
+            $query = "UPDATE users SET name = :name, username = :username, password = :password, email = :email, user_type = :user_type, status = :status WHERE user_id = :user_id";
         } else {
-            $query = "UPDATE users SET name = :name, username = :username, email = :email, user_type = :user_type WHERE user_id = :user_id";
+            $query = "UPDATE users SET name = :name, username = :username, email = :email, user_type = :user_type, status = :status WHERE user_id = :user_id";
             $hashedPassword = null;
         }
 
@@ -60,17 +69,20 @@ try {
         }
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->bindParam(':user_type', $user_type, PDO::PARAM_STR);
+        $stmt->bindParam(':status', $status, PDO::PARAM_STR);
 
         $stmt->execute();
-        echo json_encode(['success' => true, 'message' => 'User updated successfully']);
+        echo json_encode(['success' => true, 'message' => 'User updated successfully', "status" => "success"]);
+        PusherHelper::send("users-channel", "modify-user", ["msg" => "User updated successfully"]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Error updating user: ' . $e->getMessage()]);
     }
-
 } catch (ExpiredException $e) {
     http_response_code(401);
     echo json_encode(["error" => "Token expired"]);
-} catch (Exception $e) {
+    logError("Token expired: " . $e->getMessage(), "ERROR");
+} catch (UnexpectedValueException $e) {
     http_response_code(401);
     echo json_encode(["error" => "Invalid token"]);
+    logError("Invalid token: " . $e->getMessage(), "ERROR");
 }

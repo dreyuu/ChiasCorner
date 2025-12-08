@@ -1,224 +1,280 @@
+/* ===== MAIN CONTAINER ===== */
 .sales-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 30px auto;
-    width: 100%;
+  display: flex;
+  gap: 30px;
+  width: 95%;
+  max-width: 1400px;
+  margin: 30px auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  align-items: flex-start;
 }
 
-.sales-content {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 1100px;
-    gap: 20px;
-}
-
+/* ===== SIDEBAR FILTER ===== */
 .sales-filter {
-    background: rgba(87, 63, 28, 0.9);
-    padding: 25px;
-    border-radius: 12px;
-    margin-right: 5%;
-    width: 40% ;
-    color: white;
-    flex-grow: 0;
+  background: linear-gradient(180deg, #1B1B1B, #2C2C2C);
+  /* dark gray/black gradient */
+  padding: 25px;
+  border-radius: 12px;
+  width: 280px;
+  color: #FFD428;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  position: sticky;
+  top: 110px;
+  min-height: 450px;
+  justify-content: space-between;
+}
+
+.sales-filter h2 {
+  font-size: 20px;
+  text-align: center;
+  border-bottom: 1px solid #FFD428;
+  padding-bottom: 8px;
 }
 
 .sales-filter label {
-    font-weight: bold;
-    font-size: 18px;
-    display: block;
-    margin-bottom: 5px;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
 .sales-filter input,
 .sales-filter select {
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-    width: 100%;
-    margin-bottom: 10px;
-    text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
 }
 
-.generate-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    margin-top: 10px;
-    width: 100%;
-}
-
-.clear-btn,
+/* Buttons */
+.generate-btn,
 .download-btn,
-.generate-btn {
-    background: #FFD428;
-    border: none;
-    padding: 10px 20px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: 0.3s;
-    width: 40%;
+.clear-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  margin-top: 10px;
+  transition: 0.3s;
 }
 
-.generate-btn {
-    width: 87% !important;
+.generate-btn,
+.download-btn {
+  background: #FFD428;
+  color: #000;
+}
+
+.generate-btn:hover,
+.download-btn:hover {
+  background: #FFC107;
 }
 
 .clear-btn {
-    background: #fff;
+  background: #fff;
+  color: #3E2723;
 }
+
 .clear-btn:hover {
-    background: #eea620;
-    color: black;
-}
-.download-btn:hover,
-.generate-btn:hover {
-    background: black;
-    color: #FFD428;
+  background: #FFE082;
 }
 
-.chart-container {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-        width: 60%;
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* ===== DASHBOARD ===== */
+.dashboard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
-
+/* ===== STATS CARDS ===== */
 .stats-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    max-width: 1100px;
-    margin-top: 20px;
-    width: 100%;
-}
-
-.sales-stats {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    width: 45%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  justify-items: center;
 }
 
 .stat-box {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 18px;
-    margin-right: 12%;
-    font-weight: bold;
-    width: 89%;
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Icon inside stat */
+.stat-box i {
+  font-size: 28px;
+  color: #FFD428;
+  margin-bottom: 8px;
 }
 
 .stat-box span {
-    display: block;
-    font-size: 26px;
-    margin-top: 1.6rem;
-    background-color: #FFD428;
-    border-radius: 5px;
+  display: block;
+  margin-top: 10px;
+  font-size: 22px;
+  background: linear-gradient(90deg, #FFD428, #FFC107);
+  border-radius: 6px;
+  padding: 5px 0;
+  width: 100%;
+  text-align: center;
+  color: #000;
 }
 
-.chart-container.small {
-    width: 60%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2);
+/* ===== CHARTS ===== */
+.chart-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 }
 
-
-
-.chart-container.small h3 {
-    margin-block: 2%;
-    font-size: 1.5rem;
+.chart-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
-/* Footer Section */
+.chart-container h3 {
+  margin-bottom: 12px;
+  color: #333;
+}
 
+.no-sales-data,
+.no-category-data {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* ===== PRODUCTS SECTION ===== */
+.products-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.products-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.products-box h3 {
+  margin-bottom: 10px;
+}
+
+.products-box ul {
+  list-style: none;
+  padding-left: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.products-box li {
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+/* ===== STAFF TABLE ===== */
+.staff-sales {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.staff-sales h3 {
+  margin-bottom: 10px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+#staff-sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+#staff-sales-table th,
+#staff-sales-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+#staff-sales-table th {
+  background-color: #FFD428;
+  color: #000;
+}
+
+/* ===== FOOTER ===== */
 .footer {
-    background: #141414;
-    color: #FFD428;
-    padding: 15px;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
+  background: #141414;
+  color: #FFD428;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  margin-top: 30px;
+  border-top: 3px solid #FFD428;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .sales-container {
+    flex-direction: column;
+  }
+
+  .sales-filter {
     width: 100%;
-    margin-top: auto;
+    position: relative;
+    top: 0;
+  }
+
+  .chart-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
-    .sales-container {
-        align-items: center;
-    }
+  .stats-container {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
 
-    .sales-content {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-
-    .sales-filter,
-    .chart-container,
-    .chart-container.small,
-    .sales-stats,
-    .stat-box {
-        width: 90% !important;
-        margin-right: 0;
-    }
-
-    .sales-filter input,
-    .sales-filter select {
-        font-size: 14px;
-        padding: 8px;
-    }
-
-    .generate-buttons {
-        flex-direction: column;
-        width: 100%;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .clear-btn,
-    .download-btn,
-    .generate-btn {
-        width: 100% !important;
-        font-size: 14px;
-        padding: 10px;
-    }
-
-    .stats-container {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-
-    .stat-box span {
-        font-size: 20px;
-        margin-top: 1rem;
-    }
-
-    .chart-container.small h3 {
-        font-size: 1rem;
-    }
-
-    .footer {
-        font-size: 14px;
-        padding: 8px;
-    }
+  .stat-box span {
+    font-size: 18px;
+  }
 }
-

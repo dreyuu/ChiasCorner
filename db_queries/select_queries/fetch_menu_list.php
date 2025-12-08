@@ -1,5 +1,5 @@
 <?php
-include '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 try {
     // Fetch menu items
@@ -23,4 +23,3 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);
 }
-?>

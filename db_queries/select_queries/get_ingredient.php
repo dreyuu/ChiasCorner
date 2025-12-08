@@ -1,5 +1,5 @@
 <?php
-include '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 if (isset($_GET['id'])) {
     $ingredient_id = $_GET['id'];
@@ -18,4 +18,3 @@ if (isset($_GET['id'])) {
         echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
     }
 }
-?>

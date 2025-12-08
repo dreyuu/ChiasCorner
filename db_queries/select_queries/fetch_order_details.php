@@ -1,5 +1,6 @@
 <?php
-require '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 $order_id = $_GET['order_id'] ?? null;
 
@@ -27,7 +28,7 @@ try {
 
     // Fetch ordered items
     $stmt = $connect->prepare("
-        SELECT m.menu_id, m.name, oi.quantity, oi.price 
+        SELECT m.menu_id, m.name, oi.quantity, oi.price
         FROM order_items oi
         JOIN menu m ON oi.menu_id = m.menu_id
         WHERE oi.order_id = :order_id
@@ -41,7 +42,7 @@ try {
         FROM order_ingredients oi
         JOIN ingredients i ON oi.ingredient_id = i.ingredient_id
         JOIN menu_ingredients mi ON i.ingredient_id = mi.ingredient_id
-        WHERE oi.order_id = :order_id 
+        WHERE oi.order_id = :order_id
     ");
     $stmt->execute([':order_id' => $order_id]);
     $ingredients = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -53,8 +54,8 @@ try {
 
     // Fetch active promotions valid today
     $stmt = $connect->prepare("
-        SELECT * FROM promotions 
-            WHERE status = 'active' 
+        SELECT * FROM promotions
+            WHERE status = 'active'
             AND :today BETWEEN start_date AND end_date
     ");
     $stmt->execute([':today' => $today]);
@@ -104,8 +105,8 @@ try {
         "promo_discount_total" => round($promo_discount_total, 2),
         "final_total_price" => round($final_total_price, 2)
     ]);
-
 } catch (Exception $e) {
     echo json_encode(["error" => "Error fetching order details: " . $e->getMessage()]);
+    logError("Error fetching order details: " . $e->getMessage(), "ERROR");
+    http_response_code(500);  // Internal Server Error
 }
-?>

@@ -1,5 +1,5 @@
 <?php
-include_once '../../connection.php';
+include_once __DIR__ . '/../../connection.php';
 
 try {
     // Get menu type from query parameters
@@ -76,7 +76,7 @@ try {
                 ";
 
             // if ($sufficient) {
-                echo "
+            echo "
                     <div class='item-bottom'>
                         <strong class='item-price' id='item_price'>$price</strong>
                         <div class='item-controls'>

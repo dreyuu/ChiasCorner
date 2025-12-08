@@ -1,6 +1,7 @@
 <?php
-require '../../connection.php'; // Your database connection file
-
+include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 // Get JSON data from frontend
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -19,8 +20,8 @@ try {
 
     // Step 1: Update consumed quantity in order_ingredients
     // foreach ($consumed_ingredients as $ingredient) {
-    //     $stmt = $connect->prepare("UPDATE order_ingredients 
-    //                             SET quantity_required = :quantity 
+    //     $stmt = $connect->prepare("UPDATE order_ingredients
+    //                             SET quantity_required = :quantity
     //                             WHERE order_id = :order_id AND ingredient_id = :ingredient_id");
     //     $stmt->execute([
     //         ':quantity' => $ingredient['quantity'],
@@ -35,8 +36,8 @@ try {
     //     $neededQty = $ingredient['quantity'];
 
     //     // Fetch batches ordered by expiration date ASC (nearest to expire)
-    //     $stmt = $connect->prepare("SELECT batch_id, quantity FROM stock_batches 
-    //                                 WHERE ingredient_id = :ingredient_id 
+    //     $stmt = $connect->prepare("SELECT batch_id, quantity FROM stock_batches
+    //                                 WHERE ingredient_id = :ingredient_id
     //                                 ORDER BY expiration_date ASC");
     //     $stmt->execute([':ingredient_id' => $ingredientId]);
     //     $batches = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -54,8 +55,8 @@ try {
     //             $usedQty = $batchQty;
     //         } else {
     //             // Partially consume this batch
-    //             $stmt = $connect->prepare("UPDATE stock_batches 
-    //                                         SET quantity = quantity - :quantity 
+    //             $stmt = $connect->prepare("UPDATE stock_batches
+    //                                         SET quantity = quantity - :quantity
     //                                         WHERE batch_id = :batch_id");
     //             $stmt->execute([
     //                 ':quantity' => $neededQty,
@@ -79,7 +80,7 @@ try {
     //         $stmt->execute([':ingredient_id' => $ingredientId]);
     //     } else {
     //         // Update inventory stock
-    //         $stmt = $connect->prepare("UPDATE inventory SET current_stock = current_stock - :quantity 
+    //         $stmt = $connect->prepare("UPDATE inventory SET current_stock = current_stock - :quantity
     //                             WHERE ingredient_id = :ingredient_id");
     //         $stmt->execute([
     //             ':quantity' => $ingredient['quantity'] - $neededQty,
@@ -89,7 +90,7 @@ try {
 
 
     //     // Step 4: Insert Inventory Transaction
-    //     $stmt = $connect->prepare("INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit) 
+    //     $stmt = $connect->prepare("INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit)
     //                             VALUES (:ingredient_id, 'usage', :quantity, (SELECT unit FROM ingredients WHERE ingredient_id = :ingredient_id))");
     //     $stmt->execute([
     //         ':ingredient_id' => $ingredient['ingredient_id'],
@@ -98,7 +99,7 @@ try {
     // }
 
     // Step 5: Insert Payment Details
-    $stmt = $connect->prepare("INSERT INTO payments (order_id, amount_paid, payment_method, payment_status) 
+    $stmt = $connect->prepare("INSERT INTO payments (order_id, amount_paid, payment_method, payment_status)
                             VALUES (:order_id, :amount_paid, :payment_method, 'paid')");
     $stmt->execute([
         ':order_id' => $order_id,
@@ -148,8 +149,8 @@ try {
     // $lowStockMsg = "";
     // foreach ($consumed_ingredients as $ingredient) {
     //     // Fetch ingredient name from ingredients table, not inventory
-    //     $stmt = $connect->prepare("SELECT i.ingredient_name, inv.current_stock 
-    //                                 FROM ingredients i 
+    //     $stmt = $connect->prepare("SELECT i.ingredient_name, inv.current_stock
+    //                                 FROM ingredients i
     //                                 JOIN inventory inv ON i.ingredient_id = inv.ingredient_id
     //                                 WHERE inv.ingredient_id = :ingredient_id");
     //     $stmt->execute([':ingredient_id' => $ingredient['ingredient_id']]);
@@ -167,7 +168,10 @@ try {
     $connect->commit();
 
     echo json_encode(["success" => true]);
+    PusherHelper::send("orders-channel", "modify-order", ["msg" => "Order processed successfully"]);
 } catch (Exception $e) {
     $connect->rollBack();
     echo json_encode(["error" => "Checkout failed: " . $e->getMessage()]);
+    logError("Checkout error: " . $e->getMessage(), "ERROR");
+    http_response_code(500);  // Internal Server Error
 }
