@@ -1,7 +1,9 @@
 <?php
 session_start();
 include_once __DIR__ . '/../../connection.php';
+require __DIR__ . '/../../components/pusher_helper.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+require __DIR__ . '/../../components/system_log.php';
 
 header('Content-Type: application/json');
 // Decode JSON input
@@ -116,6 +118,15 @@ try {
     $connect->commit();
 
     echo json_encode(["status" => "success", "message" => "Order updated successfully!", "order_id" => $order_id, "total_price" => $total_price]);
+    PusherHelper::send("orders-channel", "modify-order", ["msg" => "Order updated successfully"]);
+    logAction(
+        $connect,
+        $user_id,
+        'ORDER',
+        'ORDER_UPDATE',
+        "Order #$order_id updated",
+        $order_id
+    );
 } catch (PDOException $e) {
     $connect->rollBack();
     logError("Update order error: " . $e->getMessage(), "ERROR");

@@ -1,8 +1,13 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 
+include_once __DIR__ . '/../../components/system_log.php';
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieve action and other fields from the POST request
+    $ownerID = isset($_POST['owner_id']) ? $_POST['owner_id'] : null;
     $action = isset($_POST['actions']) ? $_POST['actions'] : null;
     $batch_id = isset($_POST['batch_id']) ? $_POST['batch_id'] : null;
     $ingredient_id = isset($_POST['item_id']) ? $_POST['item_id'] : null;
@@ -50,6 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':batch_id' => $batch_id
             ]);
             echo json_encode(['success' => true, 'message' => 'Batch quantity updated (added).']);
+            PusherHelper::send("inventory-channel", "modify-inventory", ["msg" => "Item added successfully"]);
+            logAction(
+                $connect,
+                $ownerID,        // admin who created the user
+                'INVENTORY',          // NOT AUTH
+                'ADD INVENTORY',   // specific action type
+                "Item Added: $ingredient_id, Quantity: $quantity"
+            );
         } elseif ($action == 'subtract') {
             // Subtract stock batch: Subtract quantity, and potentially update other fields
             $query = "UPDATE stock_batches
@@ -72,13 +85,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Check if any rows were affected
             if ($stmt->rowCount() > 0) {
                 echo json_encode(['success' => true, 'message' => 'Batch quantity updated (subtracted).']);
+                PusherHelper::send("inventory-channel", "modify-inventory", ["msg" => "Item subtracted successfully"]);
+                logAction(
+                    $connect,
+                    $ownerID,        // admin who created the user
+                    'INVENTORY',          // NOT AUTH
+                    'SUBTRACT INVENTORY',   // specific action type
+                    "Item Subtracted: $ingredient_id, Quantity: $quantity"
+                );
             } else {
                 echo json_encode(['success' => false, 'message' => 'Insufficient quantity to subtract.']);
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid action.']);
+            logerror("Invalid action provided for updating batch: " . $action, "ERROR");
         }
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Error updating batch: ' . $e->getMessage()]);
+        logError("Database error updating batch: " . $e->getMessage(), "ERROR");
     }
 }

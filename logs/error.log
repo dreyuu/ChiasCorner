@@ -7,3 +7,5 @@
 [2025-12-06 16:53:48] [ERROR] [::1] [C:\xampp\htdocs\php-files\ChiasCorner\db_queries\delete_queries\remove_user.php:37] Invalid token access attempt: Wrong number of segments
 [2025-12-07 15:13:27] [ERROR] [::1] [C:\xampp\htdocs\php-files\ChiasCorner\db_queries\insert_queries\generate_pin.php:65] Error: Call to a member function prepare() on null
 [2025-12-07 15:24:17] [ERROR] [::1] [C:\xampp\htdocs\php-files\ChiasCorner\db_queries\select_queries\fetch_user.php:31] Database error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pin_auth' in 'field list'
+[2026-01-06 06:51:00] [ERROR] [::1] [C:\xampp\htdocs\php-files\ChiasCorner\db_queries\insert_queries\process_checkout.php:185] Checkout error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '178' for key 'order_id'
+[2026-01-22 08:57:34] [ERROR] [::1] [C:\xampp\htdocs\php-files\ChiasCorner\db_queries\select_queries\fetch_dashboard_data.php:245] Error fetching dashboard data: SQLSTATE[HY000]: General error: 2006 MySQL server has gone away

@@ -8,6 +8,8 @@ include 'inc/navbar.php';
 
 <link rel="stylesheet" href="css/inventory.css">
 
+<!-- Font Awesome Free (CDN) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <div class="custom-modal-overlay"></div>
 
@@ -78,21 +80,27 @@ include 'inc/navbar.php';
     </div>
 
     <!-- Ingredients Table -->
-    <table class="custom-ingredients-table">
-        <thead>
-            <tr>
-                <th>Ingredient ID</th>
-                <th>Ingredients</th>
-                <th>Category</th>
-                <th>Unit</th>
-                <th>Date Added</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="ingredients-list-body"></tbody>
-    </table>
+    <div class="paginated-table">
+        <table class="custom-ingredients-table">
+            <thead>
+                <tr>
+                    <th>Ingredient ID</th>
+                    <th>Ingredients</th>
+                    <th>Category</th>
+                    <th>Unit</th>
+                    <th>Date Added</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="ingredients-list-body"></tbody>
+        </table>
+        <!-- <div class="pagination-container">
+            <button id="prevPageIng">Previous</button>
+            <span id="pageInfoIng"></span>
+            <button id="nextPageIng">Next</button>
+        </div> -->
+    </div>
 </div>
-
 
 
 <div class="inventory-container">
@@ -105,10 +113,12 @@ include 'inc/navbar.php';
                     </select>
                     <button class="add-list add-ingredients-btn" id="add-ingredients">+</button>
                 </div>
-                <input type="text" placeholder="Supplier Name" maxlength="100" name="supplier_name" required>
+                <input type="text" placeholder="Supplier Name" maxlength="100" name="supplier_name">
                 <input type="text" id="number-only" placeholder="Stock Quantity" maxlength="6" name="stock_quantity" required>
                 <input type="text" id="number-only" placeholder="Item Cost" maxlength="6" name="item_cost" required>
+                <!-- <label for="date_input">Expiration Date</label> -->
                 <input type="date" id="date-input" min="2021-01-01" placeholder="Expiration Date" name="expiration_date" required>
+
                 <!-- <select>
                         <option>Category</option>
                     </select> -->
@@ -125,7 +135,7 @@ include 'inc/navbar.php';
         <button class="waster" id="inventory">Inventory</button>
         <button class="waster" id="invTransaction">Transactions</button>
         <button class="waster" id="wastage">Wastage</button>
-        <button class="waster" id="payments">Payments</button>
+        <!-- <button class="waster" id="payments">Payments</button> -->
         <select id="sortOptions">
             <option disabled>Sort of...</option>
             <option value="name_asc">Ingredient Name (A-Z)</option>
@@ -142,22 +152,29 @@ include 'inc/navbar.php';
         <input type="text" placeholder="Search..." id="searchInput">
     </div>
 
-    <table class="inventory-table">
-        <thead id="tableHead">
-            <tr>
-                <th>Item Name</th>
-                <th>Category</th>
-                <th>Stock Quantity</th>
-                <th>Expiration Date</th>
-                <th>Supplier Name</th>
-                <th>Cost</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="inventoryBody">
+    <div class="paginated-table">
+        <table class="inventory-table">
+            <thead id="tableHead">
+                <tr>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Stock Quantity</th>
+                    <th>Expiration Date</th>
+                    <th>Supplier Name</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryBody">
 
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+        <!-- <div class="pagination-container">
+            <button id="prevPageInv">Previous</button>
+            <span id="pageInfoInv"></span>
+            <button id="nextPageInv">Next</button>
+        </div> -->
+    </div>
 </div>
 
 
@@ -204,22 +221,34 @@ include 'inc/navbar.php';
     </div>
 
     <!-- Ingredients Table -->
-    <table class="update-inventory-table">
-        <thead>
-            <tr>
-                <th>Batch ID</th>
-                <th>Ingredient</th>
-                <th>Supplier</th>
-                <th>Quantity</th>
-                <th>Cost</th>
-                <th>Expiration Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="update-inventory-body"></tbody>
-    </table>
+    <div class="paginated-table">
+        <table class="update-inventory-table">
+            <thead>
+                <tr>
+                    <th>Batch ID</th>
+                    <th>Ingredient</th>
+                    <th>Supplier</th>
+                    <th>Quantity</th>
+                    <th>Cost</th>
+                    <th>Expiration Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="update-inventory-body"></tbody>
+        </table>
+        <!-- <div class="pagination-container">
+            <button id="prevPageUp">Previous</button>
+            <span id="pageInfoUp"></span>
+            <button id="nextPageUp">Next</button>
+        </div> -->
+    </div>
 </div>
 
+<div class="alerts">
+    <div id="success-alert" class="alert alert-success"></div>
+    <div id="error-alert" class="alert alert-danger"></div>
+    <div id="warning-alert" class="alert alert-warning"></div>
+</div>
 <!-- Chian's Footer Section -->
 <footer class="footer">
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
@@ -227,6 +256,41 @@ include 'inc/navbar.php';
 </div>
 
 <script>
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+        // alert('Restricted Access, Amin only')
+        showAlert('warning-alert', 'Restricted Access, Amin only')
+        location.href = 'index.php'
+    }
+
+    // Decode token
+    const base64 = token.split('.')[1];
+    const json = atob(base64);
+    const payload = JSON.parse(json);
+
+    const ownerID = payload.user_id;
+
+    function showAlert(alertId, message) {
+        let alertBox = document.getElementById(alertId);
+        if (alertBox) {
+            alertBox.innerText = message;
+            alertBox.style.visibility = "visible"; // Make alert visible
+            alertBox.style.opacity = 1; // Fade in
+            alertBox.style.top = "0"; // Slide down
+
+            setTimeout(() => {
+                alertBox.style.opacity = 0; // Fade out
+                alertBox.style.top = "-70px"; // Slide up
+
+                setTimeout(() => {
+                    alertBox.style.visibility = "hidden"; // Hide alert after fading out
+                    alertBox.innerText = ""; // Clear alert message
+                }, 300); // Delay visibility change to allow for the fade-out effect
+            }, 3000); // Alert stays for 3 seconds
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         const searchInput = document.getElementById("searchInput");
         const sortOptions = document.getElementById("sortOptions");
@@ -351,18 +415,21 @@ include 'inc/navbar.php';
                 // If ingredient ID is present, this is an update operation
                 submitButton.textContent = "Update Inventory";
                 inventoryForm.setAttribute('action', 'db_queries/update_queries/update_inventory.php');
-                alert("Updating inventory...");
+                // alert("Updating inventory...");
+                showAlert('success-alert', 'Updating inventory...');
             } else {
                 // If no ingredient ID, default action is to add new inventory
                 submitButton.textContent = "Add to Inventory";
                 inventoryForm.setAttribute('action', 'db_queries/insert_queries/insert_inventory.php');
-                alert('Adding new inventory...');
+                // alert('Adding new inventory...');
+                showAlert('success-alert', 'Adding new inventory...');
             }
 
             // Create FormData object for the form submission
             const formData = new FormData(inventoryForm);
-
+            formData.append('owner_id', ownerID);
             // Use fetch to submit the form data to the correct PHP script
+            loader.show(); // Show loader before fetch
             fetch(inventoryForm.action, { // Dynamically use the form's action attribute
                     method: 'POST',
                     body: formData
@@ -370,16 +437,21 @@ include 'inc/navbar.php';
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message); // Display success message
+                        // alert(data.message); // Display success message
+                        showAlert('success-alert', data.message);
                         fetchAndDisplay('inventory'); // Refresh inventory data (assuming this is a function you've defined)
                         resetInventoryForm(); // Reset form after successful submission
                     } else {
-                        alert(data.message); // Display error message
+                        // alert(data.message); // Display error message
+                        showAlert('error-alert', data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     alert("An error occurred. Please try again.");
+                })
+                .finally(() => {
+                    loader.hide(); // Hide loader after fetch completes
                 });
         });
 
@@ -473,24 +545,29 @@ include 'inc/navbar.php';
         CustomAlert.confirm("Are you sure you want to remove this item from inventory?", "warning")
             .then(result => {
                 if (!result) return;
-
+                loader.show(); // Show loader before fetch
                 fetch(`db_queries/delete_queries/remove_item.php`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            ingredient_id: id
+                            ingredient_id: id,
+                            owner_id: ownerID
                         })
                     })
                     .then(response => response.json())
                     .then(data => {
-                        alert(data.message);
+                        // alert(data.message);
+                        showAlert(data.success ? 'success-alert' : 'error-alert', data.message);
                         if (data.success) {
                             fetchAndDisplay('inventory');
                         }
                     })
-                    .catch(error => console.error('Error:', error));
+                    .catch(error => console.error('Error:', error))
+                    .finally(() => {
+                        loader.hide(); // Hide loader after fetch completes
+                    });
             });
     }
 
@@ -507,31 +584,31 @@ include 'inc/navbar.php';
         // Event listener for dynamically created edit buttons
         document.getElementById("inventoryBody").addEventListener("click", function(event) {
             event.preventDefault();
-            if (event.target.classList.contains("edit-btn")) {
-                const ingredient_id = event.target.dataset.id;
+            if (event.target.closest(".edit-btn")) {
+                const ingredient_id = JSON.parse(event.target.closest(".edit-btn").dataset.id);
                 // fetchInventory(ingredient_id);
                 openInventoryModal(ingredient_id);
             }
 
-            if (event.target.classList.contains('remove-btn')) {
-                const ingredient_id = event.target.dataset.id;
+            if (event.target.closest(".remove-btn")) {
+                const ingredient_id = JSON.parse(event.target.closest(".remove-btn").dataset.id);
 
                 removeFromInventory(ingredient_id);
             }
         });
 
         document.getElementById("update-inventory-body").addEventListener('click', function(e) {
-            if (e.target.classList.contains('add') || e.target.classList.contains('subtract')) {
+            if (e.target.closest('.add') || e.target.closest('.subtract')) {
                 // Get the batch_id and action (add or subtract)
-                const batch_id = e.target.dataset.id;
-                const action = e.target.dataset.action;
+                const batch_id = JSON.parse(e.target.closest('.add') ? e.target.closest('.add').dataset.id : e.target.closest('.subtract').dataset.id);
+                const action = JSON.parse(e.target.closest('.add') ? e.target.closest('.add').dataset.action : e.target.closest('.subtract').dataset.action);
 
                 // Call the function to populate the batch form with the respective action
                 populateBatchForm(batch_id, action);
             }
-            if (e.target.classList.contains('remove')) {
-                const batch_id = e.target.dataset.id;
-                const item_id = e.target.dataset.item;
+            if (e.target.closest('.remove')) {
+                const batch_id = JSON.parse(e.target.closest('.remove').dataset.id);
+                const item_id = e.target.closest('.remove').dataset.item;
                 removeBatch(batch_id, item_id);
             }
 
@@ -571,11 +648,11 @@ include 'inc/navbar.php';
                         <td>₱${batch.cost}</td>
                         <td>${batch.expiration_date}</td>
                         <td>
-                            <button class="edit-btn add" data-id="${batch.batch_id}" data-action="add">Add</button>
-                            <button class="remove-btn subtract" data-id="${batch.batch_id}" data-action="subtract">Subtract</button>
-                            <button class="remove-btn remove" data-id="${batch.batch_id}" data-item=${batch.ingredient_id}>Remove</button>
-                        </td>
-                    `;
+                            <button class="edit-btn add" data-id="${batch.batch_id}" data-action="add"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="remove-btn subtract" data-id="${batch.batch_id}" data-action="subtract"><i class="fa-solid fa-minus"></i></button>
+                            <button class="remove-btn remove" data-id="${batch.batch_id}" data-item=${batch.ingredient_id}><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                            `;
 
                             batchesListBody.appendChild(row);
                             count++;
@@ -624,20 +701,25 @@ include 'inc/navbar.php';
 
                 // Add any additional fields or logic (like the action) to the FormData if needed
                 formData.append('action', action); // Add action if necessary, otherwise you may want to handle this on the front end too
-
+                formData.append('owner_id', ownerID);
+                loader.show(); // Show loader before fetch
                 fetch('db_queries/update_queries/update_batches.php', {
                         method: 'POST',
                         body: formData // Send the FormData to the server
                     })
                     .then(response => response.json()) // Parse JSON response from the server
                     .then(data => {
-                        alert(data.message);
+                        // alert(data.message);
+                        showAlert(data.success ? 'success-alert' : 'error-alert', data.message);
                         if (data.success) {
                             stockBatches(formData.get('item_id')); // Refresh the batch list
                             batchForm.reset();
                         }
                     })
-                    .catch(error => console.error("Error:", error)); // Handle errors
+                    .catch(error => console.error("Error:", error))
+                    .finally(() => {
+                        loader.hide(); // Hide loader after fetch completes
+                    });
             });
         }
 
@@ -645,24 +727,29 @@ include 'inc/navbar.php';
             CustomAlert.confirm("Are you sure you want to remove this batch?", "warning")
                 .then(result => {
                     if (!result) return;
-
+                    loader.show(); // Show loader before fetch
                     fetch(`db_queries/delete_queries/remove_batch.php`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                batch_id: batch_id
+                                batch_id: batch_id,
+                                owner_id: ownerID
                             })
                         })
                         .then(response => response.json())
                         .then(data => {
-                            alert(data.message);
+                            // alert(data.message);
+                            showAlert(data.success ? 'success-alert' : 'error-alert', data.message);
                             if (data.success) {
                                 stockBatches(item_id);
                             }
                         })
-                        .catch(error => console.error('Error:', error));
+                        .catch(error => console.error('Error:', error))
+                        .finally(() => {
+                            loader.hide(); // Hide loader after fetch completes
+                        })
                 });
 
         }
@@ -724,27 +811,33 @@ include 'inc/navbar.php';
                 }
                 console.log(ingredientId)
                 const formData = new FormData(addIngredientForm);
+                formData.append('owner_id', ownerID);
                 let url = ingredientId ? 'db_queries/update_queries/update_ingredient.php' : 'db_queries/insert_queries/insert_ingredient.php';
 
+                loader.show(); // Show loader before fetch
                 fetch(url, {
                         method: 'POST',
                         body: formData
                     })
                     .then(response => response.json())
                     .then(data => {
-                        alert(data.message);
-
+                        // alert(data.message);
+                        showAlert(data.success ? 'success-alert' : 'error-alert', data.message);
                         if (data.success) {
                             addIngredientForm.reset();
                             document.getElementById('id_ingredient').value = ""; // Clear ingredient ID after update
                             document.getElementById('submit-ingredient').textContent = "ADD"; // Reset button text
                             fetchIngredientList();
+                            fetchIngredient(); // Refresh ingredient dropdowns
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         alert("An error occurred.");
-                    });
+                    })
+                    .finally(() => {
+                        loader.hide(); // Hide loader after fetch completes
+                    })
             });
         }
 
@@ -770,8 +863,8 @@ include 'inc/navbar.php';
                             <td>${item.unit}</td>
                             <td>${item.date_added}</td>
                             <td>
-                                <button class="edit-btn" onclick="editItem(${item.ingredient_id})">Update</button>
-                                <button class="remove-btn" onclick="removeItem(${item.ingredient_id})">Remove</button>
+                                <button class="edit-btn" onclick="editItem(${item.ingredient_id})"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button class="remove-btn" onclick="removeItem(${item.ingredient_id})"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         `;
 
@@ -835,7 +928,7 @@ include 'inc/navbar.php';
         const inventoryBtn = document.getElementById('inventory');
         const invTransactionBtn = document.getElementById('invTransaction');
         const wastageBtn = document.getElementById('wastage');
-        const paymentsBtn = document.getElementById('payments');
+        // const paymentsBtn = document.getElementById('payments');
 
         inventoryBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -849,10 +942,10 @@ include 'inc/navbar.php';
             e.preventDefault();
             fetchAndDisplay('wastage');
         })
-        paymentsBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            fetchAndDisplay('payments');
-        })
+        // paymentsBtn.addEventListener('click', function(e) {
+        //     e.preventDefault();
+        //     fetchAndDisplay('payments');
+        // })
 
 
     })
@@ -981,8 +1074,8 @@ include 'inc/navbar.php';
             <td>₱${totalCost.toFixed(2)}</td>
             <td>
                 <div class="inv-action">
-                    <button class="edit-btn" data-id="${item.ingredient_id}">Update</button>
-                    <button class="remove-btn" data-id="${item.ingredient_id}">Remove</button>
+                    <button class="edit-btn" data-id="${item.ingredient_id}"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="remove-btn" data-id="${item.ingredient_id}"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </td>`;
             tbody.appendChild(row);
@@ -1060,6 +1153,17 @@ include 'inc/navbar.php';
         });
         totalItemSpan.textContent = itemCount;
     }
+
+    function getIngredient() {
+        fetchIngredient();
+        fetchIngredientList();
+    }
+    // Initialize manager
+    const pusherManager = new PusherManager("<?php echo $_ENV['PUSHER_KEY']; ?>", "<?php echo $_ENV['PUSHER_CLUSTER']; ?>");
+
+    // Fetch users on add or update
+    pusherManager.bind('inventory-channel', 'modify-inventory', () => fetchAndDisplay('inventory'), 200);
+    pusherManager.bind('ingredients-channel', 'modify-ingredients', () => getIngredient, 200);
 </script>
 
 

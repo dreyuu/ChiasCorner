@@ -4,6 +4,7 @@
 include_once __DIR__ . '/../../connection.php';
 require __DIR__ . '/../../vendor/autoload.php';  // Load the Composer autoloader
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+require __DIR__ . '/../../components/system_log.php';
 // Include JWT library
 use \Firebase\JWT\JWT;
 
@@ -39,16 +40,38 @@ try {
 
     if (!$user) {
         echo json_encode(["success" => false, "message" => "Invalid username or password"]);
+        logAction(
+            $connect,
+            null,
+            'AUTH',
+            'LOGIN_FAILED',
+            "Failed login attempt for username: $username"
+        );
         exit();
     }
 
     if (!password_verify($password, $user["password"])) {
         echo json_encode(["success" => false, "message" => "Invalid username or password"]);
+        logAction(
+            $connect,
+            null,
+            'AUTH',
+            'LOGIN_FAILED',
+            "Failed login attempt for username: $username"
+        );
         exit();
     }
 
     if ($user["status"] !== 'active') {
         echo json_encode(["success" => false, "message" => "User account is not active"]);
+        logAction(
+            $connect,
+            null,
+            'AUTH',
+            'LOGIN_FAILED',
+            "Failed login attempt for username: $username - Inactive account"
+        );
+
         exit();
     }
 
@@ -92,6 +115,14 @@ try {
         "token" => $jwt,
         "refresh_token" => $refreshToken  // Include the refresh token in the response
     ]);
+
+    logAction(
+        $connect,
+        $user['user_id'],
+        'AUTH',
+        'LOGIN',
+        'User logged in'
+    );
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);

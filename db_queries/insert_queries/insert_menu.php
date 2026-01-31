@@ -1,6 +1,7 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 include_once __DIR__ . '../../../components/pusher_helper.php';
+include_once __DIR__ . '../../../components/system_log.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 
@@ -9,6 +10,7 @@ try {
 
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         try {
+            $ownerID = $_POST['owner_id'] ?? null;
             $name = $_POST['name'] ?? null;
             $category = $_POST['category'] ?? null;
             $menu_type = $_POST['menu_type'] ?? null;
@@ -70,6 +72,13 @@ try {
                 if ($stmt->execute()) {
                     $response["success"] = true;
                     PusherHelper::send('menu-channel', 'modify-menu', ['msg' => 'Menu added successfully']);
+                    logAction(
+                        $connect,
+                        $ownerID,
+                        'MENU',
+                        'MENU_CREATE',
+                        "Menu $name created",
+                    );
                 } else {
                     throw new Exception("Database error: Unable to insert menu.");
                 }

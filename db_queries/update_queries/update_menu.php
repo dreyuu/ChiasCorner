@@ -1,12 +1,14 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 include_once __DIR__ . '../../../components/pusher_helper.php';
+include_once __DIR__ . '../../../components/system_log.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 $response = ["success" => false];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
+        $ownerID = $_POST['owner_id'] ?? null;
         $menu_id = $_POST['menu_id'] ?? null;
         $name = $_POST['name'] ?? null;
         $category = $_POST['category'] ?? null;
@@ -80,6 +82,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $response["success"] = true;
 
             PusherHelper::send('menu-channel', 'modify-menu', ['msg' => 'Menu updated successfully']);
+            logAction(
+                $connect,
+                $ownerID,
+                'MENU',
+                'MENU_UPDATE',
+                "Menu #$menu_id updated",
+                $menu_id
+            );
         } else {
             throw new Exception("Database error: Unable to update menu.");
         }

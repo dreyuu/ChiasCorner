@@ -19,11 +19,11 @@ $dotenv->load();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Chia's Corner Inventory </title>
+    <title> Samgyup Kaya Ordering System</title>
     <link rel="stylesheet" href="css/style.css">
 
     <!-- LOGO NI CHINA'S -->
-    <link rel="icon" href="Capstone Assets/LogoMain.ico" sizes="any" type="image/png">
+    <link rel="icon" href="Capstone Assets/newLogo.png" sizes="any" type="image/png">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -51,8 +51,8 @@ $dotenv->load();
     <!-- Mobile Header -->
     <div class="mobile-header">
         <div class="mobile-header-logo">
-            <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="sidebar-logo-img">
-            <a href="main.php" class="sidebar-logo">CHIA'S <br> CORNER</a>
+            <img src="Capstone Assets/newLogo.png" alt="Chia's Corner" class="sidebar-logo-img">
+            <a href="main.php" class="sidebar-logo">Samgyup Kaya</a>
         </div>
         <div class="hamburger" id="hamburger">&#9776;</div>
     </div>
@@ -60,8 +60,8 @@ $dotenv->load();
     <!-- Sidebar for Mobile -->
     <div class="sidebar" id="sidebar">
         <div class="mobile-header-logo">
-            <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="sidebar-logo-img">
-            <h1 href="main.php" class="sidebar-logo">CHIA'S <br> CORNER</h1>
+            <img src="Capstone Assets/newLogo.png" alt="Chia's Corner" class="sidebar-logo-img">
+            <h1 href="main.php" class="sidebar-logo">Samgyup Kaya</h1>
         </div>
         <a href="Main.php">HOME</a>
         <div class="sidebar-dropdown-container">
@@ -87,7 +87,10 @@ $dotenv->load();
     </div>
 
     <div class="header">
-        <a href="main.php" class="logo">CHIA'S <br> CORNER</a>
+        <div class="logo-header">
+            <img src="Capstone Assets/newLogo.png" alt="Chia's Corner" class="nav-bar-logo">
+            <a href="main.php" class="logo">Samgyup Kaya</a>
+        </div>
         <div class="nav">
             <a href="Main.php">HOME</a>
             <div class="dropdown-container">
@@ -100,7 +103,7 @@ $dotenv->load();
             </div>
             <div class="admin">
                 <a href="Sales.php">SALES</a>
-                <!-- <a href="Inventory.php">INVENTORY</a> -->
+                <a href="Inventory.php">INVENTORY</a>
                 <a href="account.php">ACCOUNTS</a>
             </div>
         </div>
@@ -421,11 +424,11 @@ $dotenv->load();
             fetch('db_queries/insert_queries/fetch_wastage.php') // 🔁 Change this to your actual PHP file path
                 .then(response => response.json())
                 .then(data => {
-                    // if (data.success) {
-                    //     console.log("✅ Cleanup ran successfully:", data.message);
-                    // } else {
-                    //     console.error("⚠️ Cleanup failed:", data.message);
-                    // }
+                    if (data.success) {
+                        console.log("✅ Cleanup ran successfully:", data.message);
+                    } else {
+                        console.error("⚠️ Cleanup failed:", data.message);
+                    }
                 })
                 .catch(error => console.error("❌ Error running cleanup:", error));
         }

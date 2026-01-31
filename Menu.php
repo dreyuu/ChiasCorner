@@ -327,6 +327,21 @@ if (isset($_GET['order_id'])) {
 
 
 <script>
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+        // alert('Restricted Access, Amin only')
+        showAlert('warning-alert', 'Restricted Access, Amin only')
+        location.href = 'index.php'
+    }
+
+    // Decode token
+    const base64 = token.split('.')[1];
+    const json = atob(base64);
+    const payload = JSON.parse(json);
+
+    const ownerID = payload.user_id;
+
     function showAlert(alertId, message) {
         let alertBox = document.getElementById(alertId);
         if (alertBox) {
@@ -680,7 +695,7 @@ if (isset($_GET['order_id'])) {
         let formData = new FormData(this);
         let menuId = document.getElementById("edit_menu_id").value;
         let actionUrl = menuId ? "db_queries/update_queries/update_menu.php" : "db_queries/insert_queries/insert_menu.php";
-
+        formData.append('owner_id', ownerID)
         loader.show()
         fetch(actionUrl, {
                 method: "POST",
@@ -756,7 +771,8 @@ if (isset($_GET['order_id'])) {
                     fetch("db_queries/delete_queries/delete_menu.php", {
                             method: "POST",
                             body: new URLSearchParams({
-                                menu_id: menuId
+                                menu_id: menuId,
+                                owner_id: ownerID
                             }),
                             headers: {
                                 "Content-Type": "application/x-www-form-urlencoded"
@@ -842,6 +858,7 @@ if (isset($_GET['order_id'])) {
 
         const form = new FormData(this);
         const isUpdate = form.get("promoId") !== "";
+        form.append('owner_id', ownerID)
 
         const url = isUpdate ?
             "db_queries/update_queries/update_promo.php" :
@@ -988,7 +1005,10 @@ if (isset($_GET['order_id'])) {
                             headers: {
                                 "Content-Type": "application/x-www-form-urlencoded"
                             },
-                            body: `promoId=${promoId}`
+                            body: {
+                                promoId: promoId,
+                                owner_id: ownerID
+                            }
                         })
                         .then(res => res.json())
                         .then(res => {

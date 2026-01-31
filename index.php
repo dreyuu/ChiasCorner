@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chia's Corner Login</title>
+    <title>Samgyup Kaya Login</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/menu.css">
-    <!-- LOGO NI CHINA'S -->
+    <!-- LOGO NI CHINA'S --></head>
 
     <link rel="icon" href="Capstone Assets/LogoMain.ico" sizes="any" type="image/png">
 
@@ -261,7 +261,7 @@
         </div>
         <div class="right">
             <form method="POST" id="loginForm" novalidate>
-                <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner" class="logo">
+                <img src="Capstone Assets/newLogo.png" alt="Chia's Corner" class="logo">
                 <div class="input-box">
                     <input type="text" id="username" placeholder="Enter Your Username.." required>
                 </div>

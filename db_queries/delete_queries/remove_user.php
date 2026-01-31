@@ -1,6 +1,7 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 include_once __DIR__ . '/../../components/pusher_helper.php';
+include_once __DIR__ . '/../../components/system_log.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 try {
@@ -14,6 +15,7 @@ try {
 
     // Get user_id from POST data
     $userId = $_POST['user_id'] ?? null;
+    $ownerID = $_POST['owner_id'] ?? null;
 
     // Validate user_id
     if (!$userId) {
@@ -33,6 +35,13 @@ try {
 
         // Notify other users via Pusher
         PusherHelper::send("users-channel", "modify-user", ["msg" => "User removed successfully"]);
+        logAction(
+            $connect,
+            $ownerID,        // admin who created the user
+            'USER',          // NOT AUTH
+            'USER_REMOVE',   // specific action type
+            "Removed User: $userId"
+        );
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to remove account']);
         logError("Remove user error: Failed to execute delete query", "ERROR");

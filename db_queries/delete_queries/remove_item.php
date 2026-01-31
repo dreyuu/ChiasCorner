@@ -1,9 +1,14 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+
+include_once __DIR__ . '/../../components/system_log.php';
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $ingredient_id = isset($data['ingredient_id']) ? $data['ingredient_id'] : null;
+    $ownerID = isset($data['owner_id']) ? $data['owner_id'] : null;
 
     if ($ingredient_id) {
         try {
@@ -41,6 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $connect->commit();
             echo json_encode(['success' => true, 'message' => 'Item and related data removed successfully.']);
+            PusherHelper::send("inventory-channel", "modify-inventory", ["msg" => "Item removed successfully"]);
+            logAction(
+                $connect,
+                $ownerID,        // admin who created the user
+                'INVENTORY',          // NOT AUTH
+                'REMOVE INVENTORY',   // specific action type
+                "Item Removed: $ingredient_id"
+            );
         } catch (PDOException $e) {
             $connect->rollBack();
             echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);

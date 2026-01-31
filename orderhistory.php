@@ -81,8 +81,8 @@ include 'inc/navbar.php';
         fetchOrders();
 
         document.querySelector('#orderTable tbody').addEventListener('click', function(e) {
-            if (e.target.classList.contains('view-btn')) {
-                const orderId = e.target.getAttribute('data-order-id');
+            if (e.target.closest('.view-btn')) {
+                const orderId = JSON.parse(e.target.closest('.view-btn').dataset.orderId);
                 ShowReceipt(orderId);
             }
         });
@@ -250,8 +250,8 @@ include 'inc/navbar.php';
 
                 let receiptHeader = `
                 <div class="exo-receipt-header">
-                    <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="exo-receipt-logo">
-                    <h2>CHIA'S CORNER</h2>
+                    <img src="Capstone Assets/newLogo.png" alt="Chia's Corner Logo" class="exo-receipt-logo">
+                    <h2>SamgyupKaya</h2>
                     <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
                     <p>Phone#: 0926 200 4346</p>
                 </div>
@@ -271,56 +271,55 @@ include 'inc/navbar.php';
 
                 items.forEach(item => {
                     receiptBody += `
-                    <div class="receipt-item">
-                        <div class="item-details">
-                            <div class="item-name">${item.name}</div>
-                            <span>${item.quantity} x ₱${parseFloat(item.price).toFixed(2)}</span>
+                        <div class="row">
+                            <span class="left">${item.name}</span>
+                            <span class="right">${item.quantity} x ₱${parseFloat(item.price).toFixed(2)}</span>
                         </div>
-                    </div>
                 `;
                 });
 
                 let receiptFooter = `
                 <div class="exo-receipt-separator"></div>
-                <div class="item-details exo-receipt-total">
-                    <p><strong>Grand Total:</strong></p>
-                    <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
+                <div class="row bold">
+                    <span class="left">Grand Total:</span>
+                    <span class="right"><strong>₱${grandTotal.toFixed(2)}</strong></span>
                 </div>
-                <div class="item-details">
-                    <p>Discount:</p>
-                    <span class="item-total">-₱${discount.toFixed(2)}</span>
+                <div class="row">
+                    <span class="left">Discount:</span>
+                    <span class="right">-₱${discount.toFixed(2)}</span>
                 </div>
                 <div class="exo-receipt-separator"></div>
-                <div class="item-details">
-                    <p>Paid Amount:</p>
-                    <span class="item-total">₱${paidAmount.toFixed(2)}</span>
+                <div class="row">
+                    <span class="left">Paid Amount:</span>
+                    <span class="right">₱${paidAmount.toFixed(2)}</span>
                 </div>
-                <div class="item-details">
-                    <p>Change:</p>
-                    <span class="item-total">₱${change.toFixed(2)}</span>
+                <div class="row">
+                    <span class="left">Change:</span>
+                    <span class="right">₱${change.toFixed(2)}</span>
                 </div>
+                <div class="row">
+                    <span class="left">VAT (12%):</span>
+                    <span class="right">₱${vatAmount.toFixed(2)}</span>
+                </div>
+                <div class="row">
+                    <span class="left">VATable Sales:</span>
+                    <span class="right">₱${vatableSales.toFixed(2)}</span>
+                </div>
+
+                <div class="row">
+                    <span class="left">VAT Exempt Sales:</span>
+                    <span class="right">₱${vatExempt.toFixed(2)}</span>
+                </div>
+                <div class="row">
+                    <span class="left">Zero-rated Sales:</span>
+                    <span class="right">₱${zeroRated.toFixed(2)}</span>
+                </div>
+
                 <div class="exo-receipt-footer">
-                    <p>This serves as your OFFICIAL RECEIPT</p>
-                    <p>Thank you and enjoy!</p>
+                    <span>This serves as your OFFICIAL RECEIPT</span>
+                    <span>Thank you and enjoy!</span>
                 </div>
             `;
-                //                <div class="item-details">
-                //                     <p>VAT (12%):</p>
-                //                     <span class="item-total">₱${vatAmount.toFixed(2)}</span>
-                //                 </div>
-                //                 <div class="item-details">
-                //                     <p>VATable Sales:</p>
-                //                     <span class="item-total">₱${vatableSales.toFixed(2)}</span>
-                //                 </div>
-
-                //                 <div class="item-details">
-                //                     <p>VAT Exempt Sales:</p>
-                //                     <span class="item-total">₱${vatExempt.toFixed(2)}</span>
-                //                 </div>
-                //                 <div class="item-details">
-                //                     <p>Zero-rated Sales:</p>
-                //                     <span class="item-total">₱${zeroRated.toFixed(2)}</span>
-                //                 </div>
                 receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
                 receiptList.appendChild(receiptContainer);
             })

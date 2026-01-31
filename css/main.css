@@ -1,220 +1,325 @@
-/* ========= GENERAL STYLES ========= */
+/* ========= GENERAL STYLES - UNCHANGED ========= */
 .charts-section {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .bg-section {
-  background: url('../Capstone Assets/Log-in Form BG.png') center/cover no-repeat;
-  width: 100%;
+    background: url('../Capstone Assets/Log-in Form BG.png') center/cover no-repeat;
+    width: 100%;
 }
 
 .charts-section .header-text {
-  font-size: 2.5rem;
-  font-weight: bold;
-  font-family: Arial, sans-serif;
-  margin-bottom: 30px;
-  color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    margin-bottom: 30px;
+    color: white;
 }
 
-/* ========= STATS + CHARTS LAYOUT ========= */
+/* ========= CHARTS LAYOUT (ADMIN) - UNCHANGED ========= */
 .dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: start;
-  justify-content: center;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto 50px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    justify-content: center;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto 50px;
 }
 
-/* ========= STATS COLUMN ========= */
+/* ========= STATS COLUMN (ADMIN) - UNCHANGED ========= */
 .stats-column {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
 }
 
 .stat-box {
-  background: #fff;
-  color: #000;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 20px 30px;
-  width: 100%;
-  max-width: 350px;
-  text-align: center;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+    background: #fff;
+    color: #000;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px 30px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
 }
 
 .stat-box:hover {
-  transform: translateY(-3px);
+    transform: translateY(-3px);
 }
 
 .stat-box span {
-  display: block;
-  font-size: 1.3em;
-  color: #333;
-  margin-top: 8px;
-  background-color: #FFD428;
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-weight: 700;
+    display: block;
+    font-size: 1.3em;
+    color: #333;
+    margin-top: 8px;
+    background-color: #FFD428;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-weight: 700;
 }
 
-/* ========= CHARTS COLUMN ========= */
+/* ========= CHARTS COLUMN (ADMIN) - UNCHANGED ========= */
 .charts-column {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
 }
 
 .chart-container {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px 25px;
-  width: 100%;
-  max-width: 500px;
-  border: 2px solid #333;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 25px;
+    width: 100%;
+    max-width: 500px;
+    border: 2px solid #333;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.ratio {
+    aspect-ratio: 1/1;
 }
 
 .chart-container h3 {
-  margin-bottom: 15px;
-  font-size: 1.2rem;
-  color: #333;
-  text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    color: #333;
+    text-align: center;
 }
 
-/* ========= STAFF TABLE ========= */
+/* ========= STAFF TABLE (WIDE LAYOUT PRESERVED) - SCROLL FIX APPLIED HERE ========= */
 .chart-container.wide {
-  width: 100%;
-  max-width: 1000px;
-  margin: 30px auto;
+    width: 100%;
+    max-width: 1000px;
+    margin: 30px auto;
+    /* Removed flex/max-height properties to keep the original layout intact */
 }
 
 .center-chart {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.center-chart .stat-box {
+    max-width: 100%;
 }
 
 .table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  color: #000;
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    color: #000;
+    /* Set a max-height on the table to constrain it */
+    max-height: 400px;
 }
 
 .table th,
 .table td {
-  padding: 12px;
-  border-bottom: 1px solid #ddd;
-  font-size: 0.95rem;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.95rem;
 }
 
 .table th {
-  background: #f8f8f8;
-  font-weight: bold;
+    background: #f8f8f8;
+    font-weight: bold;
 }
 
-/* ========= BOTTOM GRID (TOP + LEAST PRODUCTS) ========= */
+/* 🟢 FIX 1: Staff Table Body is scrollable and header is fixed */
+/* Wrap the table in a container in HTML or use the tbody block trick */
+/* We'll use a modified tbody trick to avoid modifying HTML: */
+.table thead {
+    /* Retain original header style */
+    background: #f8f8f8;
+    font-weight: bold;
+    /* Optional: Make header sticky within its container if needed, but risky without a wrapper */
+}
+
+.table {
+    /* The outer table must have 100% width, no max-height here */
+    width: 100%;
+}
+
+.table tbody {
+    /* This is the key scroll fix for tables:
+    1. Make tbody a block element.
+    2. Define max-height.
+    3. Enable scrolling.
+    */
+    display: block;
+    max-height: 300px;
+    /* Set max height for scroll area */
+    overflow-y: auto;
+    width: 100%;
+}
+
+.table thead,
+.table tbody tr {
+    /* Force table elements to align correctly after display: block on tbody */
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+
+/* ========= BOTTOM GRID (TOP + LEAST PRODUCTS) - SCROLL FIX APPLIED HERE ========= */
 .bottom-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 30px;
-  width: 90%;
-  max-width: 1000px;
-  margin: 0 auto 50px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    width: 90%;
+    max-width: 1000px;
+    margin: 0 auto 50px;
 }
 
 .bottom-grid .chart-container {
-  text-align: left;
-  align-items: flex-start;
+    text-align: left;
+    align-items: flex-start;
 }
 
-.bottom-grid ul {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0;
-  width: 100%;
+/* 🟢 FIX 3 & 4: Top/Least Products List scrolling */
+#topProductsList,
+#leastProductsList {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    width: 100%;
+
+    max-height: 300px;
+    /* Set max height for the list */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    padding-right: 10px;
+    /* Prevent content from touching scrollbar */
 }
 
 .bottom-grid li {
-  background: #f7f7f7;
-  margin-bottom: 8px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  color: #333;
-  width: 100%;
+    background: #f7f7f7;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #333;
+    width: 100%;
 }
 
-/* ========= EMPLOYEE SECTION ========= */
+/* ========= EMPLOYEE SECTION - SCROLL FIX APPLIED HERE ========= */
 #employeeSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding-top: 30px;
 }
 
 #employeeSection .stats-container,
 #employeeSection .sales-stats {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-/* ========= RESPONSIVE ========= */
+/* 🟢 FIX 2: My Orders List scrolling */
+#myOrdersList {
+    max-height: 300px;
+    /* Set max height for scroll area */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    padding-right: 10px;
+}
+
+/* ========= RESPONSIVE - UNCHANGED ========= */
 @media (max-width: 992px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
 
-  .charts-column {
-    align-items: center;
-  }
+    .charts-column {
+        align-items: center;
+    }
 
-  .chart-container,
-  .stat-box {
-    max-width: 90%;
-  }
+    .chart-container,
+    .stat-box {
+        max-width: 90%;
+    }
 
-  .bottom-grid {
-    grid-template-columns: 1fr;
-  }
+    .bottom-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #employeeSection .stats-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sales-stats {
+        min-width: auto;
+        width: 90%;
+        max-width: 500px;
+    }
+
+    .sales-stats .chart-container {
+        max-width: 100%;
+    }
+}
+
+.order-row {
+    background: #e9ecef;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #dee2e6;
+    box-shadow:
+        0 3px 5px rgba(0, 0, 0, 0.04),
+        0 8px 12px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.order-row:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 5px 8px rgba(0, 0, 0, 0.08),
+        0 15px 20px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 600px) {
-  .charts-section {
-    padding: 10% 5%;
-  }
+    .charts-section {
+        padding: 10% 5%;
+    }
 
-  .charts-section .header-text {
-    font-size: 2rem;
-  }
+    .charts-section .header-text {
+        font-size: 2rem;
+    }
 
-  .stat-box {
-    font-size: 16px;
-    padding: 15px;
-  }
+    .stat-box {
+        font-size: 16px;
+        padding: 15px;
+    }
 
-  .stat-box span {
-    font-size: 1.1em;
-  }
+    .stat-box span {
+        font-size: 1.1em;
+    }
 
-  .chart-container h3 {
-    font-size: 1rem;
-  }
+    .chart-container h3 {
+        font-size: 1rem;
+    }
 }

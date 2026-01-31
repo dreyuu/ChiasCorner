@@ -21,7 +21,7 @@ include 'inc/navbar.php';
             <select name="user_type" id="user_type" required>
                 <option value="admin">Admin</option>
                 <option value="employee" selected>Employee</option>
-                <option value="dev" hidden>developer</option>
+                <option value="dev" hidden>Developer</option>
             </select>
             <select name="status" id="status" required>
                 <option value="active" selected>Active</option>
@@ -43,6 +43,7 @@ include 'inc/navbar.php';
                 <input type="text" id="search" placeholder="Search...">
             </div>
             <div class="search-right">
+                <button id="open-system-log"><i class="fa-solid fa-scroll"></i></button>
                 <button id="open-generate-pin-modal"><i class="fa-solid fa-key"></i></button>
                 <button id="open-database-modal"><i class="fa-solid fa-database"></i></button>
             </div>
@@ -122,7 +123,47 @@ include 'inc/navbar.php';
         <button class="copy-pin-btn" id="copy-pin-btn"><i class="fa-regular fa-copy"></i></button>
         <div class="generate-pin-btn" id="generate-pin-btn">Generate New Pin</div>
     </div>
+</div>
 
+<div class="log-modal">
+    <div class="log-overlay"></div>
+    <div class="log-modal-content">
+        <span class="close-log-modal">&times;</span>
+        <h3 class="modal-title">System Activity Log</h3>
+
+        <div class="log-controls">
+            <button class="log-button" onclick="loadLogs('AUTH')">Auth</button>
+            <button class="log-button" onclick="loadLogs('ORDER')">Orders</button>
+            <button class="log-button" onclick="loadLogs('MENU')">Menu</button>
+            <button class="log-button" onclick="loadLogs('PROMO')">Promo</button>
+            <button class="log-button" onclick="loadLogs('INVENTORY')">Inventory</button>
+            <button class="log-button" onclick="loadLogs('INGREDIENTS')">Ingredients</button>
+            <button class="log-button" onclick="loadLogs('USER')">Accounts</button>
+        </div>
+
+        <div class="paginate-user-table">
+            <div class="log-table-container">
+                <table id="logTable">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Category</th>
+                            <th>Action</th>
+                            <th>User</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                    </tbody>
+                </table>
+                <div class="pagination-container">
+                    <button id="log-prevPage">Previous</button>
+                    <span id="log-pageInfo"></span>
+                    <button id="log-nextPage">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -139,7 +180,42 @@ include 'inc/navbar.php';
 </div>
 
 <script>
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+        // alert('Restricted Access, Amin only')
+        showAlert('warning-alert', 'Restricted Access, Amin only')
+        location.href = 'index.php'
+    }
+
+    // Decode token
+    const base64 = token.split('.')[1];
+    const json = atob(base64);
+    const payload = JSON.parse(json);
+
+    const ownerID = payload.user_id;
+
     document.addEventListener('DOMContentLoaded', function() {
+        const openSystemLogBtn = document.getElementById('open-system-log');
+        const logModal = document.querySelector('.log-modal');
+        const closeSystemLogBtn = document.querySelector('.close-log-modal');
+
+        openSystemLogBtn.addEventListener('click', () => {
+            logModal.classList.add('is-visible');
+            loadLogs('AUTH');
+        });
+
+        closeSystemLogBtn.addEventListener('click', () => {
+            logModal.classList.remove('is-visible');
+        });
+
+        // Optional: Close the modal when clicking outside the content
+        logModal.addEventListener('click', (event) => {
+            if (event.target === logModal.querySelector('.log-overlay')) {
+                logModal.classList.remove('is-visible');
+            }
+        });
+
         const openDatabaseModalBtn = document.getElementById('open-database-modal');
         const databaseModal = document.querySelector('.database-modal');
         const closeDatabaseModalBtn = document.querySelector('.close-database-modal');
@@ -311,27 +387,21 @@ include 'inc/navbar.php';
 
     document.getElementById('addUserForm').addEventListener('submit', function(e) {
         e.preventDefault(); // Prevent default form submission
-        const token = localStorage.getItem("jwt_token");
 
-        if (!token) {
-            // alert('Restricted Access, Amin only')
-            showAlert('warning-alert', 'Restricted Access, Amin only')
-            return
-        }
 
         const addUserBtn = document.getElementById('add-user');
         const userId = document.getElementById('user_id').value;
         let url = ''; // URL for the request
 
         // Verify userId value in the form
-        console.log('User ID:', userId);
+        // console.log('User ID:', userId);
 
         if (userId) {
             url = 'db_queries/update_queries/update_user.php'; // Use this URL for updates
-            console.log('update');
+            // console.log('update');
         } else {
             url = 'db_queries/insert_queries/insert_user.php'; // Use this URL for inserts
-            console.log('insert');
+            // console.log('insert');
         }
 
         const formData = new FormData(this); // Collect form data
@@ -341,6 +411,8 @@ include 'inc/navbar.php';
             formObject[key] = value;
         });
 
+        formObject.owner_id = ownerID
+
         // Log the formObject to verify data being sent
         // console.log(formObject);
         loader.show();
@@ -348,8 +420,8 @@ include 'inc/navbar.php';
                 method: 'POST',
                 headers: {
 
-                    'Content-Type': 'application/json', // Send JSON content type
-                    "Authorization": `Bearer ${token}`
+                    'Content-Type': 'application/json' // Send JSON content type
+                    // "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(formObject) // Send form data as JSON
             })
@@ -511,6 +583,7 @@ include 'inc/navbar.php';
 
                 const formData = new FormData();
                 formData.append('user_id', userId);
+                formData.append('owner_id', ownerID);
 
                 CustomAlert.confirm("Are you sure you want to remove this account?", "warning")
                     .then(result => {
@@ -679,7 +752,7 @@ include 'inc/navbar.php';
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = 'chias_corner.sql'; // Set the desired file name
+                        a.download = 'samgyup_kaya.sql'; // Set the desired file name
                         document.body.appendChild(a);
                         a.click();
                         a.remove();
@@ -756,6 +829,99 @@ include 'inc/navbar.php';
                         loader.hide();
                     });
             });
+    });
+
+    let logCurrentPage = 1;
+    let logLimit = 10; // rows per page
+    let logCategory = ''
+    let logTotalRows = 0;
+    async function loadLogs(category = null, page = 1) {
+        logCurrentPage = page
+        logCategory = category
+        try {
+            const response = await fetch('db_queries/select_queries/fetch_system_log.php', {
+                method: 'POST', // must be POST to send body
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    page: page,
+                    action_category: category
+                })
+            });
+
+            const data = await response.json();
+
+            if (category) {
+                console.log(`Filtered logs for category: ${category}`, data.logs);
+                logTotalRows = data.totalRows
+                loadLogsTable(data)
+                updateLogPaginationUI()
+            } else {
+                console.log('All logs:', data.logs);
+                logTotalRows = data.totalRows
+                loadLogsTable(data)
+                updateLogPaginationUI()
+            }
+
+            return data.logs;
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function loadLogsTable(data) {
+        const tableBody = document.getElementById('logTableBody');
+        tableBody.innerHTML = ''; // Clear previous rows
+
+        if (!data.success || data.logs.length === 0) {
+            // Show a placeholder if no logs found
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center;">No logs found.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        // Populate table with logs
+        data.logs.forEach(log => {
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td>${log.created_at}</td>
+                <td>${log.action_category}</td>
+                <td>${log.action_type}</td>
+                <td>${log.user_name ?? 'N/A'}</td>
+                <td>${log.description}</td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    function updateLogPaginationUI() {
+        const totalPages = Math.ceil(logTotalRows / logLimit);
+
+        document.getElementById("log-pageInfo").innerText =
+            `Page ${logCurrentPage} of ${totalPages}`;
+
+        document.getElementById("log-prevPage").disabled = logCurrentPage === 1;
+        document.getElementById("log-nextPage").disabled = logCurrentPage === totalPages;
+    }
+
+    document.getElementById("log-prevPage").addEventListener("click", () => {
+        if (logCurrentPage > 1) {
+            loadLogs(logCategory, logCurrentPage - 1);
+        }
+    });
+
+    document.getElementById("log-nextPage").addEventListener("click", () => {
+        const totalPages = Math.ceil(logTotalRows / logLimit);
+        if (logCurrentPage < totalPages) {
+            loadLogs(logCategory, logCurrentPage + 1);
+        }
     });
 
     // Initialize manager

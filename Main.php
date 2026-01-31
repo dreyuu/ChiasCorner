@@ -27,12 +27,12 @@ include 'inc/navbar.php';
 
                 <!-- RIGHT COLUMN: CHARTS -->
                 <div class="charts-column">
-                    <div class="chart-container">
+                    <div class="chart-container ratio">
                         <h3>Monthly Sales</h3>
                         <canvas id="adminSalesChart"></canvas>
                     </div>
 
-                    <div class="chart-container">
+                    <div class="chart-container ratio">
                         <h3>Category Breakdown</h3>
                         <canvas id="adminCategoryChart"></canvas>
                     </div>
@@ -48,6 +48,7 @@ include 'inc/navbar.php';
                 <tr>
                     <th>Staff</th>
                     <th>Sales Today</th>
+                    <th>Monthly Sales</th>
                     <th>Total Sales</th>
                 </tr>
             </thead>
@@ -75,23 +76,16 @@ include 'inc/navbar.php';
         <div class="exp">
             <div class="stats-container">
                 <div class="sales-stats">
-                    <div class="chart-container small employee-card">
-                        <h3>Employee Info</h3>
-                        <p id="empName">Name: —</p>
-                        <p id="empRole">Role: —</p>
-                        <p id="empJoined">Joined: —</p>
-                    </div>
-
                     <div class="chart-container small">
-                        <h3>Active Promotions</h3>
-                        <ul id="promoList"></ul>
+                        <h3>My Completed Orders (Today)</h3>
+                        <div id="myOrdersList"></div>
                     </div>
                 </div>
 
                 <div class="sales-stats">
                     <div class="chart-container small">
-                        <h3>My Completed Orders (Today)</h3>
-                        <div id="myOrdersList"></div>
+                        <h3>Active Promotions</h3>
+                        <ul id="promoList"></ul>
                     </div>
 
                     <div class="chart-container small">
@@ -174,7 +168,7 @@ include 'inc/navbar.php';
         // STAFF
         const tbody = document.querySelector('#staffTable tbody');
         tbody.innerHTML = (data.staffSales || [])
-            .map(s => `<tr><td>${s.name}</td><td>₱ ${s.salesToday}</td><td>₱ ${s.totalSales}</td></tr>`)
+            .map(s => `<tr><td>${s.name}</td><td>₱ ${s.salesToday}</td><td>₱ ${s.salesMonth}</td><td>₱ ${s.totalSales}</td></tr>`)
             .join('') || '<tr><td colspan="3">No data available</td></tr>';
 
         // PRODUCTS
@@ -198,23 +192,30 @@ include 'inc/navbar.php';
         document.getElementById('adminSection').style.display = 'none';
         document.getElementById('employeeSection').style.display = '';
 
-        const emp = data.employee || {};
-        document.getElementById('empName').textContent = `Name: ${emp.name || '—'}`;
-        document.getElementById('empRole').textContent = `Role: ${emp.user_type || '—'}`;
-        document.getElementById('empJoined').textContent = `Joined: ${emp.date_created || '—'}`;
+        const tbody = document.querySelector('#staffTable tbody');
+        tbody.innerHTML = `<tr>
+            <td>${data.employee.name}</td>
+            <td>₱ ${data.personalSalesToday || '0.00'}</td>
+            <td>₱ ${data.personalSalesMonth || '0.00'}</td>
+            <td>₱ ${data.personalTotalSales || '0.00'}</td>
+        </tr>`;
 
         fillList('promoList', data.activePromotions, p =>
             `${p.name} — ${p.discount_type === 'percentage' ? p.discount_value + '%' : '₱' + p.discount_value}`,
             'No active promotions'
         );
 
+        // PRODUCTS
+        fillList('topProductsList', data.personalTopProducts, i => `${i.name} — ${i.total_sold}`, 'No Top Products Data');
+        fillList('leastProductsList', data.personalLeastProducts, i => `${i.name} — ${i.total_sold}`, 'No Least Products Data');
+
         const list = document.getElementById('myOrdersList');
         list.innerHTML = (data.ordersToday || [])
             .map(o => `<div class="order-row">
-        <strong>Order #${o.order_id}</strong> — ₱ ${o.total_price} — ${o.dine}
-        <div class="muted">${o.order_date}</div>
-        <div>${o.items_ordered}</div>
-        </div>`)
+                <strong>Order #${o.order_id}</strong> — ₱ ${o.total_price} — ${o.dine}
+                <div class="muted">${o.order_time}</div>
+                <div>${o.items_ordered}</div>
+                </div>`)
             .join('') || '<p>No completed orders today.</p>';
 
         document.querySelector('#empOrdersServed span').textContent = data.ordersServedToday ?? 0;

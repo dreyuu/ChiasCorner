@@ -45,6 +45,14 @@
     text-align: center;
 }
 
+.expiration-label {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    font-weight: bold;
+    font-size: 0.9rem;
+    width: 100%;
+}
 
 .form-group #ingredient-select {
     width: 100%;
@@ -55,6 +63,7 @@
     width: 100%;
     border-radius: 5px !important;
 }
+
 .ingredient-list {
     width: 90%;
     display: flex;
@@ -87,7 +96,7 @@
 select {
     background-color: #f8f8f8;
     border: 2px solid #ccc;
-    border-radius: 5px ;
+    border-radius: 5px;
     padding: 8px;
     font-size: 16px;
     color: black;
@@ -251,7 +260,8 @@ select:focus option {
     text-align: center;
     background: rgba(255, 212, 40, 0.3);
     vertical-align: middle;
-    box-sizing: border-box; /* Ensure padding is included in width calculations */
+    box-sizing: border-box;
+    /* Ensure padding is included in width calculations */
     word-wrap: break-word;
     text-overflow: ellipsis;
 }
@@ -261,15 +271,19 @@ select:focus option {
 }
 
 .inventory-table thead tr {
-    display: table-row; /* Rows inside thead behave normally */
+    display: table-row;
+    /* Rows inside thead behave normally */
     width: 100%;
 }
 
 .inventory-table tbody {
     display: block;
-    max-height: 700px; /* Set the height for the body */
-    min-height: 550px; /* Set the minimum height for the body */
-    overflow-y: auto; /* Enable scrolling */
+    max-height: 700px;
+    /* Set the height for the body */
+    min-height: 550px;
+    /* Set the minimum height for the body */
+    overflow-y: auto;
+    /* Enable scrolling */
     background: rgba(255, 212, 40, 0.5);
     scrollbar-width: none;
     table-layout: auto;
@@ -278,7 +292,8 @@ select:focus option {
 
 .inventory-table tbody tr,
 .inventory-table thead {
-    display: table; /* Keep rows as table rows */
+    display: table;
+    /* Keep rows as table rows */
     width: 100%;
     table-layout: fixed;
 }
@@ -542,36 +557,42 @@ select:focus option {
 }
 
 .custom-ingredients-table tbody tr:nth-child(even),
-.update-inventory-table tbody tr:nth-child(even) { 
+.update-inventory-table tbody tr:nth-child(even) {
     background: #E6D19F;
 }
 
 .custom-ingredients-table tbody tr:hover,
-.update-inventory-table tbody tr:hover { 
+.update-inventory-table tbody tr:hover {
     background: rgba(255, 212, 40, 0.5);
     transition: background 0.3s ease-in-out;
 }
 
-.custom-ingredients-table tbody ,
-.update-inventory-table tbody  { 
+.custom-ingredients-table tbody,
+.update-inventory-table tbody {
     display: block;
-    max-height: 300px; /* Set the height for the body */
-    min-height: 200px; /* Set the minimum height for the body */
-    overflow-y: auto; /* Enable scrolling */
+    max-height: 300px;
+    /* Set the height for the body */
+    min-height: 200px;
+    /* Set the minimum height for the body */
+    overflow-y: auto;
+    /* Enable scrolling */
     background: rgba(255, 212, 40, 0.5);
-    scrollbar-width: none; /* Hide scrollbar in Firefox */
-    -ms-overflow-style: none; /* Hide scrollbar in IE and Edge */
+    scrollbar-width: none;
+    /* Hide scrollbar in Firefox */
+    -ms-overflow-style: none;
+    /* Hide scrollbar in IE and Edge */
     table-layout: auto;
 }
 
 .custom-ingredients-table thead,
 .update-inventory-table thead,
-.update-inventory-table tbody tr, 
-.custom-ingredients-table tbody tr { 
+.update-inventory-table tbody tr,
+.custom-ingredients-table tbody tr {
     display: table;
     width: 100%;
     table-layout: fixed;
 }
+
 .custom-ingredients-table-container,
 .update-inventory-table-container {
     max-height: 250px;
@@ -616,4 +637,53 @@ select:focus option {
 .custom-ingredients-back:hover,
 .update-inventory-back:hover {
     background: black;
+}
+
+
+/* Pagination Container */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 10px 0;
+
+    font-family: inherit;
+}
+
+/* Pagination Buttons */
+.pagination-container button {
+    padding: 6px 14px;
+    background: #FFD428;
+    border: 1px solid #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.25s ease;
+}
+
+.pagination-container button:hover:not(:disabled) {
+    background: black;
+    color: #FFD428;
+    border-color: #FFD428;
+}
+
+.pagination-container button:disabled {
+    background: #eaeaea;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Page Info Text */
+#pageInfoInv,
+#pageInfoUp,
+#pageInfoIng,
+#log-pageInfo {
+    font-size: 14px;
+    color: #444;
+    padding: 4px 10px;
+    background: #f8f8f8;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
 }

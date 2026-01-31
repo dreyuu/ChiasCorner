@@ -1,8 +1,14 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
+include_once __DIR__ . '/../../components/system_log.php';
+include_once __DIR__ . '/../../components/pusher_helper.php';
+require __DIR__ . '/../../components/logger.php';
+
+// Load the Composer autoloader
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ownerID = $_POST['owner_id'];
     $ingredient_id = $_POST['ingredient_id'];
-    $supplier_name = $_POST['supplier_name'];
+    $supplier_name = !empty($_POST['supplier_name']) ? $_POST['supplier_name'] : 'Unknown Supplier'; // Default to 'Unknown Supplier' if empty
     $stock_quantity = $_POST['stock_quantity'];
     $item_cost = $_POST['item_cost'];
     $expiration_date = $_POST['expiration_date'];
@@ -23,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // ✅ Insert supplier (if not existing)
         $supplierQuery = "INSERT INTO suppliers (supplier_name)
-                            VALUES (:supplier_name)
-                            ON DUPLICATE KEY UPDATE supplier_name = VALUES(supplier_name)";
+                        VALUES (:supplier_name)
+                        ON DUPLICATE KEY UPDATE supplier_name = VALUES(supplier_name)";
         $stmtSupplier = $connect->prepare($supplierQuery);
         $stmtSupplier->execute([':supplier_name' => $supplier_name]);
 
@@ -39,13 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // ✅ Ensure ingredient exists in inventory (initialize to 0 if not)
         $insertInventoryQuery = "INSERT IGNORE INTO inventory (ingredient_id, current_stock)
-                                    VALUES (:ingredient_id, 0)";
+                                VALUES (:ingredient_id, 0)";
         $stmtInsertInventory = $connect->prepare($insertInventoryQuery);
         $stmtInsertInventory->execute([':ingredient_id' => $ingredient_id]);
 
         // ✅ Insert stock batch (now safe because ingredient exists in inventory)
         $batchQuery = "INSERT INTO stock_batches (ingredient_id, supplier_id, quantity, cost, expiration_date)
-                        VALUES (:ingredient_id, :supplier_id, :stock_quantity, :item_cost, :expiration_date)";
+                    VALUES (:ingredient_id, :supplier_id, :stock_quantity, :item_cost, :expiration_date)";
         $stmtBatch = $connect->prepare($batchQuery);
         $stmtBatch->execute([
             ':ingredient_id' => $ingredient_id,
@@ -71,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // ✅ Log restock in inventory_transactions
         $transactionQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit)
-                                VALUES (:ingredient_id, 'restock', :stock_quantity, :unit)";
+                            VALUES (:ingredient_id, 'restock', :stock_quantity, :unit)";
         $stmtTransaction = $connect->prepare($transactionQuery);
         $stmtTransaction->execute([
             ':ingredient_id' => $ingredient_id,
@@ -82,11 +88,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ Commit transaction
         $connect->commit();
         echo json_encode(['success' => true, 'message' => 'Stock added successfully and inventory recalculated!']);
+        PusherHelper::send("inventory-channel", "modify-inventory", ["msg" => "Item added successfully"]);
+        logAction(
+            $connect,
+            $ownerID, // admin who created the user
+            'INVENTORY', // NOT AUTH
+            'ADD INVENTORY', // specific action type
+            "Item Added: $ingredient_id, Quantity: $stock_quantity $unit"
+        );
     } catch (PDOException $e) {
         $connect->rollBack();
         echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+        logError("Database error inserting inventory: " . $e->getMessage(), "ERROR");
     } catch (Exception $e) {
         $connect->rollBack();
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        logError("Error inserting inventory: " . $e->getMessage(), "ERROR");
     }
 }

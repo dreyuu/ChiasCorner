@@ -93,6 +93,7 @@ include 'inc/navbar.php';
                         <tr>
                             <th>Staff</th>
                             <th>Sales Today</th>
+                            <th>Sales This Month</th>
                             <th>Total Sales</th>
                         </tr>
                     </thead>
@@ -110,132 +111,145 @@ include 'inc/navbar.php';
 
 
 <script>
-    // Global variables
     let salesChart, categoryChart;
     let currentSalesData = null;
 
     document.addEventListener("DOMContentLoaded", function() {
-        loadChartData();
-        loadSalesData();
+        // 1. Load initial data (no dates = all time/default)
+        fetchDashboardData();
 
+        // 2. Generate Button Event
         document.querySelector(".generate-btn").addEventListener("click", function(e) {
             e.preventDefault();
-            generateReport();
+            const dateFrom = document.getElementById("date-from").value;
+            const dateTo = document.getElementById("date-to").value;
+
+            if (!dateFrom || !dateTo) {
+                alert("Please select both Date From and Date To.");
+                return;
+            }
+            fetchDashboardData(dateFrom, dateTo);
         });
 
+        // 3. Clear Button Event
+        document.querySelector(".clear-btn").addEventListener("click", function(e) {
+            e.preventDefault();
+            document.getElementById("date-from").value = "";
+            document.getElementById("date-to").value = "";
+            fetchDashboardData(); // Reload default
+        });
+
+        // 4. Download PDF Event
         document.querySelector(".download-btn").addEventListener("click", function(e) {
             e.preventDefault();
             generatePDF();
         });
-
-        document.querySelector('.clear-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('date-from').value = '';
-            document.getElementById('date-to').value = '';
-            generateReport();
-        });
     });
 
-    // Generate report based on filters
-    function generateReport() {
-        try {
-            loader.show()
-            let dateFrom = document.getElementById("date-from").value;
-            let dateTo = document.getElementById("date-to").value;
-            let category = document.getElementById("category").value;
+    // Main function to call both APIs
+    function fetchDashboardData(dateFrom = "", dateTo = "") {
+        // Show loading state if needed
+        // loader.show();
 
-            loadSalesData(dateFrom, dateTo, category);
-            loadChartData(dateFrom, dateTo);
-        } catch (error) {
-            console.error("Error generating report:", error);
-        } finally {
-            loader.hide()
-        }
-
-    }
-
-    // Load sales stats and tables
-    function loadSalesData(dateFrom = "", dateTo = "", category = "all") {
-        fetch(`db_queries/select_queries/fetch_sales.php?dateFrom=${dateFrom}&dateTo=${dateTo}&category=${category}`)
+        // Update Sales Cards & Tables
+        fetch(`db_queries/select_queries/fetch_sales.php?dateFrom=${dateFrom}&dateTo=${dateTo}`)
             .then(res => res.json())
             .then(data => {
-                if (!data) return;
+                if (data.error) console.error(data.error);
+                currentSalesData = data; // Store for PDF
+                updateSalesUI(data);
+            })
+            .catch(err => console.error("Sales API Error:", err));
 
-                // Store data for PDF
-                currentSalesData = data;
-
-                // Populate stats
-                const bestSellerName = data.bestSeller || (data.topProducts && data.topProducts.length ? data.topProducts[0].name : "N/A");
-                const statsMap = {
-                    "total-sales": data.totalSales,
-                    "customer-served": data.customersServed,
-                    "avg-per-customer": data.avgSalePerCustomer,
-                    "avg-daily-sales": data.avgDailySales,
-                    "best-seller": bestSellerName,
-                    "total-items-sold": data.totalItemsSold,
-                    "salesToday": data.todaySales,
-                    "salesWeek": data.weekSales,
-                    "salesMonth": data.monthSales,
-                    "top-staff": data.topStaff,
-                    "lowest-staff": data.lowestStaff
-                };
-                Object.keys(statsMap).forEach(id => {
-                    document.getElementById(id).querySelector("span").textContent = statsMap[id] ?? "0";
-                });
-
-                // Top products
-                const topList = document.getElementById("top-products-list");
-                topList.innerHTML = "";
-                (data.topProducts || []).forEach(p => {
-                    topList.innerHTML += `<li>${p.name} — ${p.total_sold}</li>`;
-                });
-
-                // Least products
-                const leastList = document.getElementById("least-products-list");
-                leastList.innerHTML = "";
-                (data.leastProducts || []).forEach(p => {
-                    leastList.innerHTML += `<li>${p.name} — ${p.total_sold}</li>`;
-                });
-
-                // Staff sales table
-                const tbody = document.querySelector("#staff-sales-table tbody");
-                tbody.innerHTML = "";
-                (data.staffSales || []).forEach(s => {
-                    tbody.innerHTML += `<tr><td>${s.name}</td><td>₱ ${s.salesToday}</td><td>₱ ${s.totalSales}</td></tr>`;
-                });
-            });
-    }
-
-    // Load chart data
-    function loadChartData(dateFrom = "", dateTo = "") {
+        // Update Charts
         fetch(`db_queries/select_queries/fetch_graph.php?dateFrom=${dateFrom}&dateTo=${dateTo}`)
             .then(res => res.json())
             .then(data => {
-                // Monthly sales bar chart
-                const monthlySales = data.monthlySales || [];
-                if (monthlySales.length) {
-                    document.querySelector(".no-sales-data").style.display = 'none';
-                    const labels = monthlySales.map(d => `Month ${d.month}`);
-                    const totals = monthlySales.map(d => d.total);
-                    salesChart = updateChart("salesChart", salesChart, "bar", labels, totals, "Monthly Sales", "#FFD428");
-                } else document.querySelector(".no-sales-data").style.display = 'block';
+                if (data.error) console.error(data.error);
+                updateChartsUI(data);
+            })
+            .catch(err => console.error("Graph API Error:", err));
 
-                // Category sales doughnut chart
-                const categorySales = data.categorySales || [];
-                if (categorySales.length) {
-                    document.querySelector(".no-category-data").style.display = 'none';
-                    const labels = categorySales.map(d => d.category);
-                    const totals = categorySales.map(d => d.total);
-                    const colors = ["#FFB300", "#9C27B0", "#FF9800", "#009688", "#8BC34A", "#BDBDBD"];
-                    categoryChart = updateChart("categoryChart", categoryChart, "doughnut", labels, totals, "Category Sales", colors);
-                } else document.querySelector(".no-category-data").style.display = 'block';
-            });
+        // loader.hide();
     }
 
-    // Update or create chart
-    function updateChart(canvasId, chartInstance, type, labels, data, label, colors) {
-        let ctx = document.getElementById(canvasId).getContext("2d");
+    // Function to update Text, Cards, and Tables
+    function updateSalesUI(data) {
+        if (!data) return;
+
+        // Update Text Cards
+        setText("total-sales", "₱ " + data.totalSales);
+        setText("customer-served", data.customersServed);
+        setText("avg-per-customer", "₱ " + data.avgSalePerCustomer);
+        setText("avg-daily-sales", "₱ " + data.avgDailySales);
+        setText("best-seller", data.bestSeller);
+        setText("total-items-sold", data.totalItemsSold);
+
+        setText("salesToday", "₱ " + data.todaySales);
+        setText("salesWeek", "₱ " + data.weekSales);
+        setText("salesMonth", "₱ " + data.monthSales);
+
+        setText("top-staff", data.topStaff);
+        setText("lowest-staff", data.lowestStaff);
+
+        // Update Top/Least Products Lists
+        updateList("top-products-list", data.topProducts);
+        updateList("least-products-list", data.leastProducts);
+
+        // Update Staff Table
+        const tbody = document.querySelector("#staff-sales-table tbody");
+        tbody.innerHTML = "";
+        if (data.staffSales && data.staffSales.length > 0) {
+            data.staffSales.forEach(s => {
+                // salesToday is not strictly relevant in date range filter, so we focus on total_sales
+                tbody.innerHTML += `<tr>
+                    <td>${s.name}</td>
+                    <td>₱ ${numberWithCommas(s.sales_today)}</td>
+                    <td>₱ ${numberWithCommas(s.sales_month)}</td>
+                    <td>₱ ${numberWithCommas(s.total_sales)}</td>
+                </tr>`;
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center">No records found</td></tr>`;
+        }
+    }
+
+    // Function to update Charts
+    function updateChartsUI(data) {
+        // 1. Monthly Sales Chart
+        const monthlyData = data.monthlySales || [];
+        const monthLabels = monthlyData.map(d => d.sales_month); // Returns YYYY-MM
+        const monthTotals = monthlyData.map(d => d.total);
+
+        // Logic to show "No Data" message
+        if (monthlyData.length === 0) {
+            document.querySelector(".no-sales-data").style.display = "block";
+            if (salesChart) salesChart.destroy();
+        } else {
+            document.querySelector(".no-sales-data").style.display = "none";
+            salesChart = renderChart("salesChart", salesChart, "bar", monthLabels, monthTotals, "Sales", "#FFD428");
+        }
+
+        // 2. Category Chart
+        const catData = data.categorySales || [];
+        const catLabels = catData.map(d => d.category);
+        const catTotals = catData.map(d => d.total);
+        const colors = ["#FFB300", "#E91E63", "#9C27B0", "#2196F3", "#4CAF50", "#FF5722"];
+
+        if (catData.length === 0) {
+            document.querySelector(".no-category-data").style.display = "block";
+            if (categoryChart) categoryChart.destroy();
+        } else {
+            document.querySelector(".no-category-data").style.display = "none";
+            categoryChart = renderChart("categoryChart", categoryChart, "doughnut", catLabels, catTotals, "Revenue", colors);
+        }
+    }
+
+    // Chart.js Helper
+    function renderChart(canvasId, chartInstance, type, labels, data, label, colors) {
+        const ctx = document.getElementById(canvasId).getContext("2d");
         if (chartInstance) chartInstance.destroy();
+
         return new Chart(ctx, {
             type: type,
             data: {
@@ -243,17 +257,42 @@ include 'inc/navbar.php';
                 datasets: [{
                     label: label,
                     data: data,
-                    backgroundColor: colors
+                    backgroundColor: colors,
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                scales: type === "bar" ? {
+                maintainAspectRatio: true,
+                scales: type === 'bar' ? {
                     y: {
                         beginAtZero: true
                     }
                 } : {}
             }
+        });
+    }
+
+    // DOM Helper
+    function setText(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.querySelector("span").textContent = value;
+    }
+
+    function updateList(id, items) {
+        const list = document.getElementById(id);
+        list.innerHTML = "";
+        if (items && items.length > 0) {
+            items.forEach(i => list.innerHTML += `<li>${i.name} — ${i.total_sold}</li>`);
+        } else {
+            list.innerHTML = "<li>No data</li>";
+        }
+    }
+
+    function numberWithCommas(x) {
+        return parseFloat(x).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
     }
 
@@ -307,13 +346,13 @@ include 'inc/navbar.php';
             const data = currentSalesData; // use cached data
             const bestSellerName = data.bestSeller || (data.topProducts && data.topProducts.length ? data.topProducts[0].name : "N/A");
             let offset = 12;
-            doc.text(`Total Sales: P ${data.totalSales}`, margin + 2, y + offset);
+            doc.text(`Total Sales: Php ${data.totalSales}`, margin + 2, y + offset);
             offset += 6;
             doc.text(`Customers Served: ${data.customersServed}`, margin + 2, y + offset);
             offset += 6;
-            doc.text(`Avg Sale per Customer: P ${data.avgSalePerCustomer}`, margin + 2, y + offset);
+            doc.text(`Avg Sale per Customer: Php ${data.avgSalePerCustomer}`, margin + 2, y + offset);
             offset += 6;
-            doc.text(`Avg Daily Sales: P ${data.avgDailySales}`, margin + 2, y + offset);
+            doc.text(`Avg Daily Sales: Php ${data.avgDailySales}`, margin + 2, y + offset);
             offset += 6;
             doc.text(`Best Seller: ${bestSellerName || "N/A"}`, margin + 2, y + offset);
             offset += 6;
@@ -328,11 +367,11 @@ include 'inc/navbar.php';
             doc.setFont(undefined, "normal");
             doc.setTextColor("#333");
             y += 6;
-            doc.text(`Sales Today: ₱ ${data.todaySales}`, margin + 2, y);
+            doc.text(`Sales Today: Php ${data.todaySales}`, margin + 2, y);
             y += 6;
-            doc.text(`Sales This Week: ₱ ${data.weekSales}`, margin + 2, y);
+            doc.text(`Sales This Week: Php ${data.weekSales}`, margin + 2, y);
             y += 6;
-            doc.text(`Sales This Month: ₱ ${data.monthSales}`, margin + 2, y);
+            doc.text(`Sales This Month: Php ${data.monthSales}`, margin + 2, y);
             y += 10;
 
             // --- Top / Least Products ---
@@ -366,10 +405,10 @@ include 'inc/navbar.php';
             doc.text("Staff Sales:", margin, y);
             y += 6;
 
-            const staffRows = data.staffSales.map(s => [s.name, `P ${s.salesToday}`, `P ${s.totalSales}`]);
+            const staffRows = data.staffSales.map(s => [s.name, `Php ${s.sales_today}`, `Php ${s.sales_month}`, `Php ${s.total_sales}`]);
             doc.autoTable({
                 head: [
-                    ["Staff", "Today Sales", "Total Sales"]
+                    ["Staff", "Today Sales", "Sales This Month", "Total Sales"]
                 ],
                 body: staffRows,
                 startY: y,

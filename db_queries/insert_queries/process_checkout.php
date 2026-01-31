@@ -1,6 +1,7 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 include_once __DIR__ . '/../../components/pusher_helper.php';
+include_once __DIR__ . '/../../components/system_log.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 // Get JSON data from frontend
 $data = json_decode(file_get_contents("php://input"), true);
@@ -10,6 +11,7 @@ if (!$data) {
     exit();
 }
 
+$ownerID = $data['owner_id'];
 $order_id = $data['order_id'];
 $amount_paid = $data['amount_paid'];
 $payment_method = $data['payment_method'];
@@ -169,6 +171,14 @@ try {
 
     echo json_encode(["success" => true]);
     PusherHelper::send("orders-channel", "modify-order", ["msg" => "Order processed successfully"]);
+    logAction(
+        $connect,
+        $ownerID,
+        'ORDER',
+        'ORDER_COMPLETE',
+        "Order #$order_id completed",
+        $order_id
+    );
 } catch (Exception $e) {
     $connect->rollBack();
     echo json_encode(["error" => "Checkout failed: " . $e->getMessage()]);

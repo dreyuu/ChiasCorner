@@ -9,5 +9,13 @@
         "aws/aws-sdk-php": "^3.359",
         "pusher/pusher-php-server": "^7.2"
     },
+    "scripts": {
+        "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
+    },
+    "extra": {
+        "aws/aws-sdk-php": [
+            "S3"
+        ]
+    },
     "license": "MIT"
 }

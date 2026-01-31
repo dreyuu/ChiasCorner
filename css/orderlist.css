@@ -580,27 +580,32 @@ ul {
 }
 
 
-.receipt-item {
+/* .receipt-item {
     display: flex;
     flex-direction: column;
     margin-bottom: 8px;
-}
+} */
 
-.item-name {
-    font-size: 14px;
-    font-weight: bold;
-    width: 250px;
-}
 
-.item-details {
+.row {
+    width: 100%;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: #444;
+    white-space: nowrap;
 }
 
-.item-total {
+.left {
+    max-width: 65%;
+    overflow: hidden;
+    text-overflow: wrap;
+}
+
+.right {
+    max-width: 35%;
+    text-align: right;
+}
+
+.bold {
     font-weight: bold;
 }
 

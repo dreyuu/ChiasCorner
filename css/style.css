@@ -48,16 +48,29 @@ body {
     z-index: 1000;
 }
 
+.logo-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-left: 20px;
+}
+
+.nav-bar-logo {
+    width: 50px;
+    height: 50px;
+}
+
 .logo {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     color: black;
     text-transform: uppercase;
     text-align: center;
     line-height: 1;
     margin-left: 1%;
+    text-wrap: nowrap;
     text-decoration: none;
-
 }
 
 .logo span {
@@ -154,11 +167,13 @@ body {
     .header {
         display: none;
     }
+
     .mobile-admin {
         flex-direction: column;
         gap: 2px;
-    
+
     }
+
     /* Show Mobile Header */
     .mobile-header {
         display: flex;
@@ -279,6 +294,7 @@ body {
         z-index: 2000;
         display: none;
     }
+
     /* Mobile fixes for charts and contacts (if they exist on the page) */
     .charts {
         flex-direction: column;
@@ -359,10 +375,12 @@ body {
     position: relative;
     display: inline-block;
 }
+
 .sidebar-dropdown-container.show .sidebar-dropdown,
 .dropdown-container.show .dropdown {
     display: flex;
 }
+
 /* Style for MENUS button */
 
 .dropdown-btn {

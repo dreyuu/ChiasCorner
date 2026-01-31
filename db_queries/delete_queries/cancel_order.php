@@ -1,11 +1,13 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 include_once __DIR__ . '/../../components/pusher_helper.php';
+include_once __DIR__ . '/../../components/system_log.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $order_id = $_POST['order_id'] ?? null;
+        $ownerID = $_POST['owner_id'] ?? null;
 
         if (!$order_id) {
             die(json_encode(["status" => "error", "message" => "Invalid order ID."]));
@@ -69,6 +71,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode(["status" => "success", "message" => "Order cancelled and archived successfully."]);
         PusherHelper::send("orders-channel", "modify-order", ["msg" => "Order cancelled successfully"]);
+        logAction(
+            $connect,
+            $ownerID,
+            'ORDER',
+            'ORDER_CANCEL',
+            "Order #$order_id canceled",
+            $order_id
+        );
     } catch (PDOException $e) {
         $connect->rollBack();
         echo json_encode(["status" => "error", "message" => $e->getMessage()]);

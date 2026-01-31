@@ -1,6 +1,7 @@
 <?php
 include_once __DIR__ . '/../../connection.php';
 include_once __DIR__ . '../../../components/pusher_helper.php';
+include_once __DIR__ . '../../../components/system_log.php';
 require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 
 $response = ["success" => false];
@@ -8,6 +9,7 @@ $response = ["success" => false];
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         // Retrieve form data
+        $ownerID = $_POST['owner_id'] ?? null;
         $promo_name = $_POST['promoName'] ?? null;
         $discount_type = $_POST['discount_type'] ?? null;
         $discount_value = $_POST['discount_value'] ?? null;
@@ -46,6 +48,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $response["success"] = true;
 
             PusherHelper::send('promo-channel', 'modify-promo', ['msg' => 'Promotion added successfully']);
+            logAction(
+                $connect,
+                $ownerID,
+                'PROMO',
+                'PROMO_CREATE',
+                "PROMO $promo_name created",
+            );
         } else {
             throw new Exception("Failed to insert promo.");
         }

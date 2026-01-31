@@ -3,6 +3,7 @@ include_once 'connection.php';
 $backgroundImage = 'Capstone Assets/Log-in Form BG (Version 2).png';
 include 'inc/navbar.php';
 
+
 ?>
 <link rel="stylesheet" href="css/orderlist.css">
 <!-- Font Awesome Free (CDN) -->
@@ -132,8 +133,24 @@ include 'inc/navbar.php';
     © 2023 Chia's Corner. All Rights Reserved. | Where Every Bite is Unlimited Delight
 </footer>
 
+<!-- <script src="js/qz-tray.js"></script> -->
 
 <script>
+    const token = localStorage.getItem("jwt_token");
+
+    if (!token) {
+        // alert('Restricted Access, Amin only')
+        showAlert('warning-alert', 'Restricted Access, Amin only')
+        location.href = 'index.php'
+    }
+
+    // Decode token
+    const base64 = token.split('.')[1];
+    const json = atob(base64);
+    const payload = JSON.parse(json);
+
+    const ownerID = payload.user_id;
+
     function showAlert(alertId, message) {
         let alertBox = document.getElementById(alertId);
         if (alertBox) {
@@ -155,6 +172,8 @@ include 'inc/navbar.php';
             }, 3000); // Display duration
         }
     }
+
+
 
     document.addEventListener("DOMContentLoaded", function() {
         fetchOrders();
@@ -212,7 +231,9 @@ include 'inc/navbar.php';
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
-                    body: "order_id=" + encodeURIComponent(orderIdToVoid)
+                    body: "order_id=" + encodeURIComponent(orderIdToVoid) +
+                        "owner_id=" + encodeURIComponent(ownerID)
+
                 });
 
                 const cancelData = await cancelResponse.json();
@@ -574,6 +595,7 @@ include 'inc/navbar.php';
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
+                    owner_id: ownerID,
                     order_id: orderId,
                     amount_paid: amountPaid,
                     payment_method: paymentMethod,
@@ -588,6 +610,13 @@ include 'inc/navbar.php';
                     fetchOrders();
                     ShowReceipt(orderId);
                     document.getElementById('amountPaid').value = '';
+
+                    // printSingle(receiptContent);
+
+                    // setTimeout(() => {
+                    //     printSingle(kitchenSlipContent);
+                    // }, 10000); // delay is important
+                    // printBoth();
                 } else {
                     CustomAlert.alert(data.error, 'error');
                 }
@@ -598,7 +627,114 @@ include 'inc/navbar.php';
             });
     }
 
+    function renderReceipts(order, items) {
+        let receiptList = document.querySelector('.exo-receipt-paper');
+        receiptList.innerHTML = "";
 
+        let subtotal = parseFloat(order.total_price);
+        let discount = parseFloat(order.discount_amount) || 0;
+        let totalAfterDiscount = subtotal - discount;
+        let paidAmount = parseFloat(order.paid_amount) || 0;
+        let grandTotal = totalAfterDiscount;
+        let change = paidAmount - grandTotal;
+
+        // Correct VAT calculations
+        let vatableSales = subtotal / 1.12; // Back-calculate VATable sales
+        let vatAmount = subtotal - vatableSales; // 12% of VATable sales
+        let vatExempt = 0.00; // Static for now
+        let zeroRated = 0.00; // Static for now
+
+        let receiptContainer = document.createElement("div");
+        receiptContainer.classList.add("receipt");
+
+        // <img src="Capstone Assets/newLogo.png" class="exo-receipt-logo">
+        let receiptHeader = `
+                        <div class="exo-receipt-header">
+                            <h2>SamgyupKaya</h2>
+                            <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
+                            <p>Phone#: 0926 200 4346</p>
+                        </div>
+                        <div class="exo-receipt-separator"></div>
+                    `;
+
+        let receiptBody = `
+                        <div class="exo-receipt-body">
+                            <p><span class="bold">OR Number:</span> ${order.order_id}</p>
+                            <p><span class="bold">Date:</span> ${new Date().toLocaleString()}</p>
+                            <p><span class="bold">Cashier:</span> ${order.cashier_name || "N/A"}</p>
+                            <div class="exo-receipt-separator"></div>
+                            <p><span class="bold">Order Type:</span> ${order.dine || "N/A"}</p>
+                            <div class="exo-receipt-separator"></div>
+                            <p><span class="bold">Items Ordered:</span></p>
+                    `;
+
+        items.forEach(item => {
+            receiptBody += `
+                            <div class="row">
+                                <span class="left">${item.name}</span>
+                                <span class="right">${item.quantity} x ${parseFloat(item.price).toFixed(2)}</span>
+                            </div>
+                        `;
+        });
+
+
+        let receiptFooter = `
+                        <div class="exo-receipt-separator"></div>
+
+                        <div class="row">
+                            <span class="left">Discount:</span>
+                            <span class="right">-${discount.toFixed(2)}</span>
+                        </div>
+                        <div class="exo-receipt-separator"></div>
+                        <div class="row">
+                            <span class="left">Paid Amount:</span>
+                            <span class="right">${paidAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="row">
+                            <span class="left">Change:</span>
+                            <span class="right">${change.toFixed(2)}</span>
+                        </div>
+                        <div class="row">
+                            <span class="left">VAT (12%):</span>
+                            <span class="right">${vatAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="row">
+                            <span class="left">VATable Sales:</span>
+                            <span class="right">${vatableSales.toFixed(2)}</span>
+                        </div>
+                        <div class="row">
+                            <span class="left">VAT Exempt Sales:</span>
+                            <span class="right">${vatExempt.toFixed(2)}</span>
+                        </div>
+                        <div class="row">
+                            <span class="left">Zero-rated Sales:</span>
+                            <span class="right">${zeroRated.toFixed(2)}</span>
+                        </div>
+                        <div class="row bold">
+                            <span class="left">Grand Total:</span>
+                            <span class="right"><strong>${grandTotal.toFixed(2)}</strong></span>
+                        </div>
+
+
+                        <div class="exo-receipt-footer">
+                            <span>This serves as your OFFICIAL RECEIPT</span>
+                            <span>Thank you and enjoy!</span>
+                            <br>
+                            <span> . </span> <br>
+                        </div>
+                        `;
+        receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
+        receiptList.appendChild(receiptContainer);
+
+        sendToPrintNodeRaw(customerRaw);
+        // Delay 10 seconds for kitchen slip
+        setTimeout(() => {
+            sendToPrintNodeRaw(kitchenRaw);
+        }, 10000);
+    }
+
+    let customerRaw = ""
+    let kitchenRaw = ""
 
     function fetchReceipt(orderId) {
         fetch(`db_queries/select_queries/fetch_order_details.php?order_id=${orderId}`)
@@ -610,9 +746,6 @@ include 'inc/navbar.php';
                     return;
                 }
 
-                let receiptList = document.querySelector('.exo-receipt-paper');
-                receiptList.innerHTML = "";
-
                 if (data.items.length === 0) {
                     receiptList.innerHTML = "<p class='empty-order'>No items in the order.</p>";
                     return;
@@ -621,129 +754,84 @@ include 'inc/navbar.php';
                 let order = data.order;
                 let items = data.items;
 
-                let subtotal = parseFloat(order.total_price);
-                let discount = parseFloat(order.discount_amount) || 0;
-                let totalAfterDiscount = subtotal - discount;
-                let paidAmount = parseFloat(order.paid_amount) || 0;
-                let grandTotal = totalAfterDiscount;
-                let change = paidAmount - grandTotal;
+                customerRaw = buildCustomerReceipt(order, items);
+                kitchenRaw = buildKitchenSlip(order, items);
 
-                // Correct VAT calculations
-                let vatableSales = subtotal / 1.12; // Back-calculate VATable sales
-                let vatAmount = subtotal - vatableSales; // 12% of VATable sales
-                let vatExempt = 0.00; // Static for now
-                let zeroRated = 0.00; // Static for now
-
-                let receiptContainer = document.createElement("div");
-                receiptContainer.classList.add("receipt");
-
-                let receiptHeader = `
-                <div class="exo-receipt-header">
-                    <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="exo-receipt-logo">
-                    <h2>CHIA'S CORNER</h2>
-                    <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
-                    <p>Phone#: 0926 200 4346</p>
-                </div>
-                <div class="exo-receipt-separator"></div>
-            `;
-
-                let receiptBody = `
-                <div class="exo-receipt-body">
-                    <p><strong>OR Number:</strong> ${order.order_id}</p>
-                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                    <p><strong>Cashier:</strong> ${order.cashier_name || "N/A"}</p>
-                    <div class="exo-receipt-separator"></div>
-                    <p><strong>Order Type:</strong> ${order.dine || "N/A"}</p>
-                    <div class="exo-receipt-separator"></div>
-                    <p><strong>Items Ordered:</strong></p>
-            `;
-
-                items.forEach(item => {
-                    receiptBody += `
-                    <div class="receipt-item">
-                        <div class="item-details">
-                            <div class="item-name">${item.name}</div>
-                            <span>${item.quantity} x ₱${parseFloat(item.price).toFixed(2)}</span>
-                        </div>
-                    </div>
-                `;
-                });
-
-                let receiptFooter = `
-                <div class="exo-receipt-separator"></div>
-                <div class="item-details exo-receipt-total">
-                    <p><strong>Grand Total:</strong></p>
-                    <span class="item-total"><strong>₱${grandTotal.toFixed(2)}</strong></span>
-                </div>
-                <div class="item-details">
-                    <p>Discount:</p>
-                    <span class="item-total">-₱${discount.toFixed(2)}</span>
-                </div>
-                <div class="exo-receipt-separator"></div>
-                <div class="item-details">
-                    <p>Paid Amount:</p>
-                    <span class="item-total">₱${paidAmount.toFixed(2)}</span>
-                </div>
-                <div class="item-details">
-                    <p>Change:</p>
-                    <span class="item-total">₱${change.toFixed(2)}</span>
-                </div>
-                <div class="exo-receipt-footer">
-                    <p>This serves as your OFFICIAL RECEIPT</p>
-                    <p>Thank you and enjoy!</p>
-                </div>
-            `;
-                // <div class="item-details">
-                //     <p>VAT (12%):</p>
-                //     <span class="item-total">₱${vatAmount.toFixed(2)}</span>
-                // </div>
-                // <div class="item-details">
-                //     <p>VATable Sales:</p>
-                //     <span class="item-total">₱${vatableSales.toFixed(2)}</span>
-                // </div>
-
-                // <div class="item-details">
-                //     <p>VAT Exempt Sales:</p>
-                //     <span class="item-total">₱${vatExempt.toFixed(2)}</span>
-                // </div>
-                // <div class="item-details">
-                //     <p>Zero-rated Sales:</p>
-                //     <span class="item-total">₱${zeroRated.toFixed(2)}</span>
-                // </div>
-                receiptContainer.innerHTML = receiptHeader + receiptBody + receiptFooter;
-                receiptList.appendChild(receiptContainer);
-                printKitchenSlip(data);
+                renderReceipts(order, items);
+                // printKitchenSlip(data);
             })
             .catch(error => console.error("Error loading order details:", error));
     }
 
+
+
+
     document.addEventListener('DOMContentLoaded', function() {
-        const receiptPaper = document.querySelector('.exo-receipt-paper');
         const printReceipts = document.querySelector('.print-receipt');
         const downloadReceipts = document.querySelector('.download-receipt');
 
+        // This is your updated printBoth function (assuming you are using the Canvas/Image method now)
         async function printBoth() {
-            let receiptContent = document.querySelector('.exo-receipt-paper').outerHTML;
-            let kitchenSlipContent = document.querySelector('.kitchen-slip').outerHTML;
+            // --- DESKTOP: Print Directly using Canvas Image ---
+            if (!customerRaw || !kitchenRaw) {
+                showAlert("warning-alert", "No receipt data available to print.");
+                return;
+            }
+            loader.show();
+            try {
+                // 1. Get Customer Receipt (Outer HTML of the main container)
+                // This includes the outer wrapper and all internal content
+                // let receiptContent = document.querySelector('.exo-receipt-paper').innerHTML;
 
-            await convertHtmlToPdfAndSendToPrintNode(receiptContent);
-            await new Promise(resolve => setTimeout(resolve, 5000));
-            await convertHtmlToPdfAndSendToPrintNode(kitchenSlipContent);
+                // 2. Get Kitchen Slip (Outer HTML of the main container)
+                // This ensures all wrappers and content are captured
+                // let kitchenSlipContent = document.querySelector('.kitchen-slip').innerHTML;
+
+
+                // await convertHtmlToPdfAndSendToPrintNode(receiptContent);
+                // await new Promise(resolve => setTimeout(resolve, 3000));
+                // await convertHtmlToPdfAndSendToPrintNode(kitchenSlipContent);
+                // if (isMobileDevice()) {
+                //     // Mobile (PrintNode): Send to PrintNode one after the other
+                //     console.log("Mobile detected: Printing through PrintNode...");
+                //     await convertHtmlToPdfAndSendToPrintNode(receiptContent);
+                //     await new Promise(resolve => setTimeout(resolve, 3000));
+                //     await convertHtmlToPdfAndSendToPrintNode(kitchenSlipContent);
+                // } else {
+                //     // Desktop (Direct Print): Send the image directly
+                //     console.log("Desktop detected: Printing directly...");
+                //     // printDirectlyToPrinter(receiptContent, kitchenSlipContent);
+                //     printSingle(receiptContent);
+
+                //     setTimeout(() => {
+                //         printSingle(kitchenSlipContent);
+                //     }, 10000); // delay is important
+
+
+                // }
+
+                sendToPrintNodeRaw(customerRaw);
+
+                // Delay 10 seconds for kitchen slip
+                setTimeout(() => {
+                    sendToPrintNodeRaw(kitchenRaw);
+                }, 10000);
+                showAlert("success-alert", "Receipts sent to printer successfully!");
+
+            } catch (e) {
+                console.error("Error in printBoth:", e);
+                showAlert("error-alert", "Failed to send one or both print jobs.");
+            } finally {
+                loader.hide();
+            }
         }
+
         printReceipts.addEventListener('click', function(e) {
             e.preventDefault();
-            printBoth();
-            // let receiptContent = document.querySelector('.exo-receipt-paper').outerHTML;
 
-            // // Detect if the device is mobile
-            // if (isMobileDevice()) {
-            //     // console.log("Mobile device detected. Sending to PrintNode.");
-            //     convertHtmlToPdfAndSendToPrintNode(receiptContent);
-            // } else {
-            //     // console.log("Desktop device detected. Printing directly.");
-            //     // printDirectly(receiptContent);
-            //     convertHtmlToPdfAndSendToPrintNode(receiptContent);
-            // }
+            // Optional: Check if mobile or desktop here
+            // For now, we use your PrintNode function
+            printBoth();
         });
 
         downloadReceipts.addEventListener('click', function(e) {
@@ -752,195 +840,112 @@ include 'inc/navbar.php';
         });
     });
 
-    // Function to detect mobile device
-    function isMobileDevice() {
-        return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    }
 
+    // const GS = "\x1D";
+    // const cut = GS + "V" + "\x00"; // cut paper
+    const ESC = "\x1B";
 
-    function printKitchenSlip(orderData) {
-        let div = document.createElement("div");
-        div.classList.add("kitchen-slip");
+    // ================= CUSTOMER RECEIPT =================
+    function buildCustomerReceipt(order, items) {
+        let lines = [];
+        const width = 32; // number of characters per line (adjust based on your printer)
 
-        div.style.padding = "10px";
-        div.style.fontFamily = "Arial, sans-serif";
-        div.style.width = "100%";
-        div.style.fontSize = "14px";
+        lines.push(ESC + "@"); // initialize printer
+        lines.push("SamgyupKaya\n");
+        lines.push("Langaray St, Dagat-dagatán Caloocan City\n");
+        lines.push("Phone#: 0926 200 4346\n");
+        lines.push("-".repeat(width) + "\n");
 
-        div.innerHTML = `
-        <h2 style="text-align:center; margin-bottom: 10px; font-size: 18px;">
-            KITCHEN ORDER SLIP
-        </h2>
-        <p><strong>Order #:</strong> ${orderData.order.order_id}</p>
-        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-        <p><strong>Type:</strong> ${orderData.order.dine}</p>
-        <hr style="margin: 10px 0;">
-        <p><strong>ITEMS:</strong></p>
-    `;
+        lines.push(`OR Number: ${order.order_id}\n`);
+        lines.push(`Date: ${new Date().toLocaleString()}\n`);
+        lines.push(`Cashier: ${order.cashier_name || "N/A"}\n`);
+        lines.push(`Order Type: ${order.dine || "N/A"}\n`);
+        lines.push("-".repeat(width) + "\n");
+        lines.push("Items Ordered:\n");
 
-        orderData.items.forEach(item => {
-            div.innerHTML += `
-            <p style="font-size: 16px; margin: 5px 0;">
-                <strong>${item.quantity} × ${item.name}</strong>
-            </p>
-        `;
-        });
-        document.querySelector(".kitchen-slip").appendChild(div);
-    }
-
-    // Function to convert HTML to PDF and send to PrintNode (Mobile)
-    async function convertHtmlToPdfAndSendToPrintNode(htmlContent) {
-        const {
-            jsPDF
-        } = window.jspdf;
-
-        // Create a temporary container
-        let temp = document.createElement("div");
-        temp.style.position = "fixed";
-        temp.style.left = "-9999px";
-        temp.innerHTML = htmlContent;
-        document.body.appendChild(temp);
-
-        // Measure the content
-        const heightPx = temp.scrollHeight;
-        const heightMM = heightPx * 0.264583;
-
-        const doc = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: [80, heightMM]
+        // Format items: name left, qty x price right
+        items.forEach(item => {
+            const name = item.name;
+            const qtyPrice = `${item.quantity} x ${parseFloat(item.price).toFixed(2)}`;
+            // pad spaces to align right
+            const line = name.padEnd(width - qtyPrice.length) + qtyPrice + "\n";
+            lines.push(line);
         });
 
-        await html2canvas(temp, {
-            scale: 2,
-            useCORS: true
-        }).then(canvas => {
-            const imgData = canvas.toDataURL("image/png");
-            doc.addImage(imgData, "PNG", 0, 0, 80, heightMM);
+        lines.push("-".repeat(width) + "\n");
 
-            const pdfBase64 = doc.output("datauristring").split(",")[1];
-            sendToPrintNode(pdfBase64);
+        const subtotal = parseFloat(order.total_price);
+        const discount = parseFloat(order.discount_amount) || 0;
+        const totalAfterDiscount = subtotal - discount;
+        const paid = parseFloat(order.paid_amount) || 0;
+        const change = paid - totalAfterDiscount;
+        const vatableSales = subtotal / 1.12;
+        const vatAmount = subtotal - vatableSales;
+        const vatExempt = 0.00; // adjust if needed
+        const zeroRated = 0.00; // adjust if needed
+
+        lines.push(`Subtotal:`.padEnd(width - subtotal.toFixed(2).length) + subtotal.toFixed(2) + "\n");
+        if (discount) lines.push(`Discount:`.padEnd(width - discount.toFixed(2).length) + "-" + discount.toFixed(2) + "\n");
+        lines.push(`Paid Amount:`.padEnd(width - paid.toFixed(2).length) + paid.toFixed(2) + "\n");
+        lines.push(`Change:`.padEnd(width - change.toFixed(2).length) + change.toFixed(2) + "\n");
+        lines.push(`VAT (12%):`.padEnd(width - vatAmount.toFixed(2).length) + vatAmount.toFixed(2) + "\n");
+        lines.push(`VATable Sales:`.padEnd(width - vatableSales.toFixed(2).length) + vatableSales.toFixed(2) + "\n");
+        lines.push(`VAT Exempt Sales:`.padEnd(width - vatExempt.toFixed(2).length) + vatExempt.toFixed(2) + "\n");
+        lines.push(`Zero-rated Sales:`.padEnd(width - zeroRated.toFixed(2).length) + zeroRated.toFixed(2) + "\n");
+        lines.push(`Grand Total:`.padEnd(width - totalAfterDiscount.toFixed(2).length) + totalAfterDiscount.toFixed(2) + "\n");
+
+        lines.push("-".repeat(width) + "\n");
+        lines.push("This serves as your\n");
+        lines.push("Official Receipt\n");
+        lines.push("Thank you and enjoy!\n");
+        lines.push("\n\n"); // space at the end
+        lines.push("-".repeat(width) + "\n");
+        lines.push("\n\n"); // space at the end
+
+        // lines.push(cut); // cut paper
+
+        return lines.join("");
+    }
+
+    // ================= KITCHEN SLIP =================
+    function buildKitchenSlip(order, items) {
+        let lines = [];
+        lines.push(ESC + "@"); // initialize printer
+        lines.push("KITCHEN ORDER SLIP\n");
+        lines.push("-----------------------------\n");
+        lines.push(`Order #: ${order.order_id}\n`);
+        lines.push(`Time: ${new Date().toLocaleString()}\n`);
+        lines.push(`Type: ${order.dine || "N/A"}\n`);
+        lines.push("-----------------------------\n");
+        lines.push("ITEMS:\n");
+
+        items.forEach(item => {
+            lines.push(`${item.quantity} × ${item.name}\n`);
         });
 
-        document.body.removeChild(temp); // cleanup
+        lines.push("-----------------------------\n");
+        // lines.push(cut); // cut paper
+        return lines.join("");
     }
 
-
-
-    // Function to print directly (Desktop)
-    function printDirectly(receiptContent) {
-        // Detect if the printer is 58mm (default for your Xprinter)
-        const is58mm = true; // Set this to true because we are using a 58mm thermal printer
-
-        let printStyles = `
-                <style>
-                    @media print {
-                        body {
-                            margin: 0;
-                            width: ${is58mm ? '58mm' : '80mm'};
-                            font-family: "Courier New", monospace;
-                            padding: 0;
-                        }
-
-                        .exo-receipt-paper {
-                            width: ${is58mm ? '58mm' : '80mm'};
-                            padding: 5px;
-                            box-sizing: border-box;
-                            font-size: ${is58mm ? '12px' : '14px'};
-                        }
-
-                        .exo-receipt-header,
-                        .exo-receipt-footer {
-                            text-align: center;
-                        }
-
-                        .exo-receipt-header img,
-                        .exo-receipt-logo {
-                            width: ${is58mm ? '40px' : '60px'};
-                            height: auto;
-                        }
-
-                        .exo-receipt-header h2 {
-                            margin: 0;
-                            font-size: ${is58mm ? '14px' : '16px'};
-                        }
-
-                        .exo-receipt-header p,
-                        .exo-receipt-body p,
-                        .exo-receipt-footer p {
-                            font-size: ${is58mm ? '12px' : '14px'};
-                            margin: 0;
-                        }
-
-                        .exo-receipt-separator {
-                            border-top: 1px dashed #000;
-                            margin: 5px 0;
-                        }
-
-                        .item-details {
-                            display: flex;
-                            justify-content: space-between;
-                            font-size: ${is58mm ? '12px' : '14px'};
-                        }
-
-                        .item-name {
-                            font-size: ${is58mm ? '12px' : '14px'};
-                            font-weight: bold;
-                        }
-
-                        .item-total {
-                            font-weight: bold;
-                        }
-
-                        .exo-receipt-total {
-                            font-size: ${is58mm ? '14px' : '16px'};
-                            font-weight: bold;
-                        }
-                    }
-
-                    @page {
-                        size: ${is58mm ? '58mm' : '80mm'} auto;
-                        margin: 0;
-                    }
-                </style>
-            `;
-
-        let printWindow = window.open('', '', 'width=320,height=800');
-        printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>Print Receipt</title>
-                        ${printStyles}
-                    </head>
-                    <body>
-                        ${receiptContent}
-                    </body>
-                </html>
-            `);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-    }
-
-
-    // Function to send PDF to PrintNode (Mobile)
-    function sendToPrintNode(pdfBase64) {
+    // ================= SEND TO PRINTNODE =================
+    function sendToPrintNodeRaw(rawText) {
         try {
             loader.show()
+            const rawBase64 = btoa(rawText);
 
             fetch('https://api.printnode.com/printjobs', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Basic ' + btoa('O2zIWVEQaRsITtE8r5EYBSVeCKadKqq0YpxRibkDSP4:'), // Replace with your actual API key
+                        'Authorization': 'Basic ' + btoa('O2zIWVEQaRsITtE8r5EYBSVeCKadKqq0YpxRibkDSP4:'),
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        printerId: 74971038, // Replace with your actual printer ID
-                        title: "Customer Receipt",
-                        contentType: "pdf_base64", // Correct content type
-                        content: pdfBase64,
-                        source: "Chia's POS"
+                        printerId: 74971038,
+                        title: "Receipt / Kitchen Slip",
+                        contentType: "raw_base64",
+                        content: rawBase64,
+                        source: "SamgyupKaya POS System"
                     })
                 })
                 .then(res => res.json())
@@ -962,10 +967,8 @@ include 'inc/navbar.php';
         } finally {
             loader.hide()
         }
+
     }
-
-
-
 
 
     function downloadReceiptAsPDF() {

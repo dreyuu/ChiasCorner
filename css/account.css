@@ -279,7 +279,8 @@
 }
 
 /* Page Info Text */
-#pageInfo {
+#pageInfo,
+#log-pageInfo {
     font-size: 14px;
     color: #444;
     padding: 4px 10px;
@@ -290,7 +291,8 @@
 
 /* --- Modal Background and Overlay (No Changes Needed) --- */
 .database-modal,
-.pin-modal {
+.pin-modal,
+.log-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -309,13 +311,15 @@
 
 /* Class to make the modal visible */
 .database-modal.is-visible,
-.pin-modal.is-visible {
+.pin-modal.is-visible,
+.log-modal.is-visible {
     opacity: 1;
     visibility: visible;
 }
 
 .database-overlay,
-.pin-overlay {
+.pin-overlay,
+.log-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -326,7 +330,8 @@
 
 /* --- Modal Content Styling (New/Updated) --- */
 .database-modal-content,
-.pin-modal-content {
+.pin-modal-content,
+.log-modal-content {
     background: #fff;
     /* White background for the content box */
     padding: 30px;
@@ -361,7 +366,8 @@
 }
 
 /* Close button styling */
-.close-database-modal {
+.close-database-modal,
+.close-log-modal {
     position: absolute;
     top: 10px;
     right: 20px;
@@ -569,6 +575,155 @@
     margin-top: 15px;
     font-weight: bold;
 }
+
+/* --- Log Modal Specific Adjustments --- */
+.log-modal-content {
+    /* Override max-width to make room for a wide log table */
+    max-width: 90% !important;
+    width: auto;
+    /* Let content determine width up to 90% */
+    max-height: 80vh;
+    /* Max height of 80% of viewport height */
+    display: flex;
+    /* Use flex to manage inner layout (buttons, table) */
+    flex-direction: column;
+    text-align: left;
+    /* Logs look better left-aligned */
+}
+
+.close-log-modal:hover,
+.close-log-modal:focus {
+    color: #333;
+    /* Darken on hover/focus */
+}
+
+.modal-title {
+    color: #333;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* --- 1. Button Styling (Clean, Flat, and Functional) --- */
+.log-controls {
+    display: flex;
+    gap: 10px;
+    /* Space between buttons */
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    /* Ensure buttons wrap on small screens */
+}
+
+.log-button {
+    /* Flat Design */
+    background-color: #FFD428;
+    /* Light gray background */
+    color: #000;
+    border: 2px solid #FFD428;
+    padding: 8px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all 0.2s ease, transform 0.1s ease;
+    /* Optional: make text unselectable */
+    user-select: none;
+}
+
+.log-button:hover {
+    background-color: #000;
+    color: #FFD428;
+    /* Darker gray on hover */
+}
+
+.log-button:active {
+    transform: scale(0.98);
+    /* Slight press effect */
+}
+
+/* --- 2. Table Styling (Minimalist, Readable) --- */
+
+.log-table-container {
+    overflow-x: auto;
+    /* Allows horizontal scrolling for wide tables */
+    flex-grow: 1;
+    /* Allows the container to take up remaining vertical space */
+    padding-right: 5px;
+    max-height: 400px;
+    /* Space for scrollbar */
+    /* Add vertical scrolling if content exceeds max-height */
+    overflow-y: auto;
+}
+
+#logTable {
+    width: 100%;
+    border-collapse: collapse;
+    /* Remove double lines */
+    font-family: Arial, sans-serif;
+    font-size: 0.9em;
+    min-width: 600px;
+    /* Ensure a minimum width for readability */
+}
+
+/* Table Header */
+#logTable thead th {
+    background-color: #e9e9e9;
+    color: #333;
+    padding: 12px 15px;
+    text-align: left;
+    /* Use sticky header for better scrolling experience */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+
+/* Table Body Rows */
+#logTable tbody tr {
+    border-bottom: 1px solid #eee;
+    /* Light separator line */
+}
+
+#logTable tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+    /* Subtle zebra striping */
+}
+
+#logTable tbody tr:hover {
+    background-color: #f1f1f1;
+    /* Highlight row on hover */
+}
+
+/* Table Cells */
+#logTable tbody td {
+    padding: 10px 15px;
+    color: #555;
+    /* Set specific column widths for better organization */
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Adjustments for specific columns */
+#logTable tbody td:nth-child(1) {
+    /* Date/Time column */
+    color: #000;
+    font-weight: 600;
+    white-space: nowrap;
+    width: 150px;
+}
+
+#logTable tbody td:nth-child(5) {
+    /* Description column */
+    white-space: normal;
+    /* Allow descriptions to wrap */
+    max-width: 350px;
+    line-height: 1.4;
+    color: #333;
+}
+
 
 /* Footer Section */
 .footer {

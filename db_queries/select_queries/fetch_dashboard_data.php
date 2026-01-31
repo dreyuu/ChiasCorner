@@ -2,7 +2,7 @@
 // fetch_dashboard_data.php
 // Returns JSON for dashboard. Admins see global stats, employees see personal data.
 include_once __DIR__ . '/../../connection.php';
-require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+require __DIR__ . '/../../components/logger.php';   // Load the Composer autoloader
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -10,9 +10,10 @@ try {
     $userType = isset($_GET['user_type']) ? $_GET['user_type'] : 'employee';
 
     if ($userType === 'admin') {
+        // [Admin logic remains unchanged]
         // ---------- TOTAL SALES & CUSTOMERS ----------
         $sql = "SELECT IFNULL(SUM(oh.total_price),0) AS total_sales,
-                       COUNT(DISTINCT oh.order_id) AS customers_served
+                      COUNT(DISTINCT oh.order_id) AS customers_served
                 FROM order_history oh
                 WHERE oh.payment_status = 'paid'";
         $stmt = $connect->prepare($sql);
@@ -34,7 +35,7 @@ try {
         $stmt->execute();
         $month = $stmt->fetchColumn();
 
-        // ---------- STAFF SALES ----------
+        // ---------- STAFF SALES (Global View) ----------
         $sqlStaffTotal = "SELECT u.user_id, u.name, IFNULL(SUM(oh.total_price),0) AS total_sales
                           FROM order_history oh
                           JOIN users u ON oh.user_id = u.user_id
@@ -53,20 +54,41 @@ try {
         $stmt->execute();
         $staffToday = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $sqlStaffMonth = "SELECT u.user_id, IFNULL(SUM(oh.total_price), 0) AS sales_month
+                        FROM order_history oh
+                        JOIN users u ON oh.user_id = u.user_id
+                        WHERE
+                            oh.payment_status = 'paid'
+                            AND YEAR(oh.order_date) = YEAR(CURDATE())
+                            AND MONTH(oh.order_date) = MONTH(CURDATE())
+                        GROUP BY u.user_id";
+        $stmt = $connect->prepare($sqlStaffMonth);
+        $stmt->execute();
+        $staffMonth = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
         $staffSales = [];
         foreach ($staffTotal as $s) {
             $todayVal = 0;
+            $monthVal = 0;
             foreach ($staffToday as $st) {
                 if ($st['user_id'] == $s['user_id']) {
                     $todayVal = $st['sales_today'];
                     break;
                 }
             }
+            foreach ($staffMonth as $sm) {
+                if ($sm['user_id'] == $s['user_id']) {
+                    $monthVal = $sm['sales_month'];
+                    break;
+                }
+            }
             $staffSales[] = [
-                'user_id' => intval($s['user_id']),
-                'name' => $s['name'],
-                'salesToday' => number_format($todayVal, 2),
-                'totalSales' => number_format($s['total_sales'], 2)
+                'user_id'      => (int)$s['user_id'],
+                'name'         => $s['name'],
+                'salesToday'   => number_format($todayVal, 2),
+                'salesMonth'   => number_format($monthVal, 2),
+                'totalSales'   => number_format($s['total_sales'], 2)
             ];
         }
 
@@ -79,7 +101,7 @@ try {
         $stmt->execute();
         $totalItems = $stmt->fetchColumn();
 
-        // ---------- TOP PRODUCTS ----------
+        // ---------- TOP PRODUCTS (Global View) ----------
         $sqlTop = "SELECT m.name, SUM(oi.quantity) AS total_sold
                    FROM order_items oi
                    JOIN menu m ON oi.menu_id = m.menu_id
@@ -90,13 +112,13 @@ try {
         $stmt->execute();
         $topProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // ---------- LEAST PRODUCTS ----------
+        // ---------- LEAST PRODUCTS (Global View) ----------
         $sqlLeast = "SELECT m.name, SUM(oi.quantity) AS total_sold
-                     FROM order_items oi
-                     JOIN menu m ON oi.menu_id = m.menu_id
-                     JOIN order_history oh ON oi.order_id = oh.order_id
-                     WHERE oh.payment_status='paid'
-                     GROUP BY m.menu_id ORDER BY total_sold ASC LIMIT 5";
+                    FROM order_items oi
+                    JOIN menu m ON oi.menu_id = m.menu_id
+                    JOIN order_history oh ON oi.order_id = oh.order_id
+                    WHERE oh.payment_status='paid'
+                    GROUP BY m.menu_id ORDER BY total_sold ASC LIMIT 5";
         $stmt = $connect->prepare($sqlLeast);
         $stmt->execute();
         $leastProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -144,21 +166,22 @@ try {
         ], JSON_PRETTY_PRINT);
         exit;
     } else {
-        // ---------- EMPLOYEE ----------
+        // ---------- EMPLOYEE SECTION ----------
         $stmt = $connect->prepare("SELECT user_id, name, username, email, user_type, DATE_FORMAT(date_created,'%Y-%m-%d') AS date_created FROM users WHERE user_id = :user_id LIMIT 1");
         $stmt->execute([':user_id' => $userId]);
         $employee = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $stmt = $connect->prepare("SELECT promo_id, name, discount_type, discount_value, start_date, end_date
-                                   FROM promotions
-                                   WHERE status='active' AND CURDATE() BETWEEN start_date AND end_date");
+                                  FROM promotions
+                                  WHERE status='active' AND CURDATE() BETWEEN start_date AND end_date");
         $stmt->execute();
         $promos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $stmt = $connect->prepare("SELECT oh.order_id, oh.total_price, oh.dine, oh.items_ordered, oh.order_date
-                                   FROM order_history oh
-                                   WHERE oh.user_id = :user_id AND oh.payment_status = 'paid' AND DATE(oh.order_date) = CURDATE()
-                                   ORDER BY oh.order_date DESC");
+        // Orders Today - FIX: Format date to time and include items
+        $stmt = $connect->prepare("SELECT oh.order_id, oh.total_price, oh.dine, oh.items_ordered, TIME_FORMAT(oh.order_date, '%h:%i %p') AS order_time
+                                  FROM order_history oh
+                                  WHERE oh.user_id = :user_id AND oh.payment_status = 'paid' AND DATE(oh.order_date) = CURDATE()
+                                  ORDER BY oh.order_date DESC");
         $stmt->execute([':user_id' => $userId]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -173,6 +196,33 @@ try {
         $stmt->execute([':user_id' => $userId]);
         $personalMonth = $stmt->fetchColumn();
 
+        // ---------- PERSONAL TOTAL SALES (New for Staff Table) ----------
+        $stmt = $connect->prepare("SELECT IFNULL(SUM(total_price),0) FROM order_history WHERE user_id = :user_id AND payment_status = 'paid'");
+        $stmt->execute([':user_id' => $userId]);
+        $personalTotalSales = $stmt->fetchColumn();
+
+        // ---------- PERSONAL TOP PRODUCTS (New) ----------
+        $sqlPersonalTop = "SELECT m.name, SUM(oi.quantity) AS total_sold
+                          FROM order_items oi
+                          JOIN menu m ON oi.menu_id = m.menu_id
+                          JOIN order_history oh ON oi.order_id = oh.order_id
+                          WHERE oh.payment_status='paid' AND oh.user_id = :user_id
+                          GROUP BY m.menu_id ORDER BY total_sold DESC LIMIT 5";
+        $stmt = $connect->prepare($sqlPersonalTop);
+        $stmt->execute([':user_id' => $userId]);
+        $personalTopProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // ---------- PERSONAL LEAST PRODUCTS (New) ----------
+        $sqlPersonalLeast = "SELECT m.name, SUM(oi.quantity) AS total_sold
+                             FROM order_items oi
+                             JOIN menu m ON oi.menu_id = m.menu_id
+                             JOIN order_history oh ON oi.order_id = oh.order_id
+                             WHERE oh.payment_status='paid' AND oh.user_id = :user_id
+                             GROUP BY m.menu_id ORDER BY total_sold ASC LIMIT 5";
+        $stmt = $connect->prepare($sqlPersonalLeast);
+        $stmt->execute([':user_id' => $userId]);
+        $personalLeastProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         echo json_encode([
             'role' => 'employee',
             'employee' => $employee,
@@ -181,7 +231,11 @@ try {
             'ordersServedToday' => intval($completedCount),
             'personalSalesToday' => number_format($personalTotalToday, 2),
             'personalSalesWeek' => number_format($personalWeek, 2),
-            'personalSalesMonth' => number_format($personalMonth, 2)
+            'personalSalesMonth' => number_format($personalMonth, 2),
+            // New employee data fields
+            'personalTopProducts' => $personalTopProducts,
+            'personalLeastProducts' => $personalLeastProducts,
+            'personalTotalSales' => $personalTotalSales
         ], JSON_PRETTY_PRINT);
         exit;
     }
