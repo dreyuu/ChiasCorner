@@ -43,12 +43,13 @@ try {
     }
 
     // Insert new ingredient
-    $ingredientQuery = "INSERT INTO ingredients (ingredient_name, category, unit)
-                        VALUES (:ingredient_name, :category, :unit)";
+    $ingredientQuery = "INSERT INTO ingredients (ingredient_name, category, unit, date_added)
+                        VALUES (:ingredient_name, :category, :unit, :date_added)";
     $stmtIngredient = $connect->prepare($ingredientQuery);
     $stmtIngredient->bindParam(':ingredient_name', $listIngredient, PDO::PARAM_STR);
     $stmtIngredient->bindParam(':category', $categoryIngredient, PDO::PARAM_STR);
     $stmtIngredient->bindParam(':unit', $unitIngredient, PDO::PARAM_STR);
+    $stmtIngredient->bindParam(':date_added', localNow(), PDO::PARAM_STR);
     $stmtIngredient->execute();
 
     // Commit transaction

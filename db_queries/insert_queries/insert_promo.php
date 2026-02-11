@@ -34,8 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $applicable_menu_id = ($applicable_menu_id === "") ? null : $applicable_menu_id;
 
         // Insert into the database
-        $stmt = $connect->prepare("INSERT INTO promotions (name, discount_type, discount_value, start_date, end_date, applicable_menu_id)
-                                    VALUES (:name, :discount_type, :discount_value, :start_date, :end_date, :applicable_menu_id)");
+        $stmt = $connect->prepare("INSERT INTO promotions (name, discount_type, discount_value, start_date, end_date, applicable_menu_id, date_created)
+                                    VALUES (:name, :discount_type, :discount_value, :start_date, :end_date, :applicable_menu_id, :date_created)");
 
         $stmt->bindParam(":name", $promo_name);
         $stmt->bindParam(":discount_type", $discount_type);
@@ -43,6 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bindParam(":start_date", $start_date);
         $stmt->bindParam(":end_date", $end_date);
         $stmt->bindParam(":applicable_menu_id", $applicable_menu_id, PDO::PARAM_INT);
+        $stmt->bindParam(":date_created", localNow());
 
         if ($stmt->execute()) {
             $response["success"] = true;

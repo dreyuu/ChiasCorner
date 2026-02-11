@@ -17,9 +17,9 @@ try {
         $quantity = $batch['quantity'];
 
         // Insert into inventory_transactions as 'wastage'
-        $insertQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit)
-                        VALUES (?, 'wastage', ?, 'pcs')";
-        $connect->prepare($insertQuery)->execute([$ingredientId, $quantity]);
+        $insertQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit, transaction_date)
+                        VALUES (?, 'wastage', ?, 'pcs', ?)";
+        $connect->prepare($insertQuery)->execute([$ingredientId, $quantity, localNow()]);
 
         // Update inventory stock
         $updateInventory = "UPDATE inventory

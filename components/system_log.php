@@ -12,12 +12,34 @@ function logAction(
     $ip = $_SERVER['REMOTE_ADDR'] ?? null;
     $agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 
+    // Always generate UTC time
+    // $utcNow = (new DateTime('now', new DateTimeZone('UTC')))
+    //     ->format('Y-m-d H:i:s');
+
     try {
         $stmt = $connect->prepare("
             INSERT INTO system_logs
-            (user_id, action_category, action_type, target_id, description, ip_address, user_agent)
+            (
+                user_id,
+                action_category,
+                action_type,
+                target_id,
+                description,
+                ip_address,
+                user_agent,
+                created_at
+            )
             VALUES
-            (:user_id, :category, :action_type, :target_id, :description, :ip, :agent)
+            (
+                :user_id,
+                :category,
+                :action_type,
+                :target_id,
+                :description,
+                :ip,
+                :agent,
+                :created_at
+            )
         ");
 
         $stmt->execute([
@@ -27,13 +49,12 @@ function logAction(
             ':target_id'   => $target_id,
             ':description' => $description,
             ':ip'          => $ip,
-            ':agent'       => $agent
+            ':agent'       => $agent,
+            ':created_at'  => localNow()
         ]);
 
-        // Optional realtime push
         PusherHelper::send('logs-channel', 'log-info', ['msg' => 'logs successful']);
     } catch (\Throwable $e) {
-        // Logging must NEVER break the main flow
         error_log('[SYSTEM LOG ERROR] ' . $e->getMessage());
     }
 }

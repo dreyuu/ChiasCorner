@@ -332,8 +332,6 @@ include 'inc/navbar.php';
             doc.setFont(undefined, "normal");
             doc.text(`Date Range: ${dateFrom} to ${dateTo}`, margin, y);
             y += 6;
-            doc.text(`Category: ${category}`, margin, y);
-            y += 10;
 
             // --- Sales Summary Box ---
             doc.setFillColor("#FFD428");

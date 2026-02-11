@@ -30,8 +30,57 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (loginForm) {
+        const maxAttempts = 5;
+        const cooldownTime = 30000; // 30 seconds
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Load stored values
+        let attemptCounter = parseInt(localStorage.getItem('login_attempts')) || 0;
+        let cooldownEnd = parseInt(localStorage.getItem('login_cooldown')) || 0;
+
+        // Check cooldown and update button
+        const checkCooldown = () => {
+            const now = Date.now();
+
+            if (cooldownEnd > now) {
+                const remaining = Math.ceil((cooldownEnd - now) / 1000);
+                showAlert("warning-alert", `Too many failed attempts. Try again in ${remaining} seconds.`);
+                submitBtn.disabled = true;
+                submitBtn.textContent = `Wait ${remaining}s`;
+
+                // Start live countdown on button
+                const interval = setInterval(() => {
+                    const rem = Math.ceil((cooldownEnd - Date.now()) / 1000);
+                    if (rem > 0) {
+                        submitBtn.textContent = `${rem}s`;
+                    } else {
+                        clearInterval(interval);
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "LOGIN";
+                        localStorage.removeItem('login_cooldown');
+                        attemptCounter = 0;
+                        localStorage.setItem('login_attempts', attemptCounter);
+                    }
+                }, 1000);
+
+                return true;
+            } else {
+                // cooldown expired
+                submitBtn.disabled = false;
+                submitBtn.textContent = "LOGIN";
+                localStorage.removeItem('login_cooldown');
+                attemptCounter = parseInt(localStorage.getItem('login_attempts')) || 0;
+                return false;
+            }
+        };
+
+        // Run cooldown check on page load
+        checkCooldown();
+
         loginForm.addEventListener("submit", (e) => {
             e.preventDefault();
+
+            if (checkCooldown()) return;
 
             let errors = [];
             errors = authenticateUser(username.value, password.value);
@@ -45,45 +94,59 @@ document.addEventListener("DOMContentLoaded", function () {
             formData.append("username", username.value);
             formData.append("password", password.value);
 
-            // show loader
             loader.show();
 
             fetch("db_queries/select_queries/get_user.php", {
                 method: "POST",
                 body: formData
             })
-                .then((response) => response.json())
-                .then((data) => {
+                .then(response => response.json())
+                .then(data => {
                     try {
                         if (data.success) {
                             showAlert("success-alert", "Login successful!");
-                            // CustomAlert.alert("Login successful!", "success");
-                            // show loading screen
                             localStorage.setItem('jwt_token', data.token);
                             pageLoader();
+
                             setTimeout(() => {
-                                loginForm.reset(); // Reset the form
+                                loginForm.reset();
                                 loader.hide();
                                 window.location.href = "Main.php";
                             }, 3000);
+
+                            // Reset attempts on success
+                            attemptCounter = 0;
+                            localStorage.removeItem('login_attempts');
+                            localStorage.removeItem('login_cooldown');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = "LOGIN";
                         } else {
-                            showAlert("warning-alert", data.message);
-                            // CustomAlert.alert("Invalid username or password", "warning")
-                            loginForm.reset(); // Reset the form
+                            attemptCounter++;
+                            localStorage.setItem('login_attempts', attemptCounter);
+
+                            // Show attempt number in alert
+                            showAlert("warning-alert", `${data.message} | Attempt ${attemptCounter} of ${maxAttempts}`);
+                            loginForm.reset();
                             loader.hide();
+
+                            if (attemptCounter >= maxAttempts) {
+                                const now = Date.now();
+                                cooldownEnd = now + cooldownTime;
+                                localStorage.setItem('login_cooldown', cooldownEnd);
+                                checkCooldown(); // start cooldown immediately
+                            }
                         }
                     } catch (error) {
                         console.error(error);
                         showAlert("warning-alert", error.message || "An error occurred. Please try again later");
-                        loginForm.reset(); // Reset the form
+                        loginForm.reset();
                     }
                 })
-                .catch((error) => {
+                .catch(error => {
                     console.error(error);
                     showAlert("error-alert", error.message || "An error occurred. Please try again later");
-                    loginForm.reset(); // Reset the form
-                })
-
+                    loginForm.reset();
+                });
         });
     }
 

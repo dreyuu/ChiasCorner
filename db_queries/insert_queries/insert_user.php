@@ -58,8 +58,8 @@ try {
     $pin = random_int(100000, 999999);
     if ($user_type === 'admin' || $user_type === 'dev') {
         // Insert into DB
-        $query = "INSERT INTO users (name, username, password, email, user_type, status, auth_pin)
-                VALUES (:name, :username, :password, :email, :user_type, :status, :auth_pin)";
+        $query = "INSERT INTO users (name, username, password, email, user_type, status, auth_pin, date_created)
+                VALUES (:name, :username, :password, :email, :user_type, :status, :auth_pin, :date_created)";
         $stmt = $connect->prepare($query);
         $stmt->execute([
             ':name' => $name,
@@ -68,12 +68,13 @@ try {
             ':email' => $email,
             ':user_type' => $user_type,
             ':status' => $status,
-            ':auth_pin' => $pin
+            ':auth_pin' => $pin,
+            ':date_created' => localNow()
         ]);
     } else {
         // Insert into DB
-        $query = "INSERT INTO users (name, username, password, email, user_type, status)
-                VALUES (:name, :username, :password, :email, :user_type, :status)";
+        $query = "INSERT INTO users (name, username, password, email, user_type, status, date_created)
+                VALUES (:name, :username, :password, :email, :user_type, :status, :date_created)";
         $stmt = $connect->prepare($query);
         $stmt->execute([
             ':name' => $name,
@@ -81,7 +82,8 @@ try {
             ':password' => $password,
             ':email' => $email,
             ':user_type' => $user_type,
-            ':status' => $status
+            ':status' => $status,
+            ':date_created' => localNow()
         ]);
     }
 

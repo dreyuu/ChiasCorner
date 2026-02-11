@@ -58,9 +58,9 @@ try {
                 if (!move_uploaded_file($_FILES["menu_image"]["tmp_name"], $imagePath)) {
                     throw new Exception("Failed to upload image.");
                 }
-
+                $localDate = localNow();
                 // Insert menu data into the database
-                $stmt = $connect->prepare("INSERT INTO menu (name, category, menu_type, price, availability, menu_image) VALUES (:name, :category, :menu_type, :price, :availability, :menu_image)");
+                $stmt = $connect->prepare("INSERT INTO menu (name, category, menu_type, price, availability, menu_image, date_added) VALUES (:name, :category, :menu_type, :price, :availability, :menu_image, :date_added)");
 
                 $stmt->bindParam(":name", $name);
                 $stmt->bindParam(":category", $category);
@@ -68,6 +68,7 @@ try {
                 $stmt->bindParam(":price", $price);
                 $stmt->bindParam(":availability", $availability, PDO::PARAM_BOOL); // Store as boolean
                 $stmt->bindParam(":menu_image", $imageName);
+                $stmt->bindParam(":date_added", $localDate);
 
                 if ($stmt->execute()) {
                     $response["success"] = true;

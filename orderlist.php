@@ -651,7 +651,7 @@ include 'inc/navbar.php';
         let receiptHeader = `
                         <div class="exo-receipt-header">
                             <h2>SamgyupKaya</h2>
-                            <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
+                            <p>Padas street, Cor Langaray St, Caloocan, 1400 Metro Manila</p>
                             <p>Phone#: 0926 200 4346</p>
                         </div>
                         <div class="exo-receipt-separator"></div>

@@ -4,7 +4,6 @@ require __DIR__ . '/../../components/logger.php';  // Load the Composer autoload
 
 include_once __DIR__ . '/../../components/system_log.php';
 include_once __DIR__ . '/../../components/pusher_helper.php';
-require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
     $ingredient_id = isset($data['ingredient_id']) ? $data['ingredient_id'] : null;

@@ -55,8 +55,8 @@ try {
 
     // Step 3: Insert new admin account
     $default_name = "Recovered Admin";
-    $insert = $connect->prepare("INSERT INTO users (name, username, password, email, user_type) VALUES (?, ?, ?, ?, 'admin')");
-    $insert_success = $insert->execute([$default_name, $new_username, $new_password_hashed, $admin_email]);
+    $insert = $connect->prepare("INSERT INTO users (name, username, password, email, user_type, date_created) VALUES (?, ?, ?, ?, 'admin', ?)");
+    $insert_success = $insert->execute([$default_name, $new_username, $new_password_hashed, $admin_email, localNow()]);
 
     if ($insert_success) {
         // Step 4: Send credentials via email

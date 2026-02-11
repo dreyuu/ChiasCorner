@@ -31,6 +31,12 @@ class PusherHelper
         $pusher->trigger($channel, $event, $data);
     }
 }
+
+function localNow(string $format = 'Y-m-d H:i:s'): string
+{
+    return (new DateTime('now', new DateTimeZone('Asia/Manila')))->format($format);
+}
+
 // how to use it
 // PusherHelper::send("orders-channel", "order-added", ["msg" => "ok"]);
 // After inserting into your MySQL database

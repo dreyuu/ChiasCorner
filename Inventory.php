@@ -144,10 +144,10 @@ include 'inc/navbar.php';
             <option value="quantity_desc">Stock Quantity (High to Low)</option>
             <option value="expiry_asc">Expiration Date (Soonest to Latest)</option>
             <option value="expiry_desc">Expiration Date (Latest to Soonest)</option>
-            <option value="transaction_asc">Transaction Type (A-Z)</option>
+            <!-- <option value="transaction_asc">Transaction Type (A-Z)</option>
             <option value="transaction_desc">Transaction Type (Z-A)</option>
             <option value="date_added_desc">Date Added (Newest First)</option>
-            <option value="date_added_asc">Date Added (Oldest First)</option>
+            <option value="date_added_asc">Date Added (Oldest First)</option> -->
         </select>
         <input type="text" placeholder="Search..." id="searchInput">
     </div>
@@ -600,19 +600,33 @@ include 'inc/navbar.php';
         document.getElementById("update-inventory-body").addEventListener('click', function(e) {
             if (e.target.closest('.add') || e.target.closest('.subtract')) {
                 // Get the batch_id and action (add or subtract)
-                const batch_id = JSON.parse(e.target.closest('.add') ? e.target.closest('.add').dataset.id : e.target.closest('.subtract').dataset.id);
-                const action = JSON.parse(e.target.closest('.add') ? e.target.closest('.add').dataset.action : e.target.closest('.subtract').dataset.action);
+                const submitBtn = document.getElementById('update-batch');
+                const batch_id = e.target.closest('.add') ?
+                    e.target.closest('.add').dataset.id :
+                    e.target.closest('.subtract').dataset.id;
+
+                // Action is a string, so no need to parse it
+                const action = e.target.closest('.add') ?
+                    e.target.closest('.add').dataset.action :
+                    e.target.closest('.subtract').dataset.action;
+
+                if (action === "add") {
+                    submitBtn.textContent = "Add Stock";
+                } else if (action === "subtract") {
+                    submitBtn.textContent = "Subtract Stock";
+                }
 
                 // Call the function to populate the batch form with the respective action
                 populateBatchForm(batch_id, action);
             }
+
             if (e.target.closest('.remove')) {
                 const batch_id = JSON.parse(e.target.closest('.remove').dataset.id);
                 const item_id = e.target.closest('.remove').dataset.item;
                 removeBatch(batch_id, item_id);
             }
+        });
 
-        })
 
 
         function openInventoryModal(id) {
@@ -648,7 +662,7 @@ include 'inc/navbar.php';
                         <td>₱${batch.cost}</td>
                         <td>${batch.expiration_date}</td>
                         <td>
-                            <button class="edit-btn add" data-id="${batch.batch_id}" data-action="add"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="edit-btn add" data-id="${batch.batch_id}" data-action="add"><i class="fa-solid fa-plus"></i></button>
                             <button class="remove-btn subtract" data-id="${batch.batch_id}" data-action="subtract"><i class="fa-solid fa-minus"></i></button>
                             <button class="remove-btn remove" data-id="${batch.batch_id}" data-item=${batch.ingredient_id}><i class="fa-solid fa-trash"></i></button>
                             </td>
@@ -714,6 +728,8 @@ include 'inc/navbar.php';
                         if (data.success) {
                             stockBatches(formData.get('item_id')); // Refresh the batch list
                             batchForm.reset();
+                            const submitBtn = document.getElementById('update-batch');
+                            submitBtn.textContent = "Update Inventory"; // Reset button text to default
                         }
                     })
                     .catch(error => console.error("Error:", error))

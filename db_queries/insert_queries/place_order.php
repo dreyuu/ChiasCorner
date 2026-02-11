@@ -39,11 +39,10 @@ try {
     $activateToday->execute();
 
     // ✅ Step 2: Insert order (placeholder totals)
-    $stmt = $connect->prepare("
-        INSERT INTO orders (user_id, total_price, discount_amount, dine)
-        VALUES (?, 0, 0, ?)
-    ");
-    $stmt->execute([$user_id, $dineType]);
+    $stmt = $connect->prepare("INSERT INTO orders (user_id, total_price, discount_amount, dine, order_date)
+                            VALUES (?, 0, 0, ?, ?)");
+    $stmt->execute([$user_id, $dineType, localNow()]);
+
     $order_id = $connect->lastInsertId();
 
     $total_price = 0;

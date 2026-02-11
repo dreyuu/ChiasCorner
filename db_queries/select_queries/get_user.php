@@ -1,43 +1,30 @@
 <?php
-// Start the session if needed for some reason
-// session_start(); // Not required if using JWT
 include_once __DIR__ . '/../../connection.php';
-require __DIR__ . '/../../vendor/autoload.php';  // Load the Composer autoloader
-require __DIR__ . '/../../components/logger.php';  // Load the Composer autoloader
+require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../../components/logger.php';
 require __DIR__ . '/../../components/system_log.php';
-// Include JWT library
 use \Firebase\JWT\JWT;
-
 use Dotenv\Dotenv;
-// Load env
 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
-// Include database connection
-
 header('Content-Type: application/json');
-
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     echo json_encode(["success" => false, "message" => "Invalid request method"]);
     exit();
 }
-
 $username = trim($_POST["username"] ?? '');
 $password = trim($_POST["password"] ?? '');
-
 if (empty($username) || empty($password)) {
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "Username and password are required"]);
     exit();
 }
-
 try {
-    // Prepare query to fetch user details
     $stmt = $connect->prepare("SELECT user_id, name, username, user_type, password, status FROM users WHERE username = :username LIMIT 1");
     $stmt->bindParam(':username', $username, PDO::PARAM_STR);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
     if (!$user) {
         echo json_encode(["success" => false, "message" => "Invalid username or password"]);
         logAction(
@@ -61,7 +48,6 @@ try {
         );
         exit();
     }
-
     if ($user["status"] !== 'active') {
         echo json_encode(["success" => false, "message" => "User account is not active"]);
         logAction(
@@ -99,16 +85,12 @@ try {
         "exp" => $refreshTokenExpiresAt  // Expiry time for refresh token (30 days)
     ];
 
-    // Define your secret key (use something complex and secure in production)
-    $secretKey = $_ENV['JWS_SECRET_KEY'];  // Change this to a more secure key
+    $secretKey = $_ENV['JWS_SECRET_KEY'];
 
-    // Encode the access token using the payload, secret key, and algorithm (HS256)
     $jwt = JWT::encode($payload, $secretKey, 'HS256');
 
-    // Encode the refresh token using the refresh payload
     $refreshToken = JWT::encode($refreshPayload, $secretKey, 'HS256');
 
-    // Respond with both the JWT access token and the refresh token
     echo json_encode([
         "success" => true,
         "message" => "Login successful",

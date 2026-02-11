@@ -22,7 +22,7 @@ if (isset($_GET['order_id'])) {
     <!-- Sidebar -->
     <div class="custom-sidebar">
         <div class="custom-sidebar-logo">
-            <img src="Capstone Assets/LogoMain.png" alt="Logo">
+            <img src="Capstone Assets/newLogo.png" alt="Logo">
         </div>
         <div class="custom-sidebar-menu">
             <button class="custom-menu-item" onclick="fetchMenus('Samgyupsal', '.menu-items')">Samgyupsal</button>
@@ -696,6 +696,7 @@ if (isset($_GET['order_id'])) {
         let menuId = document.getElementById("edit_menu_id").value;
         let actionUrl = menuId ? "db_queries/update_queries/update_menu.php" : "db_queries/insert_queries/insert_menu.php";
         formData.append('owner_id', ownerID)
+        console.log(...formData);
         loader.show()
         fetch(actionUrl, {
                 method: "POST",
@@ -1003,28 +1004,25 @@ if (isset($_GET['order_id'])) {
                     fetch("db_queries/delete_queries/delete_promo.php", {
                             method: "POST",
                             headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
+                                "Content-Type": "application/json"
                             },
-                            body: {
+                            body: JSON.stringify({
                                 promoId: promoId,
                                 owner_id: ownerID
-                            }
+                            })
                         })
                         .then(res => res.json())
                         .then(res => {
                             if (res.status === "success") {
-                                // alert("Promo deleted.");
                                 showAlert('success-alert', 'Promo deleted.');
                                 fetchPromos("all", PromoCurrentPage);
                             } else {
-                                // alert("Failed to delete promo.");
-                                CustomAlert.alert('Failed to delete promo.', 'error');
+                                CustomAlert.alert(res.message || 'Failed to delete promo.', 'error');
                             }
                         })
                         .catch(error => console.error('Error:', error))
-                        .finally(() => {
-                            loader.hide()
-                        })
+                        .finally(() => loader.hide());
+
                 });
 
         }
@@ -1054,6 +1052,13 @@ if (isset($_GET['order_id'])) {
                     if (!quantityElement || !quantityElement.classList.contains("item-quantity")) return;
 
                     let quantity = parseInt(quantityElement.innerText) || 0;
+
+                    // ✅ Prevent quantity from exceeding 100
+                    if (quantity >= 100) {
+                        showAlert("error-alert", "Maximum quantity is 100.");
+                        return;
+                    }
+
                     quantity += 1;
                     quantityElement.innerText = quantity;
 
@@ -1162,9 +1167,9 @@ if (isset($_GET['order_id'])) {
 
         let receiptHeader = `
                     <div class="receipt-header">
-                        <img src="Capstone Assets/LogoMain.png" alt="Chia's Corner Logo" class="receipt-logo">
-                        <h2>CHIA'S CORNER</h2>
-                        <p>Langaray St, Dagat-dagatan Caloocan City, Philippines</p>
+                        <img src="Capstone Assets/newLogo.png" alt="SamgyupKaya Logo" class="receipt-logo">
+                        <h2>SamgyupKaya</h2>
+                        <p>Padas street, Cor Langaray St, Caloocan, 1400 Metro Manila</p>
                         <p>Phone#: 0926 200 4346</p>
                     </div>
                 `;

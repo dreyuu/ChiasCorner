@@ -101,12 +101,13 @@ try {
     // }
 
     // Step 5: Insert Payment Details
-    $stmt = $connect->prepare("INSERT INTO payments (order_id, amount_paid, payment_method, payment_status)
-                            VALUES (:order_id, :amount_paid, :payment_method, 'paid')");
+    $stmt = $connect->prepare("INSERT INTO payments (order_id, amount_paid, payment_method, payment_status, payment_date)
+                            VALUES (:order_id, :amount_paid, :payment_method, 'paid', :payment_date)");
     $stmt->execute([
         ':order_id' => $order_id,
         ':amount_paid' => $amount_paid,
-        ':payment_method' => $payment_method
+        ':payment_method' => $payment_method,
+        ':payment_date' => localNow()
     ]);
 
     // Step 5.5: Calculate and update VAT
@@ -121,12 +122,13 @@ try {
     if ($order) {
 
         // Step 6: Mark Order as Paid
-        $stmt = $connect->prepare("UPDATE orders SET payment_status = 'paid', paid_amount = :amount_paid, vat_amount = :vat_amount, vatable_amount = :vatable_amount WHERE order_id = :order_id");
+        $stmt = $connect->prepare("UPDATE orders SET payment_status = 'paid', paid_amount = :amount_paid, vat_amount = :vat_amount, vatable_amount = :vatable_amount, order_date = :order_date WHERE order_id = :order_id");
         $stmt->execute([
             ':amount_paid' => $amount_paid,
             ':order_id' => $order_id,
             ':vat_amount' => $vat_amount,
-            ':vatable_amount' => $vatable_amount
+            ':vatable_amount' => $vatable_amount,
+            ':order_date' => localNow()
         ]);
     }
     // Step 7: Fetch ordered items as a comma-separated list
@@ -139,13 +141,16 @@ try {
     $items_ordered = $order_items['items_ordered'] ?? 'No items';
 
     // Step 8: Move Order to Order History with Ordered Items
-    $stmt = $connect->prepare("INSERT INTO order_history (order_id, user_id, order_date, total_price, payment_status, paid_amount, discount_amount, vat_amount, vatable_amount, items_ordered)
-        SELECT o.order_id, o.user_id, o.order_date, o.total_price, o.payment_status, o.paid_amount, o.discount_amount, o.vat_amount, o.vatable_amount, :items_ordered
+    $stmt = $connect->prepare("INSERT INTO order_history (order_id, user_id, order_date, total_price, payment_status, paid_amount, discount_amount, vat_amount, vatable_amount, items_ordered, archived_date)
+        SELECT o.order_id, o.user_id, o.order_date, o.total_price, o.payment_status, o.paid_amount, o.discount_amount, o.vat_amount, o.vatable_amount, :items_ordered, :archived_date
         FROM orders o WHERE o.order_id = :order_id");
     $stmt->execute([
         ':order_id' => $order_id,
-        ':items_ordered' => $items_ordered
+        ':items_ordered' => $items_ordered,
+        ':archived_date' => localNow()
     ]);
+
+
 
     // Step 9: Notify Admin if Stock is Low
     // $lowStockMsg = "";

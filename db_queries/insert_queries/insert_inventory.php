@@ -44,10 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // ✅ Ensure ingredient exists in inventory (initialize to 0 if not)
-        $insertInventoryQuery = "INSERT IGNORE INTO inventory (ingredient_id, current_stock)
-                                VALUES (:ingredient_id, 0)";
+        $insertInventoryQuery = "INSERT IGNORE INTO inventory (ingredient_id, current_stock, date_added)
+                                VALUES (:ingredient_id, 0, :date_added)";
         $stmtInsertInventory = $connect->prepare($insertInventoryQuery);
-        $stmtInsertInventory->execute([':ingredient_id' => $ingredient_id]);
+        $stmtInsertInventory->execute([
+            ':ingredient_id' => $ingredient_id,
+            ':date_added' => localNow()
+        ]);
 
         // ✅ Insert stock batch (now safe because ingredient exists in inventory)
         $batchQuery = "INSERT INTO stock_batches (ingredient_id, supplier_id, quantity, cost, expiration_date)
@@ -68,22 +71,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $total_quantity = $stmtTotal->fetchColumn();
 
         // ✅ Update inventory with recalculated quantity
-        $inventoryQuery = "UPDATE inventory SET current_stock = :total_quantity WHERE ingredient_id = :ingredient_id";
+        $inventoryQuery = "UPDATE inventory SET current_stock = :total_quantity, date_added = :date_added WHERE ingredient_id = :ingredient_id";
         $stmtInventory = $connect->prepare($inventoryQuery);
         $stmtInventory->execute([
             ':ingredient_id' => $ingredient_id,
-            ':total_quantity' => $total_quantity
+            ':total_quantity' => $total_quantity,
+            ':date_added' => localNow()
         ]);
 
         // ✅ Log restock in inventory_transactions
-        $transactionQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit)
-                            VALUES (:ingredient_id, 'restock', :stock_quantity, :unit)";
+        // $transactionQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit)
+        //                     VALUES (:ingredient_id, 'restock', :stock_quantity, :unit)";
+        // $stmtTransaction = $connect->prepare($transactionQuery);
+        // $stmtTransaction->execute([
+        //     ':ingredient_id' => $ingredient_id,
+        //     ':stock_quantity' => $stock_quantity,
+        //     ':unit' => $unit
+        // ]);
+
+        $transactionQuery = "INSERT INTO inventory_transactions (ingredient_id, transaction_type, quantity, unit, transaction_date)
+                        VALUES (:ingredient_id, 'restock', :stock_quantity, :unit, :transaction_date)";
+
         $stmtTransaction = $connect->prepare($transactionQuery);
+
+        // Get the current date and time in the format YYYY-MM-DD HH:MM:SS
+
         $stmtTransaction->execute([
             ':ingredient_id' => $ingredient_id,
             ':stock_quantity' => $stock_quantity,
-            ':unit' => $unit
+            ':unit' => $unit,
+            ':transaction_date' => localNow() // Adding the current date and time
         ]);
+
 
         // ✅ Commit transaction
         $connect->commit();
